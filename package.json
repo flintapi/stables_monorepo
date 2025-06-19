@@ -1,0 +1,16 @@
+{
+    "version": "0.0.1",
+    "name": "flintapi",
+    "license": "MIT",
+    "private": true,
+    "workspaces": [
+        "packages/*",
+        "apps/*"
+    ],
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "scripts": {
+        "app:faucet:dev": "bun run --filter @flintapi/faucet dev"
+    }
+}
