@@ -1,7 +1,8 @@
-import { createAPIFileRoute } from '@tanstack/react-start/api'
+import { createServerFileRoute } from '@tanstack/react-start/server'
+import { any } from 'zod'
 
-export const APIRoute = createAPIFileRoute('/api/demo-names')({
-  GET: async ({ request }) => {
+export const ServerRoute = createServerFileRoute('/api/demo-names').methods({
+  GET: () => {
     return new Response(JSON.stringify(['Alice', 'Bob', 'Charlie']), {
       headers: {
         'Content-Type': 'application/json',

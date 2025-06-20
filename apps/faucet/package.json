@@ -3,14 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "vinxi start",
-    "build": "vinxi build",
+    "start": "node .output/server/index.mjs",
+    "build": "vite build",
     "serve": "vite preview",
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
-    "dev": "vinxi dev"
+    "dev": "vite dev --port 3000"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.2.3",
