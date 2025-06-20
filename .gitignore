@@ -1,3 +1,5 @@
 node_modules
 .helix
 .vinxi
+pnpm-lock.yaml
+.turbo
