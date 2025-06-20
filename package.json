@@ -8,6 +8,7 @@
         "apps/*",
         "services/*"
     ],
+    "packageManager": "pnpm@10.8.1",
     "devDependencies": {
         "@types/bun": "latest"
     },
