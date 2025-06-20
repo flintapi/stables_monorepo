@@ -17,3 +17,5 @@ This service acts as a central entry point for all incoming requests to the Flin
 - Service discovery and registration
 - Health checks and monitoring
 - Request caching and queuing
+
+TODO: move this over the README.md file
