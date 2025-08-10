@@ -3,3 +3,5 @@ node_modules
 .vinxi
 pnpm-lock.yaml
 .turbo
+.DS_Store
+.env.local
