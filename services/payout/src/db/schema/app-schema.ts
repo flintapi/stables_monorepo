@@ -1,25 +1,26 @@
 // import { z } from "@hono/zod-openapi";
-import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, decimal, uuid, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { toZodV4SchemaTyped } from "@/lib/zod-utils";
 
-export const transactions = sqliteTable("transactions", {
-  id: text()
+export const transactions = pgTable("transactions", {
+  id: uuid("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  type: text({ enum: ["payout", "ramp"] }).default("payout").notNull(),
-  status: text({ enum: ["pending", "completed", "failed"] })
+  type: text("type", { enum: ["payout", "ramp"] }).default("payout").notNull(),
+  status: text("status", { enum: ["pending", "completed", "failed"] })
     .notNull()
     .default("pending"),
-  network: text({ enum: ["bsc", "base"] }).default("base").notNull(),
-  reference: text().notNull(),
-  accountNumber: text().notNull(),
-  bankCode: text().notNull(),
-  amount: real().notNull(),
-  createdAt: integer({ mode: "timestamp" })
+  network: text("network", { enum: ["bsc", "base"] }).default("base").notNull(),
+  reference: text("reference").notNull(),
+  accountNumber: text("account_number").notNull(),
+  bankCode: text("bank_code").notNull(),
+  amount: decimal("amount").notNull(),
+  transactionHash: text("transaction_hash"),
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
-  updatedAt: integer({ mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .$defaultFn(() => new Date())
     .$onUpdate(() => new Date()),
 });

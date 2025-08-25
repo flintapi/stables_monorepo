@@ -1,6 +1,6 @@
 {
-  "id": "30432ee6-c9f6-40ec-a1de-cad089ed1bc0",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "b03bd83d-c726-4532-86b9-859e1f714fc1",
+  "prevId": "00367584-f3bb-4188-9bb5-21b24b7469fd",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -58,6 +58,12 @@
           "type": "numeric",
           "primaryKey": false,
           "notNull": true
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -443,6 +449,12 @@
         },
         "image": {
           "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "collection_address": {
+          "name": "collection_address",
           "type": "text",
           "primaryKey": false,
           "notNull": false

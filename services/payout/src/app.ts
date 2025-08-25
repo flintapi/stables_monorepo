@@ -1,7 +1,10 @@
 import configureOpenAPI from "@/lib/configure-open-api";
 import createApp from "@/lib/create-app";
 import index from "@/routes/index.route";
+import payouts from "@/routes/payouts/payouts.index";
 import users from "@/routes/users/users.index";
+import webhooks from "@/routes/webhooks/webhooks.index";
+import workflows from "@/routes/workflows/workflows.index";
 
 import { validateRequest } from "./middlewares/validate-request";
 
@@ -11,6 +14,9 @@ configureOpenAPI(app);
 
 const routes = [
   index,
+  users,
+  workflows,
+  webhooks,
 ] as const;
 
 routes.forEach((route) => {
@@ -18,10 +24,10 @@ routes.forEach((route) => {
 });
 
 const guardedRoutes = [
-  users,
+  payouts,
 ] as const;
 
-app.use(async (c, next) => validateRequest(c, next));
+app.use((c, next) => validateRequest(c, next));
 guardedRoutes.forEach((route) => {
   app.route("/", route);
 });

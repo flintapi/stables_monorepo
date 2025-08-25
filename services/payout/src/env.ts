@@ -14,35 +14,47 @@ expand(config({
 const EnvSchema = z.object({
   NODE_ENV: z.string().default("development"),
   PORT: z.coerce.number().default(9999),
-  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]),
-  DATABASE_URL: z.string().url(),
-  DATABASE_AUTH_TOKEN: z.string().optional(),
+  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("debug"),
+  DATABASE_URL: z.string(),
+  // DATABASE_AUTH_TOKEN: z.string().optional(),
 
   // better auth
-  BETTER_AUTH_URL: z.string().url(),
-  BETTER_AUTH_SECRET: z.string().min(12).max(128),
+  BETTER_AUTH_URL: z.url().optional(),
+  BETTER_AUTH_SECRET: z.string().min(12).max(128).optional(),
+
+  // Plunk
+  PLUNK_API_URL: z.url().optional(),
+  PLUNK_API_KEY: z.string().min(4).optional(),
 
   // Bell bank
-  BELLBANK_CK: z.string().min(1),
-  BELLBANK_CS: z.string().min(1),
-  BELLBANK_API_URL: z.string().url(),
+  BELLBANK_CK: z.string().min(1).optional(),
+  BELLBANK_CS: z.string().min(1).optional(),
+  BELLBANK_API_URL: z.url().optional(),
 
   // Collection address
-  COLLECTION_ADDRESS: z.string().startsWith("0x"),
+  COLLECTION_ADDRESS: z.string().startsWith("0x").optional(),
 
-  QSTASH_CURRENT_SIGNING_KEY: z.string(),
-  QSTASH_NEXT_SIGNING_KEY: z.string(),
+  QSTASH_CURRENT_SIGNING_KEY: z.string().optional(),
+  QSTASH_NEXT_SIGNING_KEY: z.string().optional(),
+  QSTASH_TOKEN: z.string().optional(),
 
+  // Centiiv
+  CENTIIV_API_KEY: z.string().min(1).optional(),
+  CENTIIV_WH_SECRET_KEY: z.string().min(1).optional(),
+  CENTIIV_API_URL: z.url().optional(),
+  CENTIIV_WH_URL: z.url().optional(),
+
+  TRANSACTION_EMAIL: z.email().optional()
 }).superRefine((input, ctx) => {
-  if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.invalid_type,
-      expected: "string",
-      received: "undefined",
-      path: ["DATABASE_AUTH_TOKEN"],
-      message: "Must be set when NODE_ENV is 'production'",
-    });
-  }
+  // if (input.NODE_ENV !== "development" && !input.DATABASE_AUTH_TOKEN) {
+  //   ctx.addIssue({
+  //     code: z.ZodIssueCode.invalid_type,
+  //     expected: "string",
+  //     received: "undefined",
+  //     path: ["DATABASE_AUTH_TOKEN"],
+  //     message: "Must be set when NODE_ENV is 'production'",
+  //   });
+  // }
 });
 
 export type env = z.infer<typeof EnvSchema>;

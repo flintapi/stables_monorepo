@@ -1,27 +1,30 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { boolean, timestamp, integer, pgTable, text } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
 
-export const user = sqliteTable("user", {
+export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
+  emailVerified: boolean("email_verified")
     .$defaultFn(() => false)
     .notNull(),
   image: text("image"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  collectionAddress: text("collection_address"),
+  createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+export const selectUserSchema = createSelectSchema(user)
 
-export const session = sqliteTable("session", {
+export const session = pgTable("session", {
   id: text("id").primaryKey(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   userId: text("user_id")
@@ -29,7 +32,7 @@ export const session = sqliteTable("session", {
     .references(() => user.id, { onDelete: "cascade" }),
 });
 
-export const account = sqliteTable("account", {
+export const account = pgTable("account", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
@@ -39,32 +42,28 @@ export const account = sqliteTable("account", {
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
-  accessTokenExpiresAt: integer("access_token_expires_at", {
-    mode: "timestamp",
-  }),
-  refreshTokenExpiresAt: integer("refresh_token_expires_at", {
-    mode: "timestamp",
-  }),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
   scope: text("scope"),
   password: text("password"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const verification = sqliteTable("verification", {
+export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").$defaultFn(
     () => /* @__PURE__ */ new Date(),
   ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+  updatedAt: timestamp("updated_at").$defaultFn(
     () => /* @__PURE__ */ new Date(),
   ),
 });
 
-export const apikey = sqliteTable("apikey", {
+export const apikey = pgTable("apikey", {
   id: text("id").primaryKey(),
   name: text("name"),
   start: text("start"),
@@ -75,19 +74,19 @@ export const apikey = sqliteTable("apikey", {
     .references(() => user.id, { onDelete: "cascade" }),
   refillInterval: integer("refill_interval"),
   refillAmount: integer("refill_amount"),
-  lastRefillAt: integer("last_refill_at", { mode: "timestamp" }),
-  enabled: integer("enabled", { mode: "boolean" }).default(true),
-  rateLimitEnabled: integer("rate_limit_enabled", { mode: "boolean" }).default(
+  lastRefillAt: timestamp("last_refill_at"),
+  enabled: boolean("enabled").default(true),
+  rateLimitEnabled: boolean("rate_limit_enabled").default(
     true,
   ),
   rateLimitTimeWindow: integer("rate_limit_time_window").default(86400000),
   rateLimitMax: integer("rate_limit_max").default(10),
   requestCount: integer("request_count"),
   remaining: integer("remaining"),
-  lastRequest: integer("last_request", { mode: "timestamp" }),
-  expiresAt: integer("expires_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  lastRequest: timestamp("last_request"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
   permissions: text("permissions"),
   metadata: text("metadata"),
 });

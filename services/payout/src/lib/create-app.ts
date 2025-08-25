@@ -2,6 +2,7 @@ import type { Schema } from "hono";
 
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { requestId } from "hono/request-id";
+import { cors } from "hono/cors"
 import { notFound, onError, serveEmojiFavicon } from "stoker/middlewares";
 import { defaultHook } from "stoker/openapi";
 
@@ -20,7 +21,10 @@ export default function createApp() {
   const app = createRouter();
   app.use(requestId())
     .use(serveEmojiFavicon("📝"))
-    .use(pinoLogger());
+    .use(pinoLogger())
+    .use(cors({
+      origin: ["*"]
+    }));
 
   app.notFound(notFound);
   app.onError(onError);

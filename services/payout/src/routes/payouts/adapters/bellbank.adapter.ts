@@ -32,6 +32,7 @@ interface TransferDto {
 class BellBankAdapter {
   private fetch: BetterFetch;
   private token: string | null = null;
+  // private tokenInterval: NodeJS.Timeout;
 
   constructor() {
     console.log(`Bellbank API_URL`, env.BELLBANK_API_URL);
@@ -55,8 +56,8 @@ class BellBankAdapter {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "consumerKey": env.BELLBANK_CK,
-          "consumerSecret": env.BELLBANK_CS,
+          "consumerKey": env.BELLBANK_CK!,
+          "consumerSecret": env.BELLBANK_CS!,
           "validityTime": "30",
         },
       });
@@ -152,7 +153,6 @@ class BellBankAdapter {
 
   async queryTransaction(dto: { reference: string }) {
     const token = await this.getToken();
-    console.log("Token", token);
 
     const { data, error } = await this.fetch<{
       success: boolean;

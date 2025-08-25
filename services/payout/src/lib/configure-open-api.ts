@@ -9,7 +9,7 @@ export default function configureOpenAPI(app: AppOpenAPI) {
     openapi: "3.0.0",
     info: {
       version: packageJSON.version,
-      title: "Tasks API",
+      title: "Flint Payout API",
     },
   });
 
@@ -23,6 +23,9 @@ export default function configureOpenAPI(app: AppOpenAPI) {
         targetKey: "js",
         clientKey: "fetch",
       },
+      title: "Flint API reference",
+      pageTitle: "Flint API Payout reference",
+      hideModels: true,
     }),
   );
 }

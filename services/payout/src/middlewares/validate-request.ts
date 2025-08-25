@@ -2,6 +2,7 @@ import { createMiddleware } from "hono/factory";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 
 import { auth } from "@/lib/auth";
+import db from "@/db";
 
 export const validateRequest = createMiddleware(async (c, next) => {
   const key = c.req.header("x-api-key") || c.req.header("flint-api-key");
@@ -28,6 +29,15 @@ export const validateRequest = createMiddleware(async (c, next) => {
       message: result.error?.message || "Invalid API key",
     });
   }
+
+  const merchant = await db.query.user.findFirst({
+    where(fields, ops) {
+      return ops.eq(fields.id, result.key?.userId!)
+    }
+  })
+
+  c.set("merchant", merchant)
+  c.set("merchantName", merchant?.name)
 
   await next();
 });

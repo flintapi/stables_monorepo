@@ -13,13 +13,13 @@ export const create: AppRouteHandler<CreateUserRoute> = async (c) => {
       email: body.email,
       type: "sign-in",
     },
-  });
-  console.log("Email verified successfully", data.success);
+  }).catch((error: any) => console.log("error sending email", error));
+  console.log("Email verified successfully", data?.success);
 
-  if (data.success) {
+  if (data?.success) {
     return c.json({
       successful: true,
-      message: "Email verification successful",
+      message: "Email verification OTP sent",
     }, 200);
   }
 
@@ -84,6 +84,8 @@ export const createApiKey: AppRouteHandler<CreateAPIKeyRoute> = async (c) => {
   return c.json({
     successful: true,
     message: "API key created successfully",
-    data,
+    data: {
+      key: data.key
+    },
   }, 200);
 };

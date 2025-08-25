@@ -1,11 +1,17 @@
+import { selectUserSchema } from "@/db/schema/auth-schema";
 import type { OpenAPIHono, RouteConfig, RouteHandler } from "@hono/zod-openapi";
 import type { WorkflowBindings } from "@upstash/workflow/hono";
 import type { Schema } from "hono";
 import type { PinoLogger } from "hono-pino";
+import z from "zod"
+
+export type Merchant = z.infer<typeof selectUserSchema>;
 
 export interface AppBindings extends WorkflowBindings {
   Variables: {
     logger: PinoLogger;
+    merchantName: string;
+    merchant: Merchant;
   };
 };
 

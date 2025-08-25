@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import BellBankAdapter from "../bellbank.adapter";
+import { createPublicClient, decodeFunctionData, formatUnits, http, parseAbi, parseAbiItem, parseEventLogs, parseTransaction, parseUnits } from "viem";
+import { base } from "viem/chains";
+import env from "@/env";
 
 describe("bellbak Adapter Test Suit", () => {
   const adapter = new BellBankAdapter();
@@ -70,8 +73,49 @@ describe("bellbak Adapter Test Suit", () => {
     expect(details.status).toBeDefined();
   }, { timeout: 10000 * 100 });
 
-  it.only("should get transaction for merchant", async () => {
+  it.skip("should get transaction for merchant", async () => {
     const transactions = await adapter.transactions();
     console.log("Transactions", transactions);
   }, { timeout: 10000 * 100 });
+
+
+  it.only("should decode transaction hash", async () => {
+    const client = createPublicClient({
+      transport: http(),
+      chain: base,
+    });
+
+    const transferEventAbi = parseAbiItem(
+      'event Transfer(address indexed from, address indexed to, uint256 value)'
+    )
+    const tokenAddress = `0x46C85152bFe9f96829aA94755D9f915F9B10EF5F`
+    const transaction = await client.waitForTransactionReceipt({ hash: `0x165e9a731ea787fcd7e55ca89beb05877597ec8a07dafad22dd23733b7875335` as `0x${string}`, confirmations: 64, timeout: 10000*10 })
+    console.log("TO account", transaction.to)
+    const transferLogs = transaction.logs.filter(log => log.address.toLowerCase() === tokenAddress.toLowerCase())
+
+    const transfers = []
+
+    for (const log of transferLogs) {
+      try {
+        const decodedLog = parseEventLogs({
+          abi: [transferEventAbi],
+          logs: [log]
+        })[0]
+
+        if (decodedLog.eventName === 'Transfer' && decodedLog.args.to.toLowerCase() === env.COLLECTION_ADDRESS?.toLowerCase()) {
+          transfers.push({
+            from: decodedLog.args.from,
+            to: decodedLog.args.to,
+            value: formatUnits(decodedLog.args.value, 6), // This is the amount in wei/smallest unit
+            tokenAddress: log.address
+          })
+        }
+      } catch (parseError) {
+        console.warn('Failed to parse log:', parseError)
+        continue
+      }
+    }
+
+    console.log('Transfers', transfers)
+  }, {timeout: 10000*100})
 });
