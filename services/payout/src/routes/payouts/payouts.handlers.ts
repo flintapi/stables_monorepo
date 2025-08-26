@@ -16,6 +16,7 @@ import type { CollectionAddressRoute, InitPayoutRoute, ListBanksRoute } from "./
 import BellBankAdapter from "./adapters/bellbank.adapter";
 
 export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
+  const FEE_AMOUNT_IN_NAIRA = 60.00;
   try {
     const body = c.req.valid("json");
     console.log("body", body);
@@ -83,11 +84,13 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
     }
 
     const adapter = new BellBankAdapter();
+    let accountDetails: Record<string, any>;
     try {
       const result = await adapter.nameEnquiry({
         accountNumber: body.accountNumber,
         bankCode: body.bankCode,
       });
+      accountDetails = result;
 
       console.log("Result", result);
     }
@@ -125,13 +128,34 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
     initializeDisbursement({
       accountNumber: body.accountNumber,
       bankCode: body.bankCode,
-      amount: Number(body.amount.toFixed(2)),
+      amount: Number((body.amount - FEE_AMOUNT_IN_NAIRA).toFixed(2)),
       reference: body.reference,
       narration: body.narration,
       transactionHash: body.transactionHash as `0x${string}`,
       senderName: merchantName || "Bread",
     }).then((data) => {
       console.log("Data", data);
+      if (!data.sessionId) {
+        // TODO: transaction issue from NIBBS
+        sendEmail({
+          to: env.TRANSACTION_EMAIL || "flintapi.io@gmail.com",
+          subject: "Absent session ID from NIBSS with bell bank",
+          body: `
+          The transaction with with transaction hash ${body.transactionHash}<br/>
+          from the merchant ${merchantName}<br/>
+          on the ${body.network} failed to be disbursed, confirm and retry manually<br/>
+          with the following account details:<br/>
+          - Bank: ${accountDetails?.bank}<br/>
+          - Account Name: ${accountDetails?.accountName}<br/>
+          - Account Number: ${body.accountNumber}<br/>
+          - Bank Code: ${body.bankCode}<br/>
+          - Amount: ${body.amount}<br/>
+          - Narration: ${body.narration}
+        `,
+        })
+          .then(value => console.log("Failure alert sent", value))
+          .catch(error => console.log("Failed to send failure alert", error));
+      }
     }).catch((error: any) => {
       console.log("Error confirming and disbuesing", error);
       sendEmail({
@@ -142,8 +166,10 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
           from the merchant ${merchantName}<br/>
           on the ${body.network} failed to be disbursed, confirm and retry manually<br/>
           with the following account details:<br/>
+          - Bank: ${accountDetails?.bank}<br/>
+          - Account Name: ${accountDetails?.accountName}<br/>
           - Account Number: ${body.accountNumber}<br/>
-          - Bank: ${body.bankCode}<br/>
+          - Bank Code: ${body.bankCode}<br/>
           - Amount: ${body.amount}<br/>
           - Narration: ${body.narration}
         `,
