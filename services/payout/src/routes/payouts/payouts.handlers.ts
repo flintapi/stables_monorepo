@@ -128,7 +128,9 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
     initializeDisbursement({
       accountNumber: body.accountNumber,
       bankCode: body.bankCode,
-      amount: Number((body.amount - FEE_AMOUNT_IN_NAIRA).toFixed(2)),
+      amount: merchantName.toLowerCase() === "bread"
+        ? Number(body.amount.toFixed(2))
+        : Number((body.amount - FEE_AMOUNT_IN_NAIRA).toFixed(2)),
       reference: body.reference,
       narration: body.narration,
       transactionHash: body.transactionHash as `0x${string}`,
