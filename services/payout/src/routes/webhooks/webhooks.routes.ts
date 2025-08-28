@@ -32,4 +32,35 @@ export const bellbank = createRoute({
   },
 });
 
+export const centiiv = createRoute({
+  tags,
+  path: "/webhooks/centiiv",
+  hide: true,
+  method: "post",
+  request: {
+    body: jsonContent(
+      z.any(),
+      "Event payload",
+    ),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+      }),
+      "Webhook response",
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+      }),
+      "Bad request",
+    ),
+  },
+});
+
+
 export type BellbankRoute = typeof bellbank;
+export type CentiivRoute = typeof centiiv;

@@ -3,6 +3,7 @@ import { formatUnits, parseAbiItem, parseEventLogs, TransactionReceipt, type Pub
 import BellBankAdapter from "@/routes/payouts/adapters/bellbank.adapter";
 import env from "@/env";
 import { Merchant } from "@/lib/types";
+import CentiivAdapter from "@/routes/payouts/adapters/centiiv.adapter";
 
 interface Payload {
   accountNumber: string;
@@ -15,18 +16,19 @@ interface Payload {
 }
 export async function initializeDisbursement(payload: Payload) {
 
-  const adapter = new BellBankAdapter();
+  const centiivAdapter = new CentiivAdapter()
+  // const adapter = new BellBankAdapter();
 
-  const transferResult = await adapter.transfer({
-    beneficiaryAccountNumber: payload?.accountNumber,
-    beneficiaryBankCode: payload?.bankCode,
+  const transferResult = await centiivAdapter.transfer({
+    accountNumber: payload?.accountNumber,
+    bankCode: payload?.bankCode,
     amount: payload?.amount,
     narration: payload?.narration,
     reference: payload?.reference,
-    senderName: payload?.senderName,
+    // senderName: payload?.senderName,
   });
 
-  console.log("Transfer result", transferResult);
+  console.log("Transfer result with centiiv", transferResult);
 
   // await db.update(transactions).set({
   //   status: "completed",

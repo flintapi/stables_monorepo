@@ -14,6 +14,7 @@ export const transactions = pgTable("transactions", {
     .default("pending"),
   network: text("network", { enum: ["bsc", "base"] }).default("base").notNull(),
   reference: text("reference").notNull(),
+  trackingId: uuid("tracking_id"),
   accountNumber: text("account_number").notNull(),
   bankCode: text("bank_code").notNull(),
   amount: decimal("amount").notNull(),

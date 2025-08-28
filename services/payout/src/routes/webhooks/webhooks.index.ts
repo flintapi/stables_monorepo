@@ -4,6 +4,7 @@ import * as handlers from "./webhooks.handlers";
 import * as routes from "./webhooks.routes";
 
 const router = createRouter()
-  .openapi(routes.bellbank, handlers.bellbank);
+  .openapi(routes.bellbank, handlers.bellbank)
+  .openapi(routes.centiiv, handlers.centiiv);
 
 export default router;

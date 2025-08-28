@@ -19,3 +19,14 @@ export interface AppBindings extends WorkflowBindings {
 export type AppOpenAPI<S extends Schema = {}> = OpenAPIHono<AppBindings, S>;
 
 export type AppRouteHandler<R extends RouteConfig> = RouteHandler<R, AppBindings>;
+
+// Centiiv
+export interface CentiivDisbursementInput {
+  trackingId: string;
+  amount: number;
+  currency: `NGN`;
+  recipientAccountNumber: string;
+  recipientBankCode: string;
+  description: string;
+}
+

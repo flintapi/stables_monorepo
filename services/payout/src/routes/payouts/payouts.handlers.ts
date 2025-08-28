@@ -13,7 +13,8 @@ import { transactionHashAndRefDedup } from "@/lib/transaction-hash-dedup";
 
 import type { CollectionAddressRoute, InitPayoutRoute, ListBanksRoute } from "./payouts.routes";
 
-import BellBankAdapter from "./adapters/bellbank.adapter";
+// import BellBankAdapter from "./adapters/bellbank.adapter";
+import CentiivAdapter from "./adapters/centiiv.adapter";
 
 export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
   const FEE_AMOUNT_IN_NAIRA = 60.00;
@@ -83,16 +84,21 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
       }, HttpStatusCodes.BAD_REQUEST);
     }
 
-    const adapter = new BellBankAdapter();
+    // const adapter = new BellBankAdapter();
+    const centiivAdapter = new CentiivAdapter();
     let accountDetails: Record<string, any>;
     try {
-      const result = await adapter.nameEnquiry({
-        accountNumber: body.accountNumber,
+      const result = await centiivAdapter.nameEnquiry({
         bankCode: body.bankCode,
-      });
+        accountNumber: body.accountNumber
+      })
+      // const result = await adapter.nameEnquiry({
+      //   accountNumber: body.accountNumber,
+      //   bankCode: body.bankCode,
+      // });
       accountDetails = result;
 
-      console.log("Result", result);
+      console.log("Name Enquiry Result", result);
     }
     catch (error: any) {
       console.log("Name enquiry failed", error);
@@ -103,9 +109,11 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
     }
 
     // Create transaction in db
+    const centiivTrackingId = crypto.randomUUID()
     try {
       const [newTransaction] = await db.insert(transactions).values({
         reference: body.reference,
+        trackingId: centiivTrackingId,
         accountNumber: body.accountNumber,
         bankCode: body.bankCode,
         amount: body.amount.toString(),
@@ -131,33 +139,33 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
       amount: merchantName.toLowerCase() === "bread"
         ? Number(body.amount.toFixed(2))
         : Number((body.amount - FEE_AMOUNT_IN_NAIRA).toFixed(2)),
-      reference: body.reference,
+      reference: centiivTrackingId,
       narration: body.narration,
       transactionHash: body.transactionHash as `0x${string}`,
       senderName: merchantName || "Bread",
     }).then((data) => {
       console.log("Data", data);
-      if (!data.sessionId) {
+      // if (!data.sessionId) {
         // TODO: transaction issue from NIBBS
-        sendEmail({
-          to: env.TRANSACTION_EMAIL || "flintapi.io@gmail.com",
-          subject: "Absent session ID from NIBSS with bell bank",
-          body: `
-          The transaction with with transaction hash ${body.transactionHash}<br/>
-          from the merchant ${merchantName}<br/>
-          on the ${body.network} failed to be disbursed, confirm and retry manually<br/>
-          with the following account details:<br/>
-          - Bank: ${accountDetails?.bank}<br/>
-          - Account Name: ${accountDetails?.accountName}<br/>
-          - Account Number: ${body.accountNumber}<br/>
-          - Bank Code: ${body.bankCode}<br/>
-          - Amount: ${body.amount}<br/>
-          - Narration: ${body.narration}
-        `,
-        })
-          .then(value => console.log("Failure alert sent", value))
-          .catch(error => console.log("Failed to send failure alert", error));
-      }
+        // sendEmail({
+        //   to: env.TRANSACTION_EMAIL || "flintapi.io@gmail.com",
+        //   subject: "Absent session ID from NIBSS with bell bank",
+        //   body: `
+        //   The transaction with with transaction hash ${body.transactionHash}<br/>
+        //   from the merchant ${merchantName}<br/>
+        //   on the ${body.network} failed to be disbursed, confirm and retry manually<br/>
+        //   with the following account details:<br/>
+        //   - Bank: ${accountDetails?.bank?.name}<br/>
+        //   - Account Name: ${accountDetails?.accountName}<br/>
+        //   - Account Number: ${body.accountNumber}<br/>
+        //   - Bank Code: ${body.bankCode}<br/>
+        //   - Amount: ${body.amount}<br/>
+        //   - Narration: ${body.narration}
+        // `,
+        // })
+        //   .then(value => console.log("Failure alert sent", value))
+        //   .catch(error => console.log("Failed to send failure alert", error));
+      // }
     }).catch((error: any) => {
       console.log("Error confirming and disbuesing", error);
       sendEmail({
@@ -168,7 +176,7 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
           from the merchant ${merchantName}<br/>
           on the ${body.network} failed to be disbursed, confirm and retry manually<br/>
           with the following account details:<br/>
-          - Bank: ${accountDetails?.bank}<br/>
+          - Bank: ${accountDetails?.bank?.name}<br/>
           - Account Name: ${accountDetails?.accountName}<br/>
           - Account Number: ${body.accountNumber}<br/>
           - Bank Code: ${body.bankCode}<br/>
@@ -196,9 +204,13 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
 };
 
 export const listBanks: AppRouteHandler<ListBanksRoute> = async (c) => {
-  const adapter = new BellBankAdapter();
-  const banks = await adapter.listBanks();
-  return c.json(banks, HttpStatusCodes.OK);
+  // const adapter = new BellBankAdapter();
+  const centiivAdapter = new CentiivAdapter();
+  const banks = await centiivAdapter.listBanks();
+  return c.json(banks.map((bank) => ({
+    institutionCode: bank?.code,
+    institutionName: bank?.name
+  })), HttpStatusCodes.OK);
 };
 
 export const collectionAddress: AppRouteHandler<CollectionAddressRoute> = async (c) => {
