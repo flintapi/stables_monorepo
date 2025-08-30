@@ -1,7 +1,6 @@
 import { formatUnits, parseAbiItem, parseEventLogs, TransactionReceipt, type PublicClient } from "viem";
 
 import BellBankAdapter from "@/routes/payouts/adapters/bellbank.adapter";
-import env from "@/env";
 import { Merchant } from "@/lib/types";
 import CentiivAdapter from "@/routes/payouts/adapters/centiiv.adapter";
 
@@ -17,7 +16,20 @@ interface Payload {
 export async function initializeDisbursement(payload: Payload) {
 
   const centiivAdapter = new CentiivAdapter()
-  // const adapter = new BellBankAdapter();
+  // const bellAdapter = new BellBankAdapter();
+
+  // if (payload.bankCode === '100004' || payload.bankCode === "100033") {
+  //   const transferResult = await bellAdapter.transfer({
+  //     beneficiaryAccountNumber: payload?.accountNumber,
+  //     beneficiaryBankCode: payload?.bankCode,
+  //     amount: payload?.amount,
+  //     narration: payload?.narration,
+  //     reference: payload?.reference,
+  //     senderName: payload?.senderName,
+  //   })
+  //   console.log("Transfer result with centiiv", transferResult);
+  //   return transferResult;
+  // }
 
   const transferResult = await centiivAdapter.transfer({
     accountNumber: payload?.accountNumber,
@@ -42,7 +54,7 @@ export async function confirmChainTransactionAmount(transaction: TransactionRece
   const transferEventAbi = parseAbiItem(
     'event Transfer(address indexed from, address indexed to, uint256 value)'
   )
-  const tokenAddress = chain === 'base'? `0x46C85152bFe9f96829aA94755D9f915F9B10EF5F` : `0xa8AEA66B361a8d53e8865c62D142167Af28Af058`
+  const tokenAddress = chain === 'base' ? `0x46C85152bFe9f96829aA94755D9f915F9B10EF5F` : `0xa8AEA66B361a8d53e8865c62D142167Af28Af058`
   const transferLogs = transaction.logs.filter(log => log.address.toLowerCase() === tokenAddress.toLowerCase())
 
   const transfers = []

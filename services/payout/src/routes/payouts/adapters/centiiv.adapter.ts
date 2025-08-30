@@ -23,11 +23,11 @@ class CentiivAdapter {
         "content-type": "application/json",
         "authorization": `Bearer ${env.CENTIIV_API_KEY}`,
       },
-      retry: {
-        attempts: 3,
-        delay: 1000,
-        type: "linear",
-      },
+      // retry: {
+      //   attempts: 3,
+      //   delay: 1000,
+      //   type: "linear",
+      // },
     })
   }
 

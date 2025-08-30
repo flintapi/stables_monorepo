@@ -8,7 +8,7 @@ interface IEmailProps {
   body: string;
   name?: string;
 }
-export async function sendEmail({ to, subject, body, name = "Passry" }: IEmailProps) {
+export async function sendEmail({ to, subject, body, name = "Flintapi Payout" }: IEmailProps) {
   const { data, error } = await betterFetch<{
     success: boolean;
     emails: Array<Record<string, any>>;

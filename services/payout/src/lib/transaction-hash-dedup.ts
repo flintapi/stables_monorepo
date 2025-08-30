@@ -11,6 +11,8 @@ export async function transactionHashAndRefDedup(hash: `0x${string}`, ref: strin
     }
   })
 
+  console.log(trx, ":::Transaction exists check")
+
   if(trx) return false
   return true
 }

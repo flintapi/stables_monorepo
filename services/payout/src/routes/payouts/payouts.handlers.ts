@@ -9,7 +9,6 @@ import { transactions } from "@/db/schema/app-schema";
 import env from "@/env";
 import { confirmChainTransactionAmount, initializeDisbursement } from "@/lib/confirm-transaction";
 import { sendEmail } from "@/lib/email";
-import { transactionHashAndRefDedup } from "@/lib/transaction-hash-dedup";
 
 import type { CollectionAddressRoute, InitPayoutRoute, ListBanksRoute } from "./payouts.routes";
 
@@ -49,20 +48,11 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
       transport: http(),
       chain,
     });
-    // const timeoutInMs = 60000;
 
     if (body.accountNumber.length !== 10) {
       return c.json({
         success: false,
         message: "Account number cannot be less than or greater than 10 digits",
-      }, HttpStatusCodes.BAD_REQUEST);
-    }
-
-    const isValidHash = await transactionHashAndRefDedup(body.transactionHash as `0x${string}`, body.reference);
-    if (!isValidHash) {
-      return c.json({
-        success: false,
-        message: "Transaction with provided hash or reference, already processed",
       }, HttpStatusCodes.BAD_REQUEST);
     }
 
@@ -146,31 +136,31 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
     }).then((data) => {
       console.log("Data", data);
       // if (!data.sessionId) {
-        // TODO: transaction issue from NIBBS
-        // sendEmail({
-        //   to: env.TRANSACTION_EMAIL || "flintapi.io@gmail.com",
-        //   subject: "Absent session ID from NIBSS with bell bank",
-        //   body: `
-        //   The transaction with with transaction hash ${body.transactionHash}<br/>
-        //   from the merchant ${merchantName}<br/>
-        //   on the ${body.network} failed to be disbursed, confirm and retry manually<br/>
-        //   with the following account details:<br/>
-        //   - Bank: ${accountDetails?.bank?.name}<br/>
-        //   - Account Name: ${accountDetails?.accountName}<br/>
-        //   - Account Number: ${body.accountNumber}<br/>
-        //   - Bank Code: ${body.bankCode}<br/>
-        //   - Amount: ${body.amount}<br/>
-        //   - Narration: ${body.narration}
-        // `,
-        // })
-        //   .then(value => console.log("Failure alert sent", value))
-        //   .catch(error => console.log("Failed to send failure alert", error));
+      // TODO: transaction issue from NIBBS
+      // sendEmail({
+      //   to: env.TRANSACTION_EMAIL || "flintapi.io@gmail.com",
+      //   subject: "Absent session ID from NIBSS with bell bank",
+      //   body: `
+      //   The transaction with with transaction hash ${body.transactionHash}<br/>
+      //   from the merchant ${merchantName}<br/>
+      //   on the ${body.network} failed to be disbursed, confirm and retry manually<br/>
+      //   with the following account details:<br/>
+      //   - Bank: ${accountDetails?.bank?.name}<br/>
+      //   - Account Name: ${accountDetails?.accountName}<br/>
+      //   - Account Number: ${body.accountNumber}<br/>
+      //   - Bank Code: ${body.bankCode}<br/>
+      //   - Amount: ${body.amount}<br/>
+      //   - Narration: ${body.narration}
+      // `,
+      // })
+      //   .then(value => console.log("Failure alert sent", value))
+      //   .catch(error => console.log("Failed to send failure alert", error));
       // }
     }).catch((error: any) => {
       console.log("Error confirming and disbuesing", error);
       sendEmail({
         to: env.TRANSACTION_EMAIL || "flintapi.io@gmail.com",
-        subject: "Failed payout transaction with bell bank",
+        subject: "Failed payout transaction with Centiiv",
         body: `
           The transaction with with transaction hash ${body.transactionHash}<br/>
           from the merchant ${merchantName}<br/>

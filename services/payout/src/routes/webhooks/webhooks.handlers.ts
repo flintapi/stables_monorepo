@@ -14,6 +14,7 @@ import env from "@/env";
 export const centiiv: AppRouteHandler<CentiivRoute> = async (c) => {
   const body = c.req.valid("json")
   const headers = Object.fromEntries(c.req.raw.headers.entries()) as Record<string, string>;
+  console.log("Headers", headers, body)
 
   try {
     // TODO: consume webhook and update transaction in db

@@ -1,3 +1,5 @@
+import { lockPayoutRequest } from "@/middlewares/lock-request";
+import { validateHash } from "@/middlewares/validate-hash";
 import { createRoute, z } from "@hono/zod-openapi";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 import { jsonContent, jsonContentRequired } from "stoker/openapi/helpers";
@@ -24,6 +26,10 @@ export const payout = createRoute({
       "x-api-key": z.string().min(3),
     }),
   },
+  middleware: [
+    lockPayoutRequest(60*1000),
+    validateHash()
+  ] as const,
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
       z.object({

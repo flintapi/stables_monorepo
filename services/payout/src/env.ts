@@ -44,7 +44,9 @@ const EnvSchema = z.object({
   CENTIIV_API_URL: z.url().optional(),
   CENTIIV_WH_URL: z.url().optional(),
 
-  TRANSACTION_EMAIL: z.email().optional()
+  TRANSACTION_EMAIL: z.email().optional(),
+
+  REDIS_CONNECTION_URL: z.string().optional()
 }).superRefine((input, ctx) => {
   // if (input.NODE_ENV !== "development" && !input.DATABASE_AUTH_TOKEN) {
   //   ctx.addIssue({

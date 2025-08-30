@@ -9,7 +9,7 @@ const port = env.PORT;
 // Register cron listener
 // bellbankCronListener()
 // eslint-disable-next-line no-console
-console.log(`Server is running on port http://localhost:${port}`);
+console.log(`Server is running on ports http://localhost:${port}`);
 
 serve({
   fetch: app.fetch,

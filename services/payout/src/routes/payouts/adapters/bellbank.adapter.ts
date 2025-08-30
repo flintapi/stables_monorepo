@@ -38,11 +38,11 @@ class BellBankAdapter {
     console.log(`Bellbank API_URL`, env.BELLBANK_API_URL);
     this.fetch = createFetch({
       baseURL: `${env.BELLBANK_API_URL}`,
-      retry: {
-        attempts: 3,
-        delay: 1000,
-        type: "linear",
-      },
+      // retry: {
+      //   attempts: 3,
+      //   delay: 1000,
+      //   type: "linear",
+      // },
     });
   }
 
