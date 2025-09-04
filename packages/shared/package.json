@@ -1,13 +1,28 @@
 {
   "name": "@flintapi/shared",
-  "version": "0.0.1",
-  "description": "Shared utilities for Flint API",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Shared utilities for Stables API",
   "main": "index.ts",
   "types": "./index.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    "./Queue": {
+      "types": "./dist/Queue/index.d.ts",
+      "default": "./dist/Queue/index.js",
+      "import": "./dist/Queue/index.js"
+    },
+    "./Cache": {
+      "types": "./dist/Cache/cache.facade.d.ts",
+      "default": "./dist/Cache/cache.facade.js",
+      "import": "./dist/Cache/cache.facade.js"
+    }
+  },
   "scripts": {
+    "build": "tsc && tsc-alias",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "miraclef60@gmail.com",
   "license": "ISC"
 }

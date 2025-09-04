@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "baseUrl": "./",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "typeRoots": ["../../node_modules/@types"],
+    "types": ["node"],
+    "strict": true,
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "declaration": true
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true
+  },
+  "exclude": ["Queue/WorkerSamples", "node_modules", "dist", "test"],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "eslint.config.js",
+    "prettier.config.js",
+    "vite.config.js"
+  ]
+}
