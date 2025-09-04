@@ -1,0 +1,19 @@
+{
+  "projectName": "dashboard",
+  "mode": "file-router",
+  "typescript": true,
+  "tailwind": true,
+  "packageManager": "pnpm",
+  "git": true,
+  "version": 1,
+  "framework": "react-cra",
+  "chosenAddOns": [
+    "eslint",
+    "form",
+    "shadcn",
+    "start",
+    "store",
+    "t3env",
+    "tanstack-query"
+  ]
+}
