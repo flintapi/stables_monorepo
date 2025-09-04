@@ -56,6 +56,13 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
       }, HttpStatusCodes.BAD_REQUEST);
     }
 
+    if(body.amount < 500) {
+      return c.json({
+        success: false,
+        message: "Amount must be larger than 500"
+      }, HttpStatusCodes.BAD_REQUEST);
+    }
+
     const tx = await client.getTransactionReceipt({ hash: body.transactionHash as `0x${string}` }).catch((error: any) => console.log("Error in transaction receipt", error));
     console.log("Transaction receipt in payout handler", tx);
 
@@ -128,7 +135,7 @@ export const payout: AppRouteHandler<InitPayoutRoute> = async (c) => {
       bankCode: body.bankCode,
       amount: merchantName.toLowerCase() === "bread"
         ? Number(body.amount.toFixed(2))
-        : Number((body.amount - FEE_AMOUNT_IN_NAIRA).toFixed(2)),
+        : Number(getAmountAfterFee(body.amount).toFixed(2)),
       reference: centiivTrackingId,
       narration: body.narration,
       transactionHash: body.transactionHash as `0x${string}`,
@@ -212,3 +219,12 @@ export const collectionAddress: AppRouteHandler<CollectionAddressRoute> = async 
     address: merchant.collectionAddress!,
   });
 };
+
+
+function getAmountAfterFee(amount: number): number {
+  const FEE_PERCENT = 0.001
+  const FEE_CAP = 200;
+
+  const fee = (amount * FEE_PERCENT);
+  return fee > FEE_CAP? (amount - FEE_CAP) : (amount - fee);
+}
