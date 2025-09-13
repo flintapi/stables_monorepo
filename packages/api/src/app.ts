@@ -5,6 +5,7 @@ import { HonoAdapter } from "@bull-board/hono";
 import { QueueInstances } from "@flintapi/shared/Queue";
 import { serveStatic } from "@hono/node-server/serve-static";
 
+import { auth } from "@/lib/auth";
 import configureOpenAPI from "@/lib/configure-open-api";
 import createApp from "@/lib/create-app";
 import index from "@/routes/index.route";
@@ -29,13 +30,22 @@ app.route(bullMQBasePath, serverAdapter.registerPlugin());
 
 const routes = [
   index,
-  tasks,
 ] as const;
-
 routes.forEach((route) => {
   app.route("/", route);
 });
 
-export type AppType = typeof routes[number];
+const protectedRoutes = [
+  tasks,
+] as const;
+
+// Add auth hadnler
+app.on(["POST", "GET", "OPTION", "DELETE", "PUT"], "/api/auth/*", async c => await auth.handler(c.req.raw));
+
+protectedRoutes.forEach((route) => {
+  app.route("/", route);
+});
+
+export type AppType = typeof routes[number] & typeof protectedRoutes[number];
 
 export default app;

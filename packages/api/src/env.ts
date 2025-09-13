@@ -5,6 +5,7 @@ import path from "node:path";
 import { z } from "zod";
 
 expand(config({
+  override: true,
   path: path.resolve(
     process.cwd(),
     process.env.NODE_ENV === "test" ? ".env.test" : ".env",
@@ -18,9 +19,16 @@ const EnvSchema = z.object({
   DATABASE_URL: z.url(),
   DATABASE_AUTH_TOKEN: z.string().optional(),
 
-  //Auth providers
+  // Auth providers
   GITHUB_CLIENT_ID: z.string().min(1),
-  GITHUB_CLIENT_SECRET: z.string().min(1)
+  GITHUB_CLIENT_SECRET: z.string().min(1),
+
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+
+  // Email provider
+  PLUNK_API_URL: z.url().optional(),
+  PLUNK_API_KEY: z.string().min(1).optional(),
 }).superRefine((input, ctx) => {
   if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
     ctx.addIssue({
