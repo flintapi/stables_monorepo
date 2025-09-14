@@ -43,7 +43,10 @@ export function LoginForm({
   const query = useSearch({ from: '/auth' })
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
+    <div
+      className={cn('flex flex-col gap-6 animate-fade', className)}
+      {...props}
+    >
       <div className="mx-auto">
         <div className="flex items-center justify-center gap-2">
           <img src={`/icon.png`} alt="Logo" className="object-cover size-8" />

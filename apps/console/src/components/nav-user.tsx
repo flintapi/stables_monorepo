@@ -100,7 +100,11 @@ export function NavUser({
                 await authClient.signOut({
                   fetchOptions: {
                     onSuccess: () => {
-                      router.navigate({ to: '/auth' })
+                      router.navigate({
+                        to: '/auth',
+                        replace: true,
+                        resetScroll: true,
+                      })
                     },
                   },
                 })

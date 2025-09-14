@@ -1,37 +1,50 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { type Icon } from "@tabler/icons-react"
+import * as React from 'react'
+import { Link } from '@tanstack/react-router'
+import type { LucideIcon } from 'lucide-react'
+import type { Icon } from '@tabler/icons-react'
 
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+  useSidebar,
+} from '@/components/ui/sidebar'
 
 export function NavSecondary({
   items,
   ...props
 }: {
-  items: {
+  items: Array<{
     title: string
     url: string
-    icon: Icon
-  }[]
+    icon: Icon | LucideIcon
+  }>
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const { toggleSidebar, isMobile } = useSidebar()
   return (
     <SidebarGroup {...props}>
+      <SidebarGroupLabel>Services</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
+              <SidebarMenuButton
+                asChild
+                onClick={() => {
+                  if (isMobile) {
+                    toggleSidebar()
+                  }
+                }}
+              >
+                <Link to={item.url}>
                   <item.icon />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

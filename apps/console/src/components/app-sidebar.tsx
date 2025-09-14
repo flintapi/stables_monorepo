@@ -16,10 +16,14 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
+  IconWallet,
   // IconUsers,
 } from '@tabler/icons-react'
 
+import { Sparkle, Wallet } from 'lucide-react'
+import { useRouteContext } from '@tanstack/react-router'
 import { TeamSwitcher } from './team-switcher'
+import { NavSecondary } from './nav-secondary'
 import { NavMain } from '@/components/nav-main'
 // import { NavSecondary } from '@/components/nav-secondary'
 import { NavUser } from '@/components/nav-user'
@@ -32,7 +36,7 @@ import {
   // SidebarMenuButton,
   // SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { NavEvents } from '@/components/nav-events'
+// import { NavEvents } from '@/components/nav-events'
 
 const data = {
   user: {
@@ -47,12 +51,7 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: 'Accounts',
-      url: '/accounts',
-      icon: IconListDetails,
-    },
-    {
-      title: 'Project Settings',
+      title: 'Settings',
       url: '/settings',
       icon: IconSettings,
     },
@@ -107,14 +106,14 @@ const data = {
   ],
   navSecondary: [
     {
-      title: 'Get Help',
-      url: '#',
-      icon: IconHelp,
+      title: 'Wallets',
+      url: '/wallets',
+      icon: Wallet,
     },
     {
-      title: 'Search',
+      title: 'Events',
       url: '#',
-      icon: IconSearch,
+      icon: Sparkle,
     },
   ],
   eventTypes: [
@@ -132,6 +131,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { session } = useRouteContext({ from: '/_authed' })
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -150,13 +151,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ]}
         />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="flex-1">
         <NavMain items={data.navMain} />
-        <NavEvents items={data.eventTypes} />
-        {/*<NavSecondary items={data.navSecondary} className="mt-auto" />*/}
+        {/*<NavEvents items={data.navSecondary} />*/}
+        <NavSecondary items={data.navSecondary} className="" />
       </SidebarContent>
-      <SidebarFooter className="flex-1 justify-center">
-        <NavUser user={data.user} />
+      <SidebarFooter className="justify-center">
+        <NavUser
+          user={{
+            name: session.user.name,
+            email: session.user.email,
+            avatar: session.user.image as string,
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   )
