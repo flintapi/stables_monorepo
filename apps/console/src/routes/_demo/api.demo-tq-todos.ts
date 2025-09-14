@@ -15,7 +15,7 @@ const todos = [
   },
 ]
 
-export const ServerRoute = createServerFileRoute('/api/demo-tq-todos').methods({
+export const ServerRoute = createServerFileRoute('/_demo/api/demo-tq-todos').methods({
   GET: () => {
     return Response.json(todos)
   },

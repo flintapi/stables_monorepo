@@ -1,68 +1,56 @@
-import fs from 'node:fs'
 import { useCallback, useState } from 'react'
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
+import { createFileRoute } from '@tanstack/react-router'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { authGuard } from '@/server/auth-guard'
 
-const filePath = 'todos.json'
-
-async function readTodos() {
-  return JSON.parse(
-    await fs.promises.readFile(filePath, 'utf-8').catch(() =>
-      JSON.stringify(
-        [
-          { id: 1, name: 'Get groceries' },
-          { id: 2, name: 'Buy a new phone' },
-        ],
-        null,
-        2,
-      ),
-    ),
-  )
-}
-
-const getTodos = createServerFn({
-  method: 'GET',
-}).handler(async () => await readTodos())
-
-const addTodo = createServerFn({ method: 'POST' })
-  .validator((d: string) => d)
-  .handler(async ({ data }) => {
-    const todos = await readTodos()
-    todos.push({ id: todos.length + 1, name: data })
-    await fs.promises.writeFile(filePath, JSON.stringify(todos, null, 2))
-    return todos
-  })
-
-export const Route = createFileRoute('/demo/start/server-funcs')({
-  component: Home,
-  loader: async () => await getTodos(),
+export const Route = createFileRoute('/_demo/demo/tanstack-query')({
+  beforeLoad: async () =>
+    await authGuard({ data: { redirect: `/demo/tanstack-query` } }),
+  component: TanStackQueryDemo,
 })
 
-function Home() {
-  const router = useRouter()
-  let todos = Route.useLoaderData()
+type Todo = {
+  id: number
+  name: string
+}
+
+function TanStackQueryDemo() {
+  const { data, refetch } = useQuery<Todo[]>({
+    queryKey: ['todos'],
+    queryFn: () => fetch('/api/demo-tq-todos').then((res) => res.json()),
+    initialData: [],
+  })
+
+  const { mutate: addTodo, isPending } = useMutation({
+    mutationFn: (todo: string) =>
+      fetch('/api/demo-tq-todos', {
+        method: 'POST',
+        body: JSON.stringify(todo),
+      }).then((res) => res.json()),
+    onSuccess: () => refetch(),
+  })
 
   const [todo, setTodo] = useState('')
 
   const submitTodo = useCallback(async () => {
-    todos = await addTodo({ data: todo })
+    await addTodo(todo)
     setTodo('')
-    router.invalidate()
   }, [addTodo, todo])
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen bg-gradient-to-br from-zinc-800 to-black p-4 text-white"
+      className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-900 via-red-800 to-black p-4 text-white"
       style={{
         backgroundImage:
-          'radial-gradient(50% 50% at 20% 60%, #23272a 0%, #18181b 50%, #000000 100%)',
+          'radial-gradient(50% 50% at 80% 20%, #3B021F 0%, #7B1028 60%, #1A000A 100%)',
       }}
     >
       <div className="w-full max-w-2xl p-8 rounded-xl backdrop-blur-md bg-black/50 shadow-xl border-8 border-black/10">
-        <h1 className="text-2xl mb-4">Start Server Functions - Todo Example</h1>
+        <h1 className="text-2xl mb-4">
+          TanStack Query Todos list: {isPending ? 'Loading...' : ''}
+        </h1>
         <ul className="mb-4 space-y-2">
-          {todos?.map((t) => (
+          {data.map((t) => (
             <li
               key={t.id}
               className="bg-white/10 border border-white/20 rounded-lg p-3 backdrop-blur-sm shadow-md"

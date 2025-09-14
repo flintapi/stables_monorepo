@@ -12,25 +12,30 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DemoRouteRouteImport } from './routes/_demo/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
-import { Route as DemoStoreRouteImport } from './routes/demo.store'
+import { Route as AuthedWalletsRouteImport } from './routes/_authed/wallets'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedOverviewRouteImport } from './routes/_authed/overview'
-import { Route as AuthedAccountsRouteImport } from './routes/_authed/accounts'
-import { Route as DemoStartServerFuncsRouteImport } from './routes/demo.start.server-funcs'
-import { Route as DemoStartApiRequestRouteImport } from './routes/demo.start.api-request'
-import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
-import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
-import { ServerRoute as ApiDemoTqTodosServerRouteImport } from './routes/api.demo-tq-todos'
-import { ServerRoute as ApiDemoNamesServerRouteImport } from './routes/api.demo-names'
+import { Route as DemoDemoTanstackQueryRouteImport } from './routes/_demo/demo.tanstack-query'
+import { Route as DemoDemoStoreRouteImport } from './routes/_demo/demo.store'
+import { Route as DemoDemoStartServerFuncsRouteImport } from './routes/_demo/demo.start.server-funcs'
+import { Route as DemoDemoStartApiRequestRouteImport } from './routes/_demo/demo.start.api-request'
+import { Route as DemoDemoFormSimpleRouteImport } from './routes/_demo/demo.form.simple'
+import { Route as DemoDemoFormAddressRouteImport } from './routes/_demo/demo.form.address'
+import { ServerRoute as DemoApiDemoTqTodosServerRouteImport } from './routes/_demo/api.demo-tq-todos'
+import { ServerRoute as DemoApiDemoNamesServerRouteImport } from './routes/_demo/api.demo-names'
 
 const rootServerRouteImport = createServerRootRoute()
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRouteRoute = DemoRouteRouteImport.update({
+  id: '/_demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
@@ -42,15 +47,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoStoreRoute = DemoStoreRouteImport.update({
-  id: '/demo/store',
-  path: '/demo/store',
-  getParentRoute: () => rootRouteImport,
+const AuthedWalletsRoute = AuthedWalletsRouteImport.update({
+  id: '/wallets',
+  path: '/wallets',
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
   id: '/settings',
@@ -62,38 +62,45 @@ const AuthedOverviewRoute = AuthedOverviewRouteImport.update({
   path: '/overview',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedAccountsRoute = AuthedAccountsRouteImport.update({
-  id: '/accounts',
-  path: '/accounts',
-  getParentRoute: () => AuthedRouteRoute,
+const DemoDemoTanstackQueryRoute = DemoDemoTanstackQueryRouteImport.update({
+  id: '/demo/tanstack-query',
+  path: '/demo/tanstack-query',
+  getParentRoute: () => DemoRouteRoute,
 } as any)
-const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
-  id: '/demo/start/server-funcs',
-  path: '/demo/start/server-funcs',
-  getParentRoute: () => rootRouteImport,
+const DemoDemoStoreRoute = DemoDemoStoreRouteImport.update({
+  id: '/demo/store',
+  path: '/demo/store',
+  getParentRoute: () => DemoRouteRoute,
 } as any)
-const DemoStartApiRequestRoute = DemoStartApiRequestRouteImport.update({
+const DemoDemoStartServerFuncsRoute =
+  DemoDemoStartServerFuncsRouteImport.update({
+    id: '/demo/start/server-funcs',
+    path: '/demo/start/server-funcs',
+    getParentRoute: () => DemoRouteRoute,
+  } as any)
+const DemoDemoStartApiRequestRoute = DemoDemoStartApiRequestRouteImport.update({
   id: '/demo/start/api-request',
   path: '/demo/start/api-request',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DemoRouteRoute,
 } as any)
-const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
+const DemoDemoFormSimpleRoute = DemoDemoFormSimpleRouteImport.update({
   id: '/demo/form/simple',
   path: '/demo/form/simple',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DemoRouteRoute,
 } as any)
-const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
+const DemoDemoFormAddressRoute = DemoDemoFormAddressRouteImport.update({
   id: '/demo/form/address',
   path: '/demo/form/address',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DemoRouteRoute,
 } as any)
-const ApiDemoTqTodosServerRoute = ApiDemoTqTodosServerRouteImport.update({
-  id: '/api/demo-tq-todos',
-  path: '/api/demo-tq-todos',
-  getParentRoute: () => rootServerRouteImport,
-} as any)
-const ApiDemoNamesServerRoute = ApiDemoNamesServerRouteImport.update({
-  id: '/api/demo-names',
+const DemoApiDemoTqTodosServerRoute =
+  DemoApiDemoTqTodosServerRouteImport.update({
+    id: '/_demo/api/demo-tq-todos',
+    path: '/api/demo-tq-todos',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
+const DemoApiDemoNamesServerRoute = DemoApiDemoNamesServerRouteImport.update({
+  id: '/_demo/api/demo-names',
   path: '/api/demo-names',
   getParentRoute: () => rootServerRouteImport,
 } as any)
@@ -101,52 +108,53 @@ const ApiDemoNamesServerRoute = ApiDemoNamesServerRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/accounts': typeof AuthedAccountsRoute
   '/overview': typeof AuthedOverviewRoute
   '/settings': typeof AuthedSettingsRoute
-  '/demo/store': typeof DemoStoreRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/wallets': typeof AuthedWalletsRoute
+  '/demo/store': typeof DemoDemoStoreRoute
+  '/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
+  '/demo/form/address': typeof DemoDemoFormAddressRoute
+  '/demo/form/simple': typeof DemoDemoFormSimpleRoute
+  '/demo/start/api-request': typeof DemoDemoStartApiRequestRoute
+  '/demo/start/server-funcs': typeof DemoDemoStartServerFuncsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/accounts': typeof AuthedAccountsRoute
   '/overview': typeof AuthedOverviewRoute
   '/settings': typeof AuthedSettingsRoute
-  '/demo/store': typeof DemoStoreRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/wallets': typeof AuthedWalletsRoute
+  '/demo/store': typeof DemoDemoStoreRoute
+  '/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
+  '/demo/form/address': typeof DemoDemoFormAddressRoute
+  '/demo/form/simple': typeof DemoDemoFormSimpleRoute
+  '/demo/start/api-request': typeof DemoDemoStartApiRequestRoute
+  '/demo/start/server-funcs': typeof DemoDemoStartServerFuncsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/_demo': typeof DemoRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authed/accounts': typeof AuthedAccountsRoute
   '/_authed/overview': typeof AuthedOverviewRoute
   '/_authed/settings': typeof AuthedSettingsRoute
-  '/demo/store': typeof DemoStoreRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/_authed/wallets': typeof AuthedWalletsRoute
+  '/_demo/demo/store': typeof DemoDemoStoreRoute
+  '/_demo/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
+  '/_demo/demo/form/address': typeof DemoDemoFormAddressRoute
+  '/_demo/demo/form/simple': typeof DemoDemoFormSimpleRoute
+  '/_demo/demo/start/api-request': typeof DemoDemoStartApiRequestRoute
+  '/_demo/demo/start/server-funcs': typeof DemoDemoStartServerFuncsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
-    | '/accounts'
     | '/overview'
     | '/settings'
+    | '/wallets'
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/demo/form/address'
@@ -157,9 +165,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/accounts'
     | '/overview'
     | '/settings'
+    | '/wallets'
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/demo/form/address'
@@ -170,53 +178,49 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/_demo'
     | '/auth'
-    | '/_authed/accounts'
     | '/_authed/overview'
     | '/_authed/settings'
-    | '/demo/store'
-    | '/demo/tanstack-query'
-    | '/demo/form/address'
-    | '/demo/form/simple'
-    | '/demo/start/api-request'
-    | '/demo/start/server-funcs'
+    | '/_authed/wallets'
+    | '/_demo/demo/store'
+    | '/_demo/demo/tanstack-query'
+    | '/_demo/demo/form/address'
+    | '/_demo/demo/form/simple'
+    | '/_demo/demo/start/api-request'
+    | '/_demo/demo/start/server-funcs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  DemoRouteRoute: typeof DemoRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  DemoStoreRoute: typeof DemoStoreRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
-  DemoFormAddressRoute: typeof DemoFormAddressRoute
-  DemoFormSimpleRoute: typeof DemoFormSimpleRoute
-  DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
-  DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
 }
 export interface FileServerRoutesByFullPath {
-  '/api/demo-names': typeof ApiDemoNamesServerRoute
-  '/api/demo-tq-todos': typeof ApiDemoTqTodosServerRoute
+  '/api/demo-names': typeof DemoApiDemoNamesServerRoute
+  '/api/demo-tq-todos': typeof DemoApiDemoTqTodosServerRoute
 }
 export interface FileServerRoutesByTo {
-  '/api/demo-names': typeof ApiDemoNamesServerRoute
-  '/api/demo-tq-todos': typeof ApiDemoTqTodosServerRoute
+  '/api/demo-names': typeof DemoApiDemoNamesServerRoute
+  '/api/demo-tq-todos': typeof DemoApiDemoTqTodosServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
-  '/api/demo-names': typeof ApiDemoNamesServerRoute
-  '/api/demo-tq-todos': typeof ApiDemoTqTodosServerRoute
+  '/_demo/api/demo-names': typeof DemoApiDemoNamesServerRoute
+  '/_demo/api/demo-tq-todos': typeof DemoApiDemoTqTodosServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
   fullPaths: '/api/demo-names' | '/api/demo-tq-todos'
   fileServerRoutesByTo: FileServerRoutesByTo
   to: '/api/demo-names' | '/api/demo-tq-todos'
-  id: '__root__' | '/api/demo-names' | '/api/demo-tq-todos'
+  id: '__root__' | '/_demo/api/demo-names' | '/_demo/api/demo-tq-todos'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
-  ApiDemoNamesServerRoute: typeof ApiDemoNamesServerRoute
-  ApiDemoTqTodosServerRoute: typeof ApiDemoTqTodosServerRoute
+  DemoApiDemoNamesServerRoute: typeof DemoApiDemoNamesServerRoute
+  DemoApiDemoTqTodosServerRoute: typeof DemoApiDemoTqTodosServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -226,6 +230,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_demo': {
+      id: '/_demo'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof DemoRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -242,19 +253,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/store': {
-      id: '/demo/store'
-      path: '/demo/store'
-      fullPath: '/demo/store'
-      preLoaderRoute: typeof DemoStoreRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authed/wallets': {
+      id: '/_authed/wallets'
+      path: '/wallets'
+      fullPath: '/wallets'
+      preLoaderRoute: typeof AuthedWalletsRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/settings': {
       id: '/_authed/settings'
@@ -270,95 +274,119 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedOverviewRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/accounts': {
-      id: '/_authed/accounts'
-      path: '/accounts'
-      fullPath: '/accounts'
-      preLoaderRoute: typeof AuthedAccountsRouteImport
-      parentRoute: typeof AuthedRouteRoute
+    '/_demo/demo/tanstack-query': {
+      id: '/_demo/demo/tanstack-query'
+      path: '/demo/tanstack-query'
+      fullPath: '/demo/tanstack-query'
+      preLoaderRoute: typeof DemoDemoTanstackQueryRouteImport
+      parentRoute: typeof DemoRouteRoute
     }
-    '/demo/start/server-funcs': {
-      id: '/demo/start/server-funcs'
+    '/_demo/demo/store': {
+      id: '/_demo/demo/store'
+      path: '/demo/store'
+      fullPath: '/demo/store'
+      preLoaderRoute: typeof DemoDemoStoreRouteImport
+      parentRoute: typeof DemoRouteRoute
+    }
+    '/_demo/demo/start/server-funcs': {
+      id: '/_demo/demo/start/server-funcs'
       path: '/demo/start/server-funcs'
       fullPath: '/demo/start/server-funcs'
-      preLoaderRoute: typeof DemoStartServerFuncsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DemoDemoStartServerFuncsRouteImport
+      parentRoute: typeof DemoRouteRoute
     }
-    '/demo/start/api-request': {
-      id: '/demo/start/api-request'
+    '/_demo/demo/start/api-request': {
+      id: '/_demo/demo/start/api-request'
       path: '/demo/start/api-request'
       fullPath: '/demo/start/api-request'
-      preLoaderRoute: typeof DemoStartApiRequestRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DemoDemoStartApiRequestRouteImport
+      parentRoute: typeof DemoRouteRoute
     }
-    '/demo/form/simple': {
-      id: '/demo/form/simple'
+    '/_demo/demo/form/simple': {
+      id: '/_demo/demo/form/simple'
       path: '/demo/form/simple'
       fullPath: '/demo/form/simple'
-      preLoaderRoute: typeof DemoFormSimpleRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DemoDemoFormSimpleRouteImport
+      parentRoute: typeof DemoRouteRoute
     }
-    '/demo/form/address': {
-      id: '/demo/form/address'
+    '/_demo/demo/form/address': {
+      id: '/_demo/demo/form/address'
       path: '/demo/form/address'
       fullPath: '/demo/form/address'
-      preLoaderRoute: typeof DemoFormAddressRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DemoDemoFormAddressRouteImport
+      parentRoute: typeof DemoRouteRoute
     }
   }
 }
 declare module '@tanstack/react-start/server' {
   interface ServerFileRoutesByPath {
-    '/api/demo-tq-todos': {
-      id: '/api/demo-tq-todos'
+    '/_demo/api/demo-tq-todos': {
+      id: '/_demo/api/demo-tq-todos'
       path: '/api/demo-tq-todos'
       fullPath: '/api/demo-tq-todos'
-      preLoaderRoute: typeof ApiDemoTqTodosServerRouteImport
+      preLoaderRoute: typeof DemoApiDemoTqTodosServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
-    '/api/demo-names': {
-      id: '/api/demo-names'
+    '/_demo/api/demo-names': {
+      id: '/_demo/api/demo-names'
       path: '/api/demo-names'
       fullPath: '/api/demo-names'
-      preLoaderRoute: typeof ApiDemoNamesServerRouteImport
+      preLoaderRoute: typeof DemoApiDemoNamesServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
   }
 }
 
 interface AuthedRouteRouteChildren {
-  AuthedAccountsRoute: typeof AuthedAccountsRoute
   AuthedOverviewRoute: typeof AuthedOverviewRoute
   AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedWalletsRoute: typeof AuthedWalletsRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
-  AuthedAccountsRoute: AuthedAccountsRoute,
   AuthedOverviewRoute: AuthedOverviewRoute,
   AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedWalletsRoute: AuthedWalletsRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
   AuthedRouteRouteChildren,
 )
 
+interface DemoRouteRouteChildren {
+  DemoDemoStoreRoute: typeof DemoDemoStoreRoute
+  DemoDemoTanstackQueryRoute: typeof DemoDemoTanstackQueryRoute
+  DemoDemoFormAddressRoute: typeof DemoDemoFormAddressRoute
+  DemoDemoFormSimpleRoute: typeof DemoDemoFormSimpleRoute
+  DemoDemoStartApiRequestRoute: typeof DemoDemoStartApiRequestRoute
+  DemoDemoStartServerFuncsRoute: typeof DemoDemoStartServerFuncsRoute
+}
+
+const DemoRouteRouteChildren: DemoRouteRouteChildren = {
+  DemoDemoStoreRoute: DemoDemoStoreRoute,
+  DemoDemoTanstackQueryRoute: DemoDemoTanstackQueryRoute,
+  DemoDemoFormAddressRoute: DemoDemoFormAddressRoute,
+  DemoDemoFormSimpleRoute: DemoDemoFormSimpleRoute,
+  DemoDemoStartApiRequestRoute: DemoDemoStartApiRequestRoute,
+  DemoDemoStartServerFuncsRoute: DemoDemoStartServerFuncsRoute,
+}
+
+const DemoRouteRouteWithChildren = DemoRouteRoute._addFileChildren(
+  DemoRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  DemoRouteRoute: DemoRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  DemoStoreRoute: DemoStoreRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
-  DemoFormAddressRoute: DemoFormAddressRoute,
-  DemoFormSimpleRoute: DemoFormSimpleRoute,
-  DemoStartApiRequestRoute: DemoStartApiRequestRoute,
-  DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
-  ApiDemoNamesServerRoute: ApiDemoNamesServerRoute,
-  ApiDemoTqTodosServerRoute: ApiDemoTqTodosServerRoute,
+  DemoApiDemoNamesServerRoute: DemoApiDemoNamesServerRoute,
+  DemoApiDemoTqTodosServerRoute: DemoApiDemoTqTodosServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport
   ._addFileChildren(rootServerRouteChildren)

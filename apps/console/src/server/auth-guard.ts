@@ -24,6 +24,10 @@ export const authGuard = createServerFn()
         }
       })
     }
-    // else throw redirect({ to: '/overview' })
 
-})
+    return session
+    // else {
+    //   if(request.headers.)
+    //   throw redirect({ to: '/overview' })
+    // }
+  })

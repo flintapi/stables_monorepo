@@ -14,6 +14,7 @@ import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 import { Layout } from '@/components/craft'
+import { authGuard } from '@/server/auth-guard'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -48,7 +49,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
   shellComponent: RootDocument,
   notFoundComponent: () => <div>Not found route...</div>,
-  errorComponent: ({ error }) => <div>{JSON.stringify(error, null, 4)}</div>,
+  // errorComponent: ({ error }) => <div>{JSON.stringify(error, null, 4)}</div>,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {

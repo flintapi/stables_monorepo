@@ -1,18 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 
-export const Route = createFileRoute(`/_authed/accounts`)({
+export const Route = createFileRoute(`/_authed/wallets`)({
   component: RouteComponent,
 })
 
 function RouteComponent() {
   return (
-    <div>
+    <div className="animate-fade-down">
       _authed/accounts
       <Button
         onClick={() => {
           console.log('Log out call')
-          window.alert('Window alert on click')
         }}
       >
         Click Me
