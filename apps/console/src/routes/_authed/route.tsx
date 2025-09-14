@@ -6,7 +6,7 @@ import { authGuard } from '@/server/auth-guard'
 import { env } from '@/env'
 
 export const Route = createFileRoute('/_authed')({
-  beforeLoad: async ({ context, location }) => {
+  beforeLoad: async ({ location }) => {
     const session = await authGuard({
       data: { redirect: `${env.VITE_APP_URL}/${location.pathname}` },
     })
