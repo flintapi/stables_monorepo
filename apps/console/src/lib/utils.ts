@@ -6,3 +6,5 @@ import type {ClassValue} from 'clsx';
 export function cn(...inputs: Array<ClassValue>) {
   return twMerge(clsx(inputs))
 }
+
+export const defaultOrganizationLogo = `https://www.flintapi.io/icon.png`;
