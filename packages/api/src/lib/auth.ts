@@ -36,6 +36,8 @@ const authOptions = {
       creatorRole: "owner",
       cancelPendingInvitationsOnReInvite: true,
       sendInvitationEmail: async ({ organization, email, role, invitation, inviter, id }) => {
+        console.log("sendInvitationEmail", organization, email, role, invitation, inviter, id);
+
         const consoleUrl = env.CONSOLE_URL;
         const inviteLink = `${consoleUrl}/invite/${invitation.id}`;
 
@@ -59,14 +61,34 @@ const authOptions = {
       organizationHooks: {
         beforeCreateOrganization: async ({ organization, user }) => {
           // TODO: track organization slug already exists and throw APIError
+          console.log("beforeCreateOrganization", organization, user);
         },
-        beforeAcceptInvitation: async ({ invitation, organization, user, inviter }) => { },
-        beforeAddMember: async ({ member, user, organization }) => { },
-        afterAddMember: async ({ member, user, organization }) => { },
-        afterRemoveMember: async ({ member, user, organization }) => { },
-        beforeUpdateMemberRole: async ({ member, newRole, user, organization }) => { },
-        afterUpdateMemberRole: async ({ member, previousRole, user, organization }) => { },
-        afterAcceptInvitation: async ({ invitation, member, user, organization }) => { },
+        afterCreateOrganization: async ({ organization, member, user }) => {
+          // TODO: Send email
+          // TODO: Provision turso/sqlite db for organization
+          console.log("afterCreateOrganization", organization, member, user);
+        },
+        beforeAcceptInvitation: async ({ invitation, organization, user }) => {
+          console.log("beforeAcceptInvitation", invitation, organization, user);
+        },
+        afterAcceptInvitation: async ({ invitation, member, user, organization }) => {
+          console.log("afterAcceptInvitation", invitation, member, user, organization);
+        },
+        beforeAddMember: async ({ member, user, organization }) => {
+          console.log("beforeAddMember", member, user, organization);
+        },
+        afterAddMember: async ({ member, user, organization }) => {
+          console.log("afterAddMember", member, user, organization);
+        },
+        afterRemoveMember: async ({ member, user, organization }) => {
+          console.log("afterRemoveMember", member, user, organization);
+        },
+        beforeUpdateMemberRole: async ({ member, newRole, user, organization }) => {
+          console.log("beforeUpdateMemberRole", member, newRole, user, organization);
+        },
+        afterUpdateMemberRole: async ({ member, previousRole, user, organization }) => {
+          console.log("afterUpdateMemberRole", member, previousRole, user, organization);
+        },
       },
     }),
     emailOTP({
