@@ -8,6 +8,13 @@
       "when": 1757095986312,
       "tag": "0000_absent_black_widow",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1757934355789,
+      "tag": "0001_wealthy_klaw",
+      "breakpoints": true
     }
   ]
 }
