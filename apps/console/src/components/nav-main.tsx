@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useMatchRoute } from '@tanstack/react-router'
 import type { Icon } from '@tabler/icons-react'
 
 // import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ export function NavMain({
   }>
 }) {
   const { toggleSidebar, isMobile } = useSidebar()
+  const matchRoute = useMatchRoute()
 
   return (
     <SidebarGroup>
@@ -36,6 +37,9 @@ export function NavMain({
                     toggleSidebar()
                   }
                 }}
+                isActive={
+                  matchRoute({ to: item.url, fuzzy: true }) ? true : false
+                }
               >
                 <Link to={item.url}>
                   {item.icon && <item.icon />}

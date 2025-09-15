@@ -6,6 +6,7 @@ import {
   IconUserCircle,
 } from '@tabler/icons-react'
 
+import { useRouter } from '@tanstack/react-router'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -23,7 +24,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { authClient } from '@/lib/auth-client'
-import { useRouter } from '@tanstack/react-router'
 
 export function NavUser({
   user,
@@ -81,7 +81,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              {/*<DropdownMenuItem>
                 <IconUserCircle />
                 Organization
               </DropdownMenuItem>
@@ -92,14 +92,16 @@ export function NavUser({
               <DropdownMenuItem>
                 <IconNotification />
                 Notifications
-              </DropdownMenuItem>
+              </DropdownMenuItem>*/}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              className="text-red-400 hover:bg-red-500 hover:text-red-400"
               onClick={async () => {
                 await authClient.signOut({
                   fetchOptions: {
                     onSuccess: () => {
+                      router.invalidate()
                       router.navigate({
                         to: '/auth',
                         replace: true,
@@ -110,7 +112,7 @@ export function NavUser({
                 })
               }}
             >
-              <IconLogout />
+              <IconLogout className="text-red-400" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

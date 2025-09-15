@@ -112,7 +112,7 @@ const data = {
     },
     {
       title: 'Events',
-      url: '#',
+      url: '/events',
       icon: Sparkle,
     },
   ],

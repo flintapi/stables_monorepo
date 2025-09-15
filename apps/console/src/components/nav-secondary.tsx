@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useMatchRoute } from '@tanstack/react-router'
 import type { LucideIcon } from 'lucide-react'
 import type { Icon } from '@tabler/icons-react'
 
@@ -26,6 +26,8 @@ export function NavSecondary({
   }>
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { toggleSidebar, isMobile } = useSidebar()
+  const matchRoute = useMatchRoute()
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupLabel>Services</SidebarGroupLabel>
@@ -40,6 +42,9 @@ export function NavSecondary({
                     toggleSidebar()
                   }
                 }}
+                isActive={
+                  matchRoute({ to: item.url, fuzzy: true }) ? true : false
+                }
               >
                 <Link to={item.url}>
                   <item.icon />
