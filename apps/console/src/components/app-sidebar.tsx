@@ -20,7 +20,7 @@ import {
   // IconUsers,
 } from '@tabler/icons-react'
 
-import { Sparkle, Wallet } from 'lucide-react'
+import { List, Sparkle, Wallet } from 'lucide-react'
 import { useRouteContext } from '@tanstack/react-router'
 import { TeamSwitcher } from './team-switcher'
 import { NavSecondary } from './nav-secondary'
@@ -114,6 +114,11 @@ const data = {
       title: 'Events',
       url: '/events',
       icon: Sparkle,
+    },
+    {
+      title: 'Transactions',
+      url: '/transactions',
+      icon: List,
     },
   ],
   eventTypes: [

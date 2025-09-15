@@ -16,6 +16,7 @@ import { Route as DemoRouteRouteImport } from './routes/_demo/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedWalletsRouteImport } from './routes/_authed/wallets'
+import { Route as AuthedTransactionsRouteImport } from './routes/_authed/transactions'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedOverviewRouteImport } from './routes/_authed/overview'
 import { Route as AuthedEventsRouteImport } from './routes/_authed/events'
@@ -51,6 +52,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthedWalletsRoute = AuthedWalletsRouteImport.update({
   id: '/wallets',
   path: '/wallets',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedTransactionsRoute = AuthedTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof AuthedEventsRoute
   '/overview': typeof AuthedOverviewRoute
   '/settings': typeof AuthedSettingsRoute
+  '/transactions': typeof AuthedTransactionsRoute
   '/wallets': typeof AuthedWalletsRoute
   '/demo/store': typeof DemoDemoStoreRoute
   '/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/events': typeof AuthedEventsRoute
   '/overview': typeof AuthedOverviewRoute
   '/settings': typeof AuthedSettingsRoute
+  '/transactions': typeof AuthedTransactionsRoute
   '/wallets': typeof AuthedWalletsRoute
   '/demo/store': typeof DemoDemoStoreRoute
   '/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_authed/events': typeof AuthedEventsRoute
   '/_authed/overview': typeof AuthedOverviewRoute
   '/_authed/settings': typeof AuthedSettingsRoute
+  '/_authed/transactions': typeof AuthedTransactionsRoute
   '/_authed/wallets': typeof AuthedWalletsRoute
   '/_demo/demo/store': typeof DemoDemoStoreRoute
   '/_demo/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/overview'
     | '/settings'
+    | '/transactions'
     | '/wallets'
     | '/demo/store'
     | '/demo/tanstack-query'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/overview'
     | '/settings'
+    | '/transactions'
     | '/wallets'
     | '/demo/store'
     | '/demo/tanstack-query'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/_authed/events'
     | '/_authed/overview'
     | '/_authed/settings'
+    | '/_authed/transactions'
     | '/_authed/wallets'
     | '/_demo/demo/store'
     | '/_demo/demo/tanstack-query'
@@ -270,6 +282,13 @@ declare module '@tanstack/react-router' {
       path: '/wallets'
       fullPath: '/wallets'
       preLoaderRoute: typeof AuthedWalletsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/transactions': {
+      id: '/_authed/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof AuthedTransactionsRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/settings': {
@@ -360,6 +379,7 @@ interface AuthedRouteRouteChildren {
   AuthedEventsRoute: typeof AuthedEventsRoute
   AuthedOverviewRoute: typeof AuthedOverviewRoute
   AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedTransactionsRoute: typeof AuthedTransactionsRoute
   AuthedWalletsRoute: typeof AuthedWalletsRoute
 }
 
@@ -367,6 +387,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedEventsRoute: AuthedEventsRoute,
   AuthedOverviewRoute: AuthedOverviewRoute,
   AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedTransactionsRoute: AuthedTransactionsRoute,
   AuthedWalletsRoute: AuthedWalletsRoute,
 }
 
