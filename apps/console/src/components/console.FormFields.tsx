@@ -5,7 +5,7 @@ import { Label } from './ui/label'
 import type { Icon } from '@tabler/icons-react'
 import type { LucideIcon } from 'lucide-react'
 import { useFieldContext, useFormContext } from '@/hooks/console.form'
-import { Loader } from '@/routes/_authed/-components/loader'
+import { Loader } from '@/components/ui/loader'
 
 interface SubmitButtonProps {
   label?: string

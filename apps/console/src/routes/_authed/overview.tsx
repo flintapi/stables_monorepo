@@ -1,9 +1,7 @@
-import { Suspense } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowUpRight, BookIcon, GitGraph } from 'lucide-react'
 import { BaseLink } from './-components/ConsoleLink'
-import { Loader } from './-components/loader'
-import { DataTable } from '@/components/data-table'
+import { Activities } from './-components/Activities'
 import { Container, Main, Section } from '@/components/craft'
 
 export const Route = createFileRoute('/_authed/overview')({
@@ -52,24 +50,5 @@ function RouteComponent() {
         <Activities />
       </Section>
     </Main>
-  )
-}
-
-const Activities: React.FC = () => {
-  return (
-    <Suspense fallback={<Loader />}>
-      {(async () => {
-        const data = (await import('@/app/dashboard/data.json')).default
-
-        return (
-          <Container className="animate-fade-down">
-            <h1 className="text-3xl lg:text-2xl font-semibold font-sans my-4">
-              Activities
-            </h1>
-            <DataTable data={data} />
-          </Container>
-        )
-      })()}
-    </Suspense>
   )
 }

@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Shapes } from 'lucide-react'
+import { Shapes, Sparkle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Container, Main, Section } from '@/components/craft'
 import { Card, CardContent } from '@/components/ui/card'
 
-export const Route = createFileRoute(`/_authed/wallets`)({
+export const Route = createFileRoute('/_authed/events')({
   component: RouteComponent,
 })
 
@@ -17,16 +17,14 @@ function RouteComponent() {
             <CardContent>
               <div className="flex flex-col items-center justify-center min-h-3xl">
                 <div className="p-2 border border-gray-400 bg-black  rounded-sm my-2">
-                  <Shapes className="dark:text-black text-white size-5" />
+                  <Sparkle className="dark:text-black text-white size-5" />
                 </div>
-                <h2 className="text-lg font-bold font-sans">
-                  No wallets created
-                </h2>
-                <p className="text-sm text-muted-foreground text-balance text-ellipsis lg:max-w-sm text-center">
-                  Create and configure wallets from the dashboard or with our
-                  SDK
+                <h2 className="text-lg font-bold font-sans">No events</h2>
+                <p className="text-sm text-muted-foreground text-balance text-ellipsis lg:max-w-md text-center">
+                  Subscribe to events triggered by wallets to receive
+                  notifications on deposits, withdrawals, contract calls.
                 </p>
-                <Button className="my-4">Create new</Button>
+                <Button className="my-4">Subscribe to event</Button>
               </div>
             </CardContent>
           </Card>
