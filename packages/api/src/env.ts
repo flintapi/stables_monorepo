@@ -29,6 +29,9 @@ const EnvSchema = z.object({
   // Email provider
   PLUNK_API_URL: z.url().optional(),
   PLUNK_API_KEY: z.string().min(1).optional(),
+
+  // Console
+  CONSOLE_URL: z.url().optional(),
 }).superRefine((input, ctx) => {
   if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
     ctx.addIssue({

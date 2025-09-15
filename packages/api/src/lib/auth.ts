@@ -1,8 +1,8 @@
 import type { BetterAuthOptions } from "better-auth";
 
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP, multiSession, twoFactor } from "better-auth/plugins";
+import { emailOTP, multiSession, organization, twoFactor } from "better-auth/plugins";
 
 import db from "@/db";
 import * as schema from "@/db/schema";
@@ -32,10 +32,45 @@ const authOptions = {
     },
   },
   plugins: [
+    organization({
+      creatorRole: "owner",
+      cancelPendingInvitationsOnReInvite: true,
+      sendInvitationEmail: async ({ organization, email, role, invitation, inviter, id }) => {
+        const consoleUrl = env.CONSOLE_URL;
+        const inviteLink = `${consoleUrl}/invite/${invitation.id}`;
+
+        try {
+          await sendEmail({
+            subject: "Invitation to join organization",
+            body: `
+              You have been invited to join the organization ${organization.name}.
+              <br/>Please click or copy the link below to accept the invitation:
+              <br/><a href="${inviteLink}">${inviteLink}</a>`,
+            to: email,
+          });
+        }
+        catch (error) {
+          console.log("Error sending email", error);
+          throw new APIError("INTERNAL_SERVER_ERROR", {
+            message: "Failed to send Invitation email",
+          });
+        }
+      },
+      organizationHooks: {
+        beforeCreateOrganization: async ({ organization, user }) => {
+          // TODO: track organization slug already exists and throw APIError
+        },
+        beforeAcceptInvitation: async ({ invitation, organization, user, inviter }) => { },
+        beforeAddMember: async ({ member, user, organization }) => { },
+        afterAddMember: async ({ member, user, organization }) => { },
+        afterRemoveMember: async ({ member, user, organization }) => { },
+        beforeUpdateMemberRole: async ({ member, newRole, user, organization }) => { },
+        afterUpdateMemberRole: async ({ member, previousRole, user, organization }) => { },
+        afterAcceptInvitation: async ({ invitation, member, user, organization }) => { },
+      },
+    }),
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }) => {
-        // Implement your email sending logic here
-
         switch (type) {
           case "sign-in": {
             await sendEmail({
