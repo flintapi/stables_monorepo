@@ -11,6 +11,15 @@ export const getTeamQueryOptions = queryOptions({
   }
 })
 
+export const getInvitationQueryOptions = queryOptions({
+  queryKey: ["invitation", "list"],
+  queryFn: async () => {
+    const { data: invitations, error } = await authClient.organization.listInvitations();
+
+    if (error) throw error;
+    return invitations;
+  }
+})
 
 export const getOrganizationsQueryOptions = queryOptions({
   queryKey: ['organization', "list"],
