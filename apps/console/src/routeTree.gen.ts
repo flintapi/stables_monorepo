@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteRouteImport } from './routes/_demo/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InviteInviteIdRouteImport } from './routes/invite.$inviteId'
 import { Route as AuthedWalletsRouteImport } from './routes/_authed/wallets'
 import { Route as AuthedTransactionsRouteImport } from './routes/_authed/transactions'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
@@ -47,6 +48,11 @@ const AuthedRouteRoute = AuthedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteInviteIdRoute = InviteInviteIdRouteImport.update({
+  id: '/invite/$inviteId',
+  path: '/invite/$inviteId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedWalletsRoute = AuthedWalletsRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthedSettingsRoute
   '/transactions': typeof AuthedTransactionsRoute
   '/wallets': typeof AuthedWalletsRoute
+  '/invite/$inviteId': typeof InviteInviteIdRoute
   '/demo/store': typeof DemoDemoStoreRoute
   '/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
   '/demo/form/address': typeof DemoDemoFormAddressRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthedSettingsRoute
   '/transactions': typeof AuthedTransactionsRoute
   '/wallets': typeof AuthedWalletsRoute
+  '/invite/$inviteId': typeof InviteInviteIdRoute
   '/demo/store': typeof DemoDemoStoreRoute
   '/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
   '/demo/form/address': typeof DemoDemoFormAddressRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/_authed/settings': typeof AuthedSettingsRoute
   '/_authed/transactions': typeof AuthedTransactionsRoute
   '/_authed/wallets': typeof AuthedWalletsRoute
+  '/invite/$inviteId': typeof InviteInviteIdRoute
   '/_demo/demo/store': typeof DemoDemoStoreRoute
   '/_demo/demo/tanstack-query': typeof DemoDemoTanstackQueryRoute
   '/_demo/demo/form/address': typeof DemoDemoFormAddressRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/transactions'
     | '/wallets'
+    | '/invite/$inviteId'
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/demo/form/address'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/transactions'
     | '/wallets'
+    | '/invite/$inviteId'
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/demo/form/address'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/_authed/settings'
     | '/_authed/transactions'
     | '/_authed/wallets'
+    | '/invite/$inviteId'
     | '/_demo/demo/store'
     | '/_demo/demo/tanstack-query'
     | '/_demo/demo/form/address'
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   DemoRouteRoute: typeof DemoRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  InviteInviteIdRoute: typeof InviteInviteIdRoute
 }
 export interface FileServerRoutesByFullPath {
   '/api/demo-names': typeof DemoApiDemoNamesServerRoute
@@ -275,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$inviteId': {
+      id: '/invite/$inviteId'
+      path: '/invite/$inviteId'
+      fullPath: '/invite/$inviteId'
+      preLoaderRoute: typeof InviteInviteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/wallets': {
@@ -422,6 +442,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
   DemoRouteRoute: DemoRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  InviteInviteIdRoute: InviteInviteIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

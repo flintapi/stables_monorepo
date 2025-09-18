@@ -1,14 +1,20 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowUpRight, BookIcon, GitGraph } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { BaseLink } from './-components/ConsoleLink'
 import { Activities } from './-components/Activities'
 import { Container, Main, Section } from '@/components/craft'
+import { getOrganizationsQueryOptions } from '@/lib/api-client'
+import { Button } from '@/components/ui/button'
+import { showCreateOrgModal } from './-components/modals/CreateOrganization'
 
 export const Route = createFileRoute('/_authed/overview')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const { data: orgList, error } = useQuery(getOrganizationsQueryOptions)
+
   return (
     <Main>
       <Section className="animate-fade-down">
@@ -47,7 +53,24 @@ function RouteComponent() {
         </Container>
       </Section>
       <Section>
-        <Activities />
+        {!orgList?.length ? (
+          <div className="flex flex-col items-center justify-center">
+            <h2>No Organizations Found</h2>
+            <p className="text-sm text-secondary-foreground/75">
+              You haven't joined any organizations yet.
+            </p>
+            <Button
+              variant="default"
+              size="lg"
+              className="mt-3"
+              onClick={showCreateOrgModal}
+            >
+              Create organization
+            </Button>
+          </div>
+        ) : (
+          <Activities />
+        )}
       </Section>
     </Main>
   )

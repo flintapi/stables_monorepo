@@ -1,7 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import NiceModal from '@ebay/nice-modal-react'
 import z from 'zod'
 import { ChevronsUpDown, Copy, PlusCircle, Trash2 } from 'lucide-react'
 import { IconGlobe } from '@tabler/icons-react'
+import { toast } from 'sonner'
+import TeamInviteModal from './-components/modals/TeamInvite'
 import type { FC } from 'react'
 import { Container, Main, Section } from '@/components/craft'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -25,6 +29,12 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { FatInput } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import {
+  getOrganizationsQueryOptions,
+  getTeamQueryOptions,
+} from '@/lib/api-client'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { authClient } from '@/lib/auth-client'
 
 export const Route = createFileRoute(`/_authed/settings`)({
   component: RouteComponent,
@@ -64,9 +74,16 @@ function RouteComponent() {
 }
 
 const DetailsTab: FC = () => {
+  const queryClient = useQueryClient()
+  const { data: activeOrg, error } = authClient.useActiveOrganization()
+
+  if (error) {
+    toast.error('Failed to fetch organization details')
+  }
+
   const orgForm = useConsoleForm({
     defaultValues: {
-      organizationName: '',
+      organizationName: activeOrg?.name || '',
     },
     validators: {
       onChange: z.object({
@@ -74,8 +91,29 @@ const DetailsTab: FC = () => {
       }),
     },
     onSubmit: async ({ value }) => {
-      await new Promise((resolve) => setTimeout(resolve, 4000))
-      alert(value.organizationName)
+      console.log('Update org value', value)
+
+      if (activeOrg) {
+        const { error: orgUpdateError } = await authClient.organization.update({
+          data: {
+            name: value.organizationName,
+            slug: value.organizationName.toLowerCase().replace(/\s+/g, '-'),
+          },
+          organizationId: activeOrg.id,
+        })
+
+        if (orgUpdateError) {
+          return toast.error('Failed to update organization', {
+            description: orgUpdateError.message,
+          })
+        }
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsQueryOptions.queryKey,
+        })
+        toast.success('Organization updated successfully')
+      } else {
+        return toast.warning('No active organization found')
+      }
     },
   })
 
@@ -217,6 +255,12 @@ const APIKeyTab: FC = () => {
 const TeamTab: FC = () => {
   const isMobile = useIsMobile()
 
+  const { data: team } = useQuery(getTeamQueryOptions)
+
+  const showInviteModal = () => {
+    NiceModal.show(TeamInviteModal)
+  }
+
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
@@ -224,12 +268,40 @@ const TeamTab: FC = () => {
           <CardTitle>Team</CardTitle>
           <CardDescription>Manage your Team</CardDescription>
         </div>
-        <Button size={isMobile ? 'icon' : 'sm'}>
+        <Button size={isMobile ? 'icon' : 'sm'} onClick={showInviteModal}>
           <span className="hidden lg:inline">Add team member</span>
           <PlusCircle />
         </Button>
       </CardHeader>
-      <CardContent></CardContent>
+      <CardContent>
+        <List>
+          {team && team.total > 0 ? (
+            team.members.map((member) => (
+              <ListItem
+                title={member.user.name}
+                description={member.user.email}
+                suffix={
+                  <div className="text-xs text-primary px-1 rounded-md border border-primary">
+                    {member.role}
+                  </div>
+                }
+                prefix={
+                  <Avatar>
+                    <AvatarImage
+                      src={member.user.image as string | undefined}
+                    />
+                    <AvatarFallback>
+                      {member.user.name.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                }
+              />
+            ))
+          ) : (
+            <div>No members yet</div>
+          )}
+        </List>
+      </CardContent>
     </Card>
   )
 }

@@ -1,3 +1,4 @@
+import NiceModal from '@ebay/nice-modal-react'
 import {
   HeadContent,
   Scripts,
@@ -14,7 +15,7 @@ import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 import { Layout } from '@/components/craft'
-import { authGuard } from '@/server/auth-guard'
+import { Toaster } from '@/components/ui/sonner'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -54,27 +55,30 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <Layout>
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <TanstackDevtools
-          config={{
-            position: 'bottom-left',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-            StoreDevtools,
-            TanStackQueryDevtools,
-          ]}
-        />
-        <Scripts />
-      </body>
-    </Layout>
+    <NiceModal.Provider>
+      <Layout>
+        <head>
+          <HeadContent />
+        </head>
+        <body>
+          {children}
+          <Toaster expand />
+          <TanstackDevtools
+            config={{
+              position: 'bottom-left',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+              StoreDevtools,
+              TanStackQueryDevtools,
+            ]}
+          />
+          <Scripts />
+        </body>
+      </Layout>
+    </NiceModal.Provider>
   )
 }
