@@ -30,6 +30,7 @@ import { Switch } from '@/components/ui/switch'
 import { FatInput } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import {
+  getInvitationQueryOptions,
   getOrganizationsQueryOptions,
   getTeamQueryOptions,
 } from '@/lib/api-client'
@@ -256,6 +257,7 @@ const TeamTab: FC = () => {
   const isMobile = useIsMobile()
 
   const { data: team } = useQuery(getTeamQueryOptions)
+  const { data: invitations } = useQuery(getInvitationQueryOptions)
 
   const showInviteModal = () => {
     NiceModal.show(TeamInviteModal)
@@ -273,7 +275,7 @@ const TeamTab: FC = () => {
           <PlusCircle />
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
         <List>
           {team && team.total > 0 ? (
             team.members.map((member) => (
@@ -299,6 +301,32 @@ const TeamTab: FC = () => {
             ))
           ) : (
             <div>No members yet</div>
+          )}
+        </List>
+        <Separator className="my-4" />
+        <List>
+          {invitations && invitations.length ? (
+            invitations.map((invite) => (
+              <ListItem
+                title={invite.email}
+                description={invite.status}
+                suffix={
+                  <div className="text-xs text-primary px-1 rounded-md border border-primary">
+                    {invite.role}
+                  </div>
+                }
+                prefix={
+                  <Avatar>
+                    <AvatarImage src={undefined as string | undefined} />
+                    <AvatarFallback>
+                      {invite.email.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                }
+              />
+            ))
+          ) : (
+            <div>No invitations yet</div>
           )}
         </List>
       </CardContent>

@@ -22,10 +22,7 @@ import {
 } from '@/components/ui/sidebar'
 import { showCreateOrgModal } from '@/routes/_authed/-components/modals/CreateOrganization'
 import { authClient } from '@/lib/auth-client'
-import {
-  getOrganizationsQueryOptions,
-  getTeamQueryOptions,
-} from '@/lib/api-client'
+import * as queryOptions from '@/lib/api-client'
 
 export function TeamSwitcher({
   teams,
@@ -94,12 +91,11 @@ export function TeamSwitcher({
                     })
                   }
 
-                  queryClient.invalidateQueries({
-                    queryKey: getTeamQueryOptions.queryKey,
-                  })
-                  queryClient.invalidateQueries({
-                    queryKey: getOrganizationsQueryOptions.queryKey,
-                  })
+                  for (const option of Object.values(queryOptions)) {
+                    queryClient.invalidateQueries({
+                      queryKey: option.queryKey,
+                    })
+                  }
                   toast.success('Active organization set successfully')
                 }}
                 className="gap-2 p-2"
