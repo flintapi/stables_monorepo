@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { ChevronsUpDown, Plus } from 'lucide-react'
 
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +20,12 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { showCreateOrgModal } from '@/routes/_authed/-components/modals/CreateOrganization'
+import { authClient } from '@/lib/auth-client'
+import {
+  getOrganizationsQueryOptions,
+  getTeamQueryOptions,
+} from '@/lib/api-client'
 
 export function TeamSwitcher({
   teams,
@@ -25,11 +33,17 @@ export function TeamSwitcher({
   teams: Array<{
     name: string
     logo: React.ElementType
-    plan: string
+    slug: string
+    id: string
   }>
 }) {
   const { isMobile } = useSidebar()
+  const queryClient = useQueryClient()
   const [activeTeam, setActiveTeam] = React.useState(teams[0])
+
+  // React.useEffect(() => {
+  //   setActiveTeam(teams[0])
+  // }, [teams])
 
   if (!activeTeam) {
     return null
@@ -49,7 +63,7 @@ export function TeamSwitcher({
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{activeTeam.name}</span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                <span className="truncate text-xs">{activeTeam.slug}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -61,12 +75,33 @@ export function TeamSwitcher({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">
-              Teams
+              Organizations
             </DropdownMenuLabel>
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                onClick={async () => {
+                  setActiveTeam(team)
+                  const { data, error } =
+                    await authClient.organization.setActive({
+                      organizationId: team.id,
+                      organizationSlug: team.slug,
+                    })
+
+                  if (error) {
+                    return toast.error('Failed to set active organization', {
+                      description: error.message,
+                    })
+                  }
+
+                  queryClient.invalidateQueries({
+                    queryKey: getTeamQueryOptions.queryKey,
+                  })
+                  queryClient.invalidateQueries({
+                    queryKey: getOrganizationsQueryOptions.queryKey,
+                  })
+                  toast.success('Active organization set successfully')
+                }}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
@@ -77,11 +112,16 @@ export function TeamSwitcher({
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
+            <DropdownMenuItem
+              className="gap-2 p-2"
+              onClick={showCreateOrgModal}
+            >
               <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                 <Plus className="size-4" />
               </div>
-              <div className="text-muted-foreground font-medium">Add team</div>
+              <div className="text-muted-foreground font-medium">
+                Add organization
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

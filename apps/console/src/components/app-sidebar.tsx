@@ -22,8 +22,12 @@ import {
 
 import { List, Sparkle, Wallet } from 'lucide-react'
 import { useRouteContext } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { TeamSwitcher } from './team-switcher'
 import { NavSecondary } from './nav-secondary'
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
+import { Button } from './ui/button'
 import { NavMain } from '@/components/nav-main'
 // import { NavSecondary } from '@/components/nav-secondary'
 import { NavUser } from '@/components/nav-user'
@@ -36,6 +40,8 @@ import {
   // SidebarMenuButton,
   // SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { getOrganizationsQueryOptions } from '@/lib/api-client'
+import { showCreateOrgModal } from '@/routes/_authed/-components/modals/CreateOrganization'
 // import { NavEvents } from '@/components/nav-events'
 
 const data = {
@@ -138,23 +144,41 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { session } = useRouteContext({ from: '/_authed' })
 
+  const { data: orgList, error } = useQuery(getOrganizationsQueryOptions)
+
+  if (error) {
+    toast.error('Failed to fetch organizations', {
+      description: error.message,
+    })
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <TeamSwitcher
-          teams={[
-            {
-              plan: 'Pro',
-              name: 'Bread Africa',
-              logo: () => <IconBread className="size-5" />,
-            },
-            {
-              plan: 'Full access',
-              name: 'Use Azza',
-              logo: () => <IconMoneybag className="size-5" />,
-            },
-          ]}
-        />
+        {orgList && orgList.length ? (
+          <TeamSwitcher
+            teams={orgList.map((org) => ({
+              id: org.id,
+              slug: org.slug,
+              name: org.name,
+              logo: () => (
+                <Avatar>
+                  <AvatarImage
+                    src={org.logo as string | undefined}
+                    className="sepia"
+                  />
+                  <AvatarFallback>
+                    {org.name.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              ),
+            }))}
+          />
+        ) : (
+          <Button variant="default" size="lg" onClick={showCreateOrgModal}>
+            Create organization
+          </Button>
+        )}
       </SidebarHeader>
       <SidebarContent className="flex-1">
         <NavMain items={data.navMain} />
