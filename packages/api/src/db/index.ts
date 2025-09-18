@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/libsql";
 
 import env from "@/env";
 
+import * as orgSchema from "./org-schema";
 import * as schema from "./schema";
 
 const db = drizzle({
@@ -12,5 +13,20 @@ const db = drizzle({
   casing: "snake_case",
   schema,
 });
+
+interface OrgDatabaseProps {
+  dbUrl: string;
+  orgName?: string;
+}
+export function orgDb({ dbUrl }: OrgDatabaseProps) {
+  return drizzle({
+    connection: {
+      url: dbUrl,
+      authToken: env.DATABASE_AUTH_TOKEN,
+    },
+    casing: "snake_case",
+    schema: orgSchema,
+  });
+}
 
 export default db;

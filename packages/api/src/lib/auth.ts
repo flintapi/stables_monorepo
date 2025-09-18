@@ -62,6 +62,15 @@ const authOptions = {
         beforeCreateOrganization: async ({ organization, user }) => {
           // TODO: track organization slug already exists and throw APIError
           console.log("beforeCreateOrganization", organization, user);
+
+          return {
+            data: {
+              ...organization,
+              metadata: {
+                databaseUrl: "", // provissioned turso db url
+              },
+            },
+          };
         },
         afterCreateOrganization: async ({ organization, member, user }) => {
           // TODO: Send email
