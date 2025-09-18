@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import NiceModal from '@ebay/nice-modal-react'
 import z from 'zod'
@@ -6,6 +6,7 @@ import { ChevronsUpDown, Copy, PlusCircle, Trash2 } from 'lucide-react'
 import { IconGlobe } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import TeamInviteModal from './-components/modals/TeamInvite'
+import { showDeleteOrgModal } from './-components/modals/DeleteOrganization'
 import type { FC } from 'react'
 import { Container, Main, Section } from '@/components/craft'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -164,7 +165,16 @@ const DetailsTab: FC = () => {
                 description="Deleting your organization may have unwanted consequences. All data associated with this organization will get deleted and can not be recovered!"
                 prefix={<Trash2 className="text-red-500" />}
                 suffix={
-                  <Button size="lg" variant="destructive">
+                  <Button
+                    size="lg"
+                    variant="destructive"
+                    onClick={() =>
+                      showDeleteOrgModal({
+                        organizationId: activeOrg?.id || '',
+                        organizationName: activeOrg?.name || '',
+                      })
+                    }
+                  >
                     Delete organization
                   </Button>
                 }
