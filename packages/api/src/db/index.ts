@@ -18,7 +18,8 @@ interface OrgDatabaseProps {
   dbUrl: string;
   orgName?: string;
 }
-export function orgDb({ dbUrl }: OrgDatabaseProps) {
+export function orgDb({ dbUrl, orgName }: OrgDatabaseProps) {
+  console.log("Database called for: ", orgName);
   return drizzle({
     connection: {
       url: dbUrl,
