@@ -1,12 +1,13 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowUpRight, BookIcon, GitGraph } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { BaseLink } from './-components/ConsoleLink'
 import { Activities } from './-components/Activities'
+import { showCreateOrgModal } from './-components/modals/CreateOrganization'
 import { Container, Main, Section } from '@/components/craft'
 import { getOrganizationsQueryOptions } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
-import { showCreateOrgModal } from './-components/modals/CreateOrganization'
 
 export const Route = createFileRoute('/_authed/overview')({
   component: RouteComponent,
@@ -14,6 +15,12 @@ export const Route = createFileRoute('/_authed/overview')({
 
 function RouteComponent() {
   const { data: orgList, error } = useQuery(getOrganizationsQueryOptions)
+
+  if (error) {
+    toast.error('Failed to get organizations', {
+      description: error.message,
+    })
+  }
 
   return (
     <Main>

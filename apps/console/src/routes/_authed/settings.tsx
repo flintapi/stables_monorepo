@@ -293,7 +293,7 @@ const TeamTab: FC = () => {
                 title={member.user.name}
                 description={member.user.email}
                 suffix={
-                  <div className="text-xs text-primary px-1 rounded-md border border-primary">
+                  <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">
                     {member.role}
                   </div>
                 }
@@ -321,7 +321,7 @@ const TeamTab: FC = () => {
                 title={invite.email}
                 description={invite.status}
                 suffix={
-                  <div className="text-xs text-primary px-1 rounded-md border border-primary">
+                  <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">
                     {invite.role}
                   </div>
                 }
