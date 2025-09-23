@@ -117,7 +117,7 @@ class HSMSigner {
     }
 
     // generate ECDSA key pair
-    console.log("generating new address")
+    console.log("generating new keypair")
     var keys = this.session.generateKeyPair(graphene.KeyGenMechanism.EC, {
       class: graphene.ObjectClass.PUBLIC_KEY,
       keyType: graphene.KeyType.EC,
@@ -125,6 +125,7 @@ class HSMSigner {
       label: keyLabel,
       token: true,
       verify: true,
+      derive: true,
       paramsEC: graphene.NamedCurve.getByName("secp256k1").value,
     }, {
       class: graphene.ObjectClass.PRIVATE_KEY,
@@ -133,6 +134,7 @@ class HSMSigner {
       label: keyLabel,
       token: true,
       sign: true,
+      derive: true,
     });
 
     return keys;

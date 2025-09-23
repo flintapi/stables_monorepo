@@ -18,6 +18,8 @@ const EnvSchema = z.object({
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]),
   DATABASE_URL: z.url(),
   DATABASE_AUTH_TOKEN: z.string().optional(),
+  TURSO_API_TOKEN: z.string(),
+  TURSO_API_URL: z.string().url().optional(),
 
   // Auth providers
   GITHUB_CLIENT_ID: z.string().min(1),
@@ -32,6 +34,9 @@ const EnvSchema = z.object({
 
   // Console
   CONSOLE_URL: z.url().optional(),
+
+  // HSM
+  HSM_PIN: z.string().min(1),
 }).superRefine((input, ctx) => {
   if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
     ctx.addIssue({
