@@ -40,53 +40,53 @@ class HSMSigner {
   }
 
   /**
-     * Creates a viem LocalAccount compatible with ZeroDev
-     */
-    toViemAccount(): LocalAccount {
-      const address = this.deriveEthereumAddress(this.keyPair.publicKey)
+    * Creates a viem LocalAccount compatible with ZeroDev
+  */
+  toViemAccount(): LocalAccount {
+    const address = this.deriveEthereumAddress(this.keyPair.publicKey)
 
-      const signMessage = (message: Hex | string) => this.signEthereumMessage(message)
+    const signMessage = (message: Hex | string) => this.signEthereumMessage(message)
 
-      return toAccount({
-        address,
-        async signMessage({ message }) {
-          let messageHash: Hex
+    return toAccount({
+      address,
+      async signMessage({ message }) {
+        let messageHash: Hex
 
-          if (typeof message === 'string') {
-            // Hash the message for ECDSA signing
-            const messageBuffer = Buffer.from(message, 'utf8')
-            const hash = keccak256('keccak256').update(messageBuffer).digest()
-            messageHash = `0x${hash.toString('hex')}` as Hex
-          } else {
-            // Assume it's already a hash
-            messageHash = message.raw as Hex;
-          }
-
-          const { signature } = signMessage(messageHash)
-
-          // Return signature in the format expected by viem
-          return signature;
-          // return `0x${r.slice(2)}${s.slice(2)}${v.toString(16).padStart(2, '0')}` as Hex
-        },
-
-        async signTransaction(transaction) {
-          // For transaction signing, we need to serialize and hash the transaction
-          // This is handled by viem's transaction serialization
-          throw new Error('Direct transaction signing not supported - use signMessage with transaction hash')
-        },
-
-        async signTypedData(typedData) {
-          // Hash the typed data according to EIP-712
-          const hash = keccak256('keccak256').update(JSON.stringify(typedData))
-            .digest()
-          const messageHash = `0x${hash.toString('hex')}` as Hex
-
-          const { signature } = signMessage(messageHash)
-          return signature;
-          // return `0x${r.slice(2)}${s.slice(2)}${v.toString(16).padStart(2, '0')}` as Hex
+        if (typeof message === 'string') {
+          // Hash the message for ECDSA signing
+          const messageBuffer = Buffer.from(message, 'utf8')
+          const hash = keccak256('keccak256').update(messageBuffer).digest()
+          messageHash = `0x${hash.toString('hex')}` as Hex
+        } else {
+          // Assume it's already a hash
+          messageHash = message.raw as Hex;
         }
-      })
-    }
+
+        const { signature } = signMessage(messageHash)
+
+        // Return signature in the format expected by viem
+        return signature;
+        // return `0x${r.slice(2)}${s.slice(2)}${v.toString(16).padStart(2, '0')}` as Hex
+      },
+
+      async signTransaction(transaction) {
+        // For transaction signing, we need to serialize and hash the transaction
+        // This is handled by viem's transaction serialization
+        throw new Error('Direct transaction signing not supported - use signMessage with transaction hash')
+      },
+
+      async signTypedData(typedData) {
+        // Hash the typed data according to EIP-712
+        const hash = keccak256('keccak256').update(JSON.stringify(typedData))
+          .digest()
+        const messageHash = `0x${hash.toString('hex')}` as Hex
+
+        const { signature } = signMessage(messageHash)
+        return signature;
+        // return `0x${r.slice(2)}${s.slice(2)}${v.toString(16).padStart(2, '0')}` as Hex
+      }
+    })
+  }
 
 
   getKeyPair(keyLabel: string, keyId: string = "01"): graphene.IKeyPair {
