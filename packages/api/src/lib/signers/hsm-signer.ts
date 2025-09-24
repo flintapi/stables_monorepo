@@ -13,42 +13,50 @@ import {
   keccak256 as etherKeccak,
 } from 'ethereumjs-util';
 import { toAccount } from "viem/accounts"
-import type {Hex, Address, LocalAccount} from 'viem'
+import type {Hex, Address, LocalAccount, HDAccount} from 'viem'
 
 
 class HSMSigner {
   private session: Session;
   private hsmModule: Module;
-  private keyPair: graphene.IKeyPair;
+  keyPair: graphene.IKeyPair;
 
   constructor(
-    private libPath: string = "/usr/local/lib/softhsm/libsofthsm2.so",
+    private keyLabel: string,
+    private libPath: string = "/opt/homebrew/opt/softhsm/lib/softhsm/libsofthsm2.so", // local path
     private slotIndex: number = 0,
     private pin: string = env.HSM_PIN,
-    private keyLabel: string
   ) {
     this.hsmModule = graphene.Module.load(libPath, "SoftHSM2");
-    this.hsmModule.initialize()
+    this.hsmModule.initialize();
 
-    const slot = this.hsmModule.getSlots(slotIndex, true); // only slots with tokens present
+    const slots = this.hsmModule.getSlots();
+
+    const slot = slots.items(slotIndex) // only slots with tokens present
     this.session = slot.open(graphene.SessionFlag.SERIAL_SESSION | graphene.SessionFlag.RW_SESSION);
 
-    this.session.login(pin, graphene.UserType.USER)
+    this.session.login(pin, graphene.UserType.USER);
 
     // get or generate Keypair for signer
-    this.keyPair = this.getKeyPair(keyLabel)
+    this.keyPair = this.getKeyPair(keyLabel);
   }
 
   /**
     * Creates a viem LocalAccount compatible with ZeroDev
   */
-  toViemAccount(): LocalAccount {
+  toViemAccount(): LocalAccount | HDAccount {
     const address = this.deriveEthereumAddress(this.keyPair.publicKey)
 
     const signMessage = (message: Hex | string) => this.signEthereumMessage(message)
 
     return toAccount({
       address,
+      async sign({hash}) {
+        const { signature } = signMessage(hash)
+
+        return signature
+      },
+
       async signMessage({ message }) {
         let messageHash: Hex
 
@@ -143,7 +151,6 @@ class HSMSigner {
   // TODO: implement methods to generate, encrypt and store and retrieve mnemonic
 
   deriveEthereumAddress(publicKey: graphene.PublicKey): Address {
-    console.log("Session object in deriveEthereumAddress", JSON.stringify(publicKey, null, 3))
     // 1. Extract EC point from HSM
     const ecPoint = publicKey.getAttribute({ pointEC: null }).pointEC
 
