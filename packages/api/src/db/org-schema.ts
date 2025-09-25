@@ -1,13 +1,14 @@
-import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { toZodV4SchemaTyped } from "@/lib/zod-utils";
+import { generateUniqueId } from "./utils";
 
 export const transactions = sqliteTable("transactions", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  type: text("type", { enum: ["payout", "ramp"] }).default("payout").notNull(),
+    .$defaultFn(() => generateUniqueId('trx_')),
+  type: text("type", { enum: ["off-ramp", "on-ramp", "transfer", "deposit"] }).default("off-ramp").notNull(),
   status: text("status", { enum: ["pending", "completed", "failed"] })
     .notNull()
     .default("pending"),
@@ -45,3 +46,37 @@ export const insertTransactionSchema = toZodV4SchemaTyped(createInsertSchema(
 
 // @ts-expect-error partial exists on zod v4 type
 export const patchTransactionSchema = insertTransactionSchema.partial();
+
+// TODO: add table for wallet and indexed event
+
+export const wallet = sqliteTable("wallet", {
+  id: text("id").primaryKey().$defaultFn(() => generateUniqueId('wal_')),
+  network: text("network").notNull().$defaultFn(() => "evm"),
+  derivationIndex: integer("derivation_index").notNull(),
+  publicKey: text("public_key").notNull(),
+  type: text("type", { enum: ["derived", "master"] })
+    .notNull()
+    .default("derived"), // master is the first smart account at index 0
+  derivedFromId: text("derived_from_id"),
+  isActive: integer("is_active", { mode: "boolean" })
+    .notNull()
+    .$defaultFn(() => false),
+  isPermanent: integer("is_permanent", { mode: "boolean" })
+    .notNull()
+    .$defaultFn(() => false),
+  autoSweep: integer("auto_sweep", { mode: "boolean" })
+    .notNull()
+    .$defaultFn(() => true),
+  label: text("label").unique(),
+  metadata: text("metadata", { mode: "json" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+}, table => [
+  index("id_index").on(table.id),
+  index("network_index").on(table.network),
+  index("type_index").on(table.type),
+  uniqueIndex("label_index").on(table.label),
+]);
