@@ -1,10 +1,10 @@
-import { describe, it, expect, afterEach, beforeEach } from "vitest"
+import { describe, it, expect, afterAll, beforeAll } from "vitest"
 import HSMSigner from "../hsm-signer"
 
-import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk"
-import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants"
+import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient, getUserOperationGasPrice } from "@zerodev/sdk"
+import { getEntryPoint, KERNEL_V3_1, KERNEL_V3_3 } from "@zerodev/sdk/constants"
 import { getKernelAddressFromECDSA, signerToEcdsaValidator, getValidatorAddress } from "@zerodev/ecdsa-validator"
-import { createPublicClient, getContract, Hex, http, parseEther, parseGwei } from "viem"
+import { createPublicClient, getContract, Hex, http, parseEther, parseGwei, zeroAddress } from "viem"
 import { baseSepolia } from "viem/chains"
 
 describe("HSMSigner Test Suit", () => {
@@ -14,12 +14,12 @@ describe("HSMSigner Test Suit", () => {
   const HSM_OWNER = `0x6480d80d340d57ad82a7e79a91f0ecec3869d479` as Hex;
   const ZERODEV_RPC = 'https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/84532';
 
-  beforeEach(() => {
+  beforeAll(() => {
     // initialize with keyLabel
     signer = new HSMSigner(keyLabel);
   })
 
-  afterEach(() => {
+  afterAll(() => {
     // Cleanup HSMSigner
     if(signer) {
       signer.cleanup()
@@ -27,7 +27,7 @@ describe("HSMSigner Test Suit", () => {
   })
 
 
-  it.skip("should generate keypair from keyLabel and derive address", async () => {
+  it("should generate keypair from keyLabel and derive address", async () => {
 
     const address = signer?.deriveEthereumAddress(signer.keyPair.publicKey)
 
@@ -86,7 +86,7 @@ describe("HSMSigner Test Suit", () => {
 
     const hash = await kernelClient.sendTransaction({
       to: "0x1333946C8F7e30A74f6934645188bf75A13688Be" as Hex,
-      value: parseEther('0.1'),
+      value: parseEther('0'),
     })
 
     console.log("Transaction Hash: ", hash)
@@ -98,7 +98,7 @@ describe("HSMSigner Test Suit", () => {
     expect(hash).toContain('0x')
   }, {timeout: 100*100000})
 
-  it.only("should generate smart accounts based on index, and get owner", async () => {
+  it("should generate smart accounts based on index, and get owner", async () => {
     const entryPoint = getEntryPoint("0.7")
     const kernelVersion = KERNEL_V3_1;
 
@@ -195,4 +195,63 @@ describe("HSMSigner Test Suit", () => {
     expect(hash).toContain('0x')
   }, {timeout: 100*1000000})
 
+  it.skip("should create a EIP7702 account from eoa", async () => {
+    const entryPoint = getEntryPoint("0.7")
+    const kernelVersion = KERNEL_V3_3;
+
+    console.log("Kernel version contract", kernelVersion, KERNEL_V3_3)
+
+    const publicClient = createPublicClient({
+      transport: http(),
+      chain: baseSepolia
+    })
+
+    const paymasterClient = createZeroDevPaymasterClient({
+      chain: baseSepolia,
+      transport: http(ZERODEV_RPC),
+    })
+
+    const eip7702Account = signer.toViemAccount();
+
+    const account = await createKernelAccount(publicClient, {
+      eip7702Account,
+      entryPoint,
+      kernelVersion,
+    })
+
+    const kernelClient = createKernelAccountClient({
+      account,
+      chain: baseSepolia,
+      bundlerTransport: http(ZERODEV_RPC),
+      paymaster: paymasterClient,
+      client: publicClient,
+      userOperation: {
+        estimateFeesPerGas: async ({ bundlerClient }) => {
+          return getUserOperationGasPrice(bundlerClient)
+        }
+      }
+    })
+
+    const userOpHash = await kernelClient.sendUserOperation({
+      callData: await kernelClient.account.encodeCalls([
+        {
+          to: zeroAddress,
+          value: BigInt(0),
+          data: "0x",
+        },
+        {
+          to: zeroAddress,
+          value: BigInt(0),
+          data: "0x",
+        },
+      ]),
+    })
+
+    await kernelClient.waitForUserOperationReceipt({
+      hash: userOpHash,
+    })
+
+    console.log("UserOp completed", userOpHash)
+    expect(userOpHash).toContain('0x')
+  }, {timeout: 100*100000})
 })

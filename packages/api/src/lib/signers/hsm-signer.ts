@@ -13,7 +13,8 @@ import {
   keccak256 as etherKeccak,
 } from 'ethereumjs-util';
 import { toAccount } from "viem/accounts"
-import type {Hex, Address, LocalAccount, HDAccount} from 'viem'
+import type {Hex, Address, LocalAccount, HDAccount, SignAuthorizationReturnType} from 'viem'
+import { hashAuthorization } from "viem/utils";
 
 
 class HSMSigner {
@@ -92,6 +93,33 @@ class HSMSigner {
         const { signature } = signMessage(messageHash)
         return signature;
         // return `0x${r.slice(2)}${s.slice(2)}${v.toString(16).padStart(2, '0')}` as Hex
+      },
+
+      async signAuthorization(params){
+        const { chainId, nonce } = params;
+
+        const address = params.address as Hex;
+        const contractAddress = params.contractAddress || params.address as Hex;
+
+        const hexMessage = hashAuthorization({
+          contractAddress,
+          chainId,
+          nonce
+        })
+
+        const { r, s, v } = signMessage(hexMessage)
+
+        const yParity = v === 27 ? 0 : 1;
+
+        return {
+          r,
+          s,
+          yParity,
+          chainId,
+          contractAddress,
+          nonce,
+          address,
+        } as SignAuthorizationReturnType
       }
     })
   }
