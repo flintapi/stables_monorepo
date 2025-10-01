@@ -39,7 +39,8 @@ const EnvSchema = z.object({
   HSM_PIN: z.string().min(1),
   HSM_TOKEN_SLOT: z.coerce.number().default(1099048314),
 
-  MASTER_LABEL_KEY: z.string().min(18).min(1024),
+  MASTER_LABEL_KEY: z.string().min(18).max(1024),
+  PALMPAY_URL: z.string().optional(),
 }).superRefine((input, ctx) => {
   if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
     ctx.addIssue({

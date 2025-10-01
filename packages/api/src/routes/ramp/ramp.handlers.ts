@@ -1,6 +1,7 @@
 import { AppRouteHandler } from "@/lib/types"
 import type { RampRequest } from "./ramp.routes"
 import WalletFactory from "@/lib/factories/wallet/wallet.factory"
+import VirtualAccountFactory from "@/lib/factories/vaccount/vaccount.factory"
 import { networkToChainidMap } from "@/lib/factories/wallet/wallet.constants"
 import * as HttpStatusCodes from "stoker/http-status-codes";
 import env from "@/env"

@@ -13,7 +13,7 @@ const offRampSchema = z.object({
 
 const offRampResponseSchema = z.object({
   type: z.literal('off'),
-  status: z.enum(['pending', 'success', 'failed']),
+  status: z.enum(['pending', 'completed', 'failed']),
   message: z.string().min(1).max(255),
   depositAddress: z.string().min(12).startsWith('0x'),
 })
@@ -30,7 +30,7 @@ const onRampSchema = z.object({
 
 const onRampResponseSchema = z.object({
   type: z.literal('on'),
-  status: z.enum(['pending', 'success', 'failed']),
+  status: z.enum(['pending', 'completed', 'failed']),
   message: z.string().min(1).max(255),
   depositAccount: z.object({
     accountNumber: z.string().min(10),
