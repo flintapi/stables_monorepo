@@ -1,4 +1,4 @@
-import type { BetterAuthOptions } from "better-auth";
+import type { BetterAuthOptions, Session } from "better-auth";
 
 import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -15,6 +15,38 @@ const authOptions = {
     provider: "sqlite",
     schema: { ...schema },
   }),
+  databaseHooks: {
+    session: {
+      update: {
+        after: async (session) => {
+          console.log("Update after session", session);
+        },
+      },
+      create: {
+        after: async (session) => {
+          console.log("Create After session", session);
+        },
+        before: async (session: Session) => {
+          console.log("Create before session", session);
+          const organizations = await db.query.member.findMany({
+            where(fields, ops) {
+              return ops.eq(
+                fields.userId,
+                session?.userId,
+              );
+            },
+          });
+
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: organizations[0]?.organizationId,
+            },
+          };
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
   },
