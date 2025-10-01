@@ -3,6 +3,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { toZodV4SchemaTyped } from "@/lib/zod-utils";
 import { generateUniqueId } from "./utils";
+import { relations } from "drizzle-orm";
 
 export const transactions = sqliteTable("transactions", {
   id: text("id")
@@ -15,10 +16,9 @@ export const transactions = sqliteTable("transactions", {
   network: text("network", { enum: ["bsc", "base"] }).default("base").notNull(),
   reference: text("reference").notNull(),
   trackingId: text("tracking_id"),
-  accountNumber: text("account_number").notNull(),
-  bankCode: text("bank_code").notNull(),
+  walletId: text("wallet_id").references(() => wallet.id), // Will be null if type is on-ramp, destination is external wallet
   amount: real("amount").notNull(),
-  transactionHash: text("transaction_hash"),
+  metadata: text("metadata", { mode: "json" }), // should hold transaction properties based on type, network, and status
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" })
@@ -35,8 +35,6 @@ export const insertTransactionSchema = toZodV4SchemaTyped(createInsertSchema(
   status: true,
   network: true,
   reference: true,
-  accountNumber: true,
-  bankCode: true,
   amount: true,
 }).omit({
   id: true,
@@ -79,4 +77,17 @@ export const wallet = sqliteTable("wallet", {
   index("network_index").on(table.network),
   index("type_index").on(table.type),
   uniqueIndex("label_index").on(table.label),
+  index("derivation_index").on(table.derivationIndex),
 ]);
+
+
+export const walletRelations = relations(wallet, ({ many }) => ({
+  transactions: many(transactions),
+}));
+
+export const transactionRelations = relations(transactions, ({ one }) => ({
+  wallet: one(wallet, {
+    fields: [transactions.walletId],
+    references: [wallet.id],
+  }),
+}));

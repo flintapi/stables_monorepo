@@ -117,37 +117,3 @@ export const verification = sqliteTable("verification", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
-
-export const tasks = sqliteTable("tasks", {
-  id: integer({ mode: "number" })
-    .primaryKey({ autoIncrement: true }),
-  name: text().notNull(),
-  done: integer({ mode: "boolean" })
-    .notNull()
-    .default(false),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .$defaultFn(() => new Date())
-    .$onUpdate(() => new Date()),
-});
-
-// @ts-expect-error 'Incorrect type'
-export const selectTasksSchema = toZodV4SchemaTyped(createSelectSchema(tasks));
-
-export const insertTasksSchema = toZodV4SchemaTyped(createInsertSchema(
-  // @ts-expect-error 'Incorrect type'
-  tasks,
-  {
-    name: field => field.min(1).max(500),
-  },
-).required({
-  done: true,
-}).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}));
-
-// @ts-expect-error partial exists on zod v4 type
-export const patchTasksSchema = insertTasksSchema.partial();

@@ -17,13 +17,13 @@ describe("db Suite", () => {
     expect(url).includes("file");
   });
 
-  it("should migrate schema changes to db", async () => {
+  it.only("should migrate schema changes to db", async () => {
     const url = "file:./.local_dbs/tenant-db-1758501227976.db";
 
     await migrateDatabase(url);
   });
 
-  it.only("should generate unique id", async () => {
+  it("should generate unique id", async () => {
     const generateUniqueId = (prefix: string) => {
       const random = crypto.randomUUID().replace(/-/g, "").substring(prefix.length);
 
