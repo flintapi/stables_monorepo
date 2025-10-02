@@ -7,10 +7,22 @@ export interface OrgMetadata {
 }
 
 export interface WalletMetadata {
+  linkedVirtualAccounts: Array<Record<string, any>>;
   [key: string]: any
 }
 
+export type WalletAddresses = Array<{
+  type: "smart" | "eoa" | string
+  address: string;
+  chain: `eip155:${string}` | string;
+  [key: string]: any;
+}>;
+
 export interface TransactionMetadata {
-  isAccountExternal: boolean;
-  accountAddress: string;
+  isDestinationExternal: boolean;
+  address?: string;
+  walletId?: string;
+  bankCode?: string;
+  accountNumber?: string;
+  [key: string]: any
 }

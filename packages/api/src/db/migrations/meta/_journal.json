@@ -15,6 +15,20 @@
       "when": 1757934355789,
       "tag": "0001_wealthy_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1759282048533,
+      "tag": "0002_foamy_wild_child",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1759409925145,
+      "tag": "0003_calm_korg",
+      "breakpoints": true
     }
   ]
 }

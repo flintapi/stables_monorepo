@@ -31,6 +31,8 @@ export const organization = sqliteTable("organization", {
     .notNull(),
 });
 
+export const selectOrganization = createSelectSchema(organization)
+
 export const member = sqliteTable("member", {
   id: text("id").primaryKey(),
   userId: text("user_id")
@@ -109,6 +111,35 @@ export const verification = sqliteTable("verification", {
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .defaultNow()
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const apiKey = sqliteTable("api_key", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  start: text("start"),
+  prefix: text("prefix"),
+  key: text("key"),
+  userId: text("user_id").references(() => user.id),
+  refillInterval: integer("refill_interval"),
+  refillAmount: integer("refill_amount"),
+  lastRefillAt: integer("last_refill_at", { mode: "timestamp" }),
+  enabled: integer("enabled", { mode: "boolean" }),
+  rateLimitEnabled: integer("rate_limit_enabled", { mode: "boolean" }),
+  rateLimitTimeWindow: integer("rate_limit_time_window"),
+  rateLimitMax: integer("rate_limit_max"),
+  requestCount: integer("request_count"),
+  remaining: integer("remaining"),
+  lastRequest: integer("last_request", { mode: "timestamp" }),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  permissions: text("permissions"),
+  metadata: text("metadata", { mode: "json" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .defaultNow()
     .notNull(),
