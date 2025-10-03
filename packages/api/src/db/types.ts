@@ -26,3 +26,7 @@ export interface TransactionMetadata {
   accountNumber?: string;
   [key: string]: any
 }
+
+export interface APIKeyMetada {
+  organizationId: string;
+}

@@ -1,8 +1,8 @@
-import type { BetterAuthOptions, Session } from "better-auth";
+import type { BetterAuthOptions, BetterAuthPlugin, Session } from "better-auth";
 
 import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP, multiSession, organization, twoFactor } from "better-auth/plugins";
+import { emailOTP, multiSession, organization, twoFactor, apiKey } from "better-auth/plugins";
 
 import db from "@/db";
 import * as schema from "@/db/schema";
@@ -171,4 +171,18 @@ const authOptions = {
   },
 } as BetterAuthOptions;
 
-export const auth = betterAuth(authOptions);
+export const auth = betterAuth({
+  ...authOptions,
+  plugins: [
+    apiKey({
+      defaultPrefix: "flnt_key_",
+      rateLimit: {
+        enabled: false,
+      },
+      enableMetadata: true,
+      disableSessionForAPIKeys: true,
+      apiKeyHeaders: ["x-api-key", "flint-api-key"],
+    }),
+    ...authOptions.plugins as Array<BetterAuthPlugin>,
+  ]
+});
