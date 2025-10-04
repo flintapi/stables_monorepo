@@ -16,6 +16,11 @@
       "types": "./dist/Cache/cache.facade.d.ts",
       "default": "./dist/Cache/cache.facade.js",
       "import": "./dist/Cache/cache.facade.js"
+    },
+    "./Adapters": {
+      "types": "./dist/Adapters/index.d.ts",
+      "default": "./dist/Adapters/index.js",
+      "import": "./dist/Adapters/index.js"
     }
   },
   "scripts": {
