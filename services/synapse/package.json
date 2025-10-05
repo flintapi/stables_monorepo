@@ -1,0 +1,7 @@
+{
+  "name": "@flint/synapse",
+  "type": "module",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "FlintAPI blockchain indexer service"
+}
