@@ -21,6 +21,11 @@
       "types": "./dist/Adapters/index.d.ts",
       "default": "./dist/Adapters/index.js",
       "import": "./dist/Adapters/index.js"
+    },
+    "./Utils": {
+      "types": "./dist/Utils/index.d.ts",
+      "default": "./dist/Utils/index.js",
+      "import": "./dist/Utils/index.js"
     }
   },
   "scripts": {

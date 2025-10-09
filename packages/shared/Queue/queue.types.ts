@@ -8,16 +8,11 @@ export type SwapServiceJob = {
     data: any
 };
 
-
-type EventData = {
+export interface EventServiceJob {
   chainId: number;
   eventName: "Transfer" | "Approval" | string;
   eventArgType: "from" | "to";
   address: Address;
   tokenAddress: Address;
   persist: boolean;
-  callbackFn?: Function;
-}
-export interface EventServiceJob {
-    data: EventData
 }
