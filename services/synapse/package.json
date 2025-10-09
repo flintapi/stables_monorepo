@@ -3,5 +3,22 @@
   "type": "module",
   "version": "1.0.0",
   "license": "MIT",
-  "description": "FlintAPI blockchain indexer service"
+  "description": "FlintAPI blockchain indexer service",
+  "scripts": {
+    "dev": "pnpm with-env tsx watch ./src/worker.ts",
+    "start": "node ./dist/src/worker.js",
+    "build": "tsc && tsc-alias",
+    "typecheck": "tsc --noEmit",
+    "with-env": "dotenv -e .env --"
+  },
+  "dependencies": {
+    "@flintapi/shared": "workspace:*",
+    "@libsql/client": "^0.15.10",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "drizzle-kit": "^0.31.4"
+  }
 }
