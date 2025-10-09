@@ -3,7 +3,7 @@ import { EventStream } from "../steams/event.stream";
 import { EventProcessor } from '../processors/event.processor';
 import { ListenerConfig, ListenerState } from '../lib/types';
 import { MetricsCollector } from '../processors/metrics.processor';
-import { Log, parseAbi, parseAbiItem, PublicClient } from 'viem';
+import { Hex, Log, parseAbi, parseAbiItem, parseEventLogs, PublicClient } from 'viem';
 
 /**
  * EventStream → EventProcessor → (optional: database writer, logger, etc.)
@@ -27,7 +27,7 @@ export default class EventListenerManager {
     this.restorePersistentListeners();
   }
 
-  static getInstance(client?: any): EventListenerManager {
+  static getInstance(client: PublicClient): EventListenerManager {
     if (!EventListenerManager.instance) {
       EventListenerManager.instance = new EventListenerManager(client);
     }
@@ -69,18 +69,33 @@ export default class EventListenerManager {
     );
 
     // Create viem watcher with backpressure awareness
-    const unwatch = this.client.watchEvent({
+    const unwatch = this.client.watchContractEvent({
       ...config.filter,
-      events: parseAbi([
+      abi: parseAbi([
         "event Transfer(address indexed from, address indexed to, uint256 value)",
         "event Approval(address indexed owner, address indexed sender, uint256 value)"
       ]),
       batch: false,
-      onLogs: (logs: Log[]) => {
+      onError: (error) => console.log('Error listening for ERC20 events', error),
+      onLogs: async (logs: Log[]) => {
         for (const log of logs) {
-          const success = eventStream.addEvent(log);
-          if (!success && !eventStream.isPaused()) {
-            console.warn(`Buffer full for listener ${config.id}, dropping event`);
+          try {
+            const decodedLogs = parseEventLogs({
+              abi: parseAbi([
+                "event Transfer(address indexed from, address indexed to, uint256 value)",
+                "event Approval(address indexed owner, address indexed sender, uint256 value)"
+              ]),
+              logs: [log],
+              eventName: config.filter.eventName,
+            })
+            const success = eventStream.addEvent(decodedLogs);
+            if (!success && !eventStream.isPaused()) {
+              console.warn(`Buffer full for listener ${config.id}, dropping event`);
+            }
+          }
+          catch(error: any) {
+            console.warn('Failed to parse log:', error)
+            continue
           }
         }
       },

@@ -2,17 +2,20 @@
  * Listener service defines functions for queue workers to use in creating new listeners and managing them
  */
 
+import { EventServiceJob } from "@flintapi/shared/Queue"
 import { ListenerConfig } from "../lib/types";
 import EventListenerManager from "../managers/ERC20Event.manager";
+import Factory from "../listener.factory";
+import { QueueInstances, QueueNames } from "@flintapi/shared/Queue"
 
 interface ListenerService {
-  handleCreateListener(request: any): Promise<any>;
-  getMetrics(listenerId?: string): Promise<any>;
-  getListeners(): Promise<Array<any>>;
+  CreateOfframpListener(request: any): Promise<any>;
+  GetMetrics(listenerId?: string): Promise<any>;
+  GetListeners(): Promise<Array<any>>;
 }
 
 // Service API Handler
-export class EventListenerService implements ListenerService {
+export default class EventListenerService implements ListenerService {
   private manager: EventListenerManager;
 
   constructor(client: any) {
@@ -20,33 +23,61 @@ export class EventListenerService implements ListenerService {
   }
 
   // REST endpoint handler
-  async handleCreateListener(request: any): Promise<{ listenerId: string }> {
-    const { eventName, filter, persistent = false, customLogic } = request;
+  async CreateOfframpListener(data: EventServiceJob): Promise<{ listenerId: string }> {
+    const { eventName, tokenAddress, persist = false, address, eventArgType, chainId } = data;
+    let newListenerConfig: Omit<ListenerConfig, 'id'>;
+    if(eventName === "Transfer") {
+      newListenerConfig = Factory.createERC20TransferListener(
+        tokenAddress,
+        {
+          [eventArgType]: address
+        },
+        persist,
+        chainId,
+        this.getDefaultTransferEventHandler()
+      )
+      const listenerId = await this.manager.createListener({
+        id: this.generateEventId(eventName),
+        ...newListenerConfig,
+      });
+      return { listenerId };
+    }
 
-    const config: ListenerConfig = {
-      id: `${eventName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      eventName,
-      filter,
-      persistent,
-      onEvent: customLogic || this.defaultEventHandler,
-      onStart: async () => console.log(`Starting listener ${config.id}`),
-      onStop: async () => console.log(`Stopping listener ${config.id}`)
-    };
-
-    const listenerId = await this.manager.createListener(config);
-    return { listenerId };
+    throw new Error('Unsupported event name')
   }
 
-  async getMetrics(listenerId?: string): Promise<any> {
+  async GetMetrics(listenerId?: string): Promise<any> {
 
   }
 
-  async getListeners(): Promise<Array<any>> {
+  async GetListeners(): Promise<Array<any>> {
     return []
   }
 
-  private defaultEventHandler = async (event: any) => {
-    // Default indexing logic
-    console.log('Event received:', event);
-  };
+  private generateEventId(eventName: string): string {
+    const random = crypto.randomUUID().replace(/-/g, "").substring(eventName.length);
+
+    return `${eventName.toLowerCase()}_${random}`;
+  }
+
+  private getDefaultTransferEventHandler(organizationData?: any, transactionData?: any) {
+    return async (event: any) => {
+      console.log('Event received:', event);
+
+      // Default payout trigger logic
+      const rampQueue = QueueInstances[QueueNames.RAMP_QUEUE];
+      await rampQueue.add("off-ramp", {
+        data: {
+          type: "off",
+          transactionData,
+          organizationData
+        }
+      }, {
+        attempts: 3,
+      });
+
+      // TODO: call webhook queue with organizationData as job data
+      // TODO: call wallet service to trigger transfer to treasury
+    };
+  }
 }

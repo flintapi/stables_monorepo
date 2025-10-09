@@ -1,26 +1,24 @@
+import { Address } from "viem";
 import { ListenerConfig } from "./lib/types";
 
 // Factory for creating configured listeners
 export default class {
   static createERC20TransferListener(
-    tokenAddress: string,
-    fromAddress?: string,
-    persistent = false
+    tokenAddress: Address,
+    args: { from?: Address | Array<Address>; to?: Address | Array<Address>; },
+    persistent = false,
+    chainId: number,
+    onEvent: (event: any) => Promise<void>
   ): Omit<ListenerConfig, 'id'> {
     return {
-      eventName: 'Transfer',
+      chainId,
       filter: {
         address: tokenAddress,
-        topics: fromAddress ? [
-          '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-          fromAddress
-        ] : undefined
+        eventName: 'Transfer',
+        args
       },
       persistent,
-      onEvent: async (event) => {
-        console.log('Transfer event received:', event);
-        // Custom indexing logic here
-      }
+      onEvent,
     };
   }
 }
