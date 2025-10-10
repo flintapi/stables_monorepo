@@ -1,4 +1,4 @@
-import { BundlerCollection, ChainId } from "./wallet.entities";
+import { BundlerCollection, ChainId, Network } from "./wallet.entities";
 
 export enum SupportedChains {
   bsc = 56,
@@ -17,7 +17,7 @@ export const TOKEN_ADDRESSES = {
   [SupportedChains.baseSepolia]: {
     usdc: {address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", decimal: 6},
     usdt: {address: "0x323e78f944A9a1FcF3a10efcC5319DBb0bB6e673", decimal: 6},
-    cngn: {address: "0x7E29CF1D8b1F4c847D0f821b79dDF6E67A5c11F8", decimal: 6},
+    cngn: {address: "0x929A08903C22440182646Bb450a67178Be402f7f", decimal: 6},
   },
   [SupportedChains.base]: {
     usdc: {address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", decimal: 6},
@@ -32,15 +32,11 @@ export const TOKEN_ADDRESSES = {
   [SupportedChains.bscTestnet]: {
     usdc: {address: "0x64544969ed7EBf5f083679233325356EbE738930", decimal: 18},
     usdt: {address: "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd", decimal: 18},
-    cngn: {address: "0xA8945B7B12a3808EFD68B072b54E6dae4f0d7AEa", decimal: 6},
+    cngn: {address: "0x20354A3Ad3B67836ab9c6D7D82cF5e5Ddfe104dD", decimal: 6},
   },
 }
 
-export const tokenDecimals = {
-
-}
-
-export const networkToChainidMap: Record<string, ChainId> = {
+export const networkToChainidMap: Record<Network, ChainId> = {
   "base": process.env.NODE_ENV === "development"? 84532 : 8453,
   "bsc": process.env.NODE_ENV === "development"? 97 : 56,
 }

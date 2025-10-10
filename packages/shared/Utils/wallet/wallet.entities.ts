@@ -1,5 +1,6 @@
 import { SupportedChains } from "./wallet.constants";
 import * as supportedChains from "./wallet.chains";
+import { Address } from "viem";
 
 // Types and interfaces
 export interface CollectionAddressParams {
@@ -14,6 +15,8 @@ export interface CreateOrGetAccountConfig {
   index?: bigint;
   isMaster?: boolean;
 }
+
+export type Network = "base" | "bsc";
 
 // Collection of available bundler URLs
 const ids = (Object.values(supportedChains).map((network) => network.id));
