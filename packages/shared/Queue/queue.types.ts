@@ -1,7 +1,9 @@
 import { Address } from "viem";
 
 export type RampServiceJob = {
-    data: any
+    type: "off" | "on";
+    organizationData: any;
+    transactionData: any;
 };
 
 export type SwapServiceJob = {
@@ -15,4 +17,9 @@ export interface EventServiceJob {
   address: Address;
   tokenAddress: Address;
   persist: boolean;
+  rampData?: {
+    type: "off" | "on";
+    organizationData: any;
+    transactionData: any;
+  }
 }
