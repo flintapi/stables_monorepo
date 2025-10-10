@@ -1,3 +1,4 @@
+import { ListenerConfig } from '@/lib/types';
 import { Writable } from 'stream';
 
 // Metrics Collector - Writable stream that tracks statistics
@@ -14,11 +15,17 @@ export class MetricsCollector extends Writable {
 
   private metricsInterval: NodeJS.Timeout;
 
-  constructor() {
+  private config: ListenerConfig;
+  private listenerId: string;
+
+  constructor(config: ListenerConfig, listenerId: string) {
     super({
       objectMode: true,
-      highWaterMark: 5
+      highWaterMark: 8
     });
+
+    this.config = config;
+    this.listenerId = listenerId;
 
     // Update events per minute every 60 seconds
     this.metricsInterval = setInterval(() => {
@@ -47,11 +54,15 @@ export class MetricsCollector extends Writable {
         (this.metrics.eventsByListener.get(listenerId) || 0) + 1
       );
 
-      callback();
+      if (!this.config.persistent) {
+        this.emit('shutdown', this.listenerId);
+      }
+
+      callback(null, event);
     } catch (error) {
       this.metrics.errors++;
       console.error('Metrics collection error:', error);
-      callback();
+      callback(error);
     }
   }
 

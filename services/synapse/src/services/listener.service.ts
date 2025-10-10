@@ -24,7 +24,7 @@ export default class EventListenerService implements ListenerService {
 
   // REST endpoint handler
   async CreateOfframpListener(data: EventServiceJob): Promise<{ listenerId: string }> {
-    const { eventName, tokenAddress, persist = false, address, eventArgType, chainId } = data;
+    const { eventName, tokenAddress, persist = false, address, eventArgType, chainId, rampData } = data;
     let newListenerConfig: Omit<ListenerConfig, 'id'>;
     if(eventName === "Transfer") {
       newListenerConfig = Factory.createERC20TransferListener(
@@ -34,11 +34,20 @@ export default class EventListenerService implements ListenerService {
         },
         persist,
         chainId,
-        this.getDefaultTransferEventHandler()
+        (rampData? this.getDefaultTransferEventHandler(
+          rampData?.type,
+          rampData?.organizationData,
+          rampData?.transactionData
+        ) : async (event) => {
+          console.log("Custom event handler to ERC20 transfer factory function", event)
+        })
       )
       const listenerId = await this.manager.createListener({
         id: this.generateEventId(eventName),
         ...newListenerConfig,
+        onStart: async () => {
+          console.log("Listener starting...")
+        }
       });
       return { listenerId };
     }
@@ -60,20 +69,19 @@ export default class EventListenerService implements ListenerService {
     return `${eventName.toLowerCase()}_${random}`;
   }
 
-  private getDefaultTransferEventHandler(organizationData?: any, transactionData?: any) {
+  private getDefaultTransferEventHandler(type: "off" | "on", organizationData?: any, transactionData?: any) {
     return async (event: any) => {
       console.log('Event received:', event);
 
       // Default payout trigger logic
       const rampQueue = QueueInstances[QueueNames.RAMP_QUEUE];
       await rampQueue.add("off-ramp", {
-        data: {
-          type: "off",
-          transactionData,
-          organizationData
-        }
+        type,
+        organizationData,
+        transactionData
       }, {
         attempts: 3,
+        jobId: `off-ramp:${transactionData?.id || crypto.randomUUID()}`
       });
 
       // TODO: call webhook queue with organizationData as job data

@@ -1,8 +1,8 @@
 import { pipeline } from 'stream/promises';
-import { EventStream } from "../steams/event.stream";
+import { EventStream } from "../streams/event.stream";
 import { EventProcessor } from '../processors/event.processor';
-import { ListenerConfig, ListenerState } from '../lib/types';
 import { MetricsCollector } from '../processors/metrics.processor';
+import { ListenerConfig, ListenerState } from '../lib/types';
 import { Hex, Log, parseAbi, parseAbiItem, parseEventLogs, PublicClient } from 'viem';
 
 /**
@@ -46,7 +46,7 @@ export default class EventListenerManager {
     // Create event stream with backpressure handling
     const eventStream = new EventStream(config);
     const eventProcessor = new EventProcessor(config, config.id);
-    const metricsCollector = new MetricsCollector()
+    const metricsCollector = new MetricsCollector(config, config.id);
 
     // Handle stream events
     eventStream.on('pause-watcher', () => {
@@ -57,9 +57,14 @@ export default class EventListenerManager {
       console.log(`Resuming watcher for ${config.id}`);
     });
 
-    eventProcessor.on('shutdown', (listenerId) => {
+    metricsCollector.on('shutdown', (listenerId) => {
+      console.log("Metrics for listener", listenerId, metricsCollector.printMetrics(), null, 3)
       this.stopListener(listenerId);
     });
+
+    metricsCollector.once('error', (err) => {
+      console.log("Error in metrics collector", err)
+    })
 
     // Start processing pipeline
     this.startEventPipeline(
@@ -69,13 +74,19 @@ export default class EventListenerManager {
     );
 
     // Create viem watcher with backpressure awareness
+    console.log(config.filter, ":::Filter for event")
+
     const unwatch = this.client.watchContractEvent({
+      // address: config.filter.address,
+      // args: {to: config.filter.args.to},
+      // eventName: config.filter.eventName,
       ...config.filter,
       abi: parseAbi([
         "event Transfer(address indexed from, address indexed to, uint256 value)",
         "event Approval(address indexed owner, address indexed sender, uint256 value)"
       ]),
       batch: false,
+      poll: true,
       onError: (error) => console.log('Error listening for ERC20 events', error),
       onLogs: async (logs: Log[]) => {
         for (const log of logs) {
@@ -88,7 +99,7 @@ export default class EventListenerManager {
               logs: [log],
               eventName: config.filter.eventName,
             })
-            const success = eventStream.addEvent(decodedLogs);
+            const success = eventStream.addEvent(decodedLogs[0]);
             if (!success && !eventStream.isPaused()) {
               console.warn(`Buffer full for listener ${config.id}, dropping event`);
             }
@@ -124,7 +135,7 @@ export default class EventListenerManager {
       await pipeline(
         eventStream,
         eventProcessor,
-        metricsCollector
+        metricsCollector,
       );
     } catch (error) {
       console.error('Event processing pipeline error:', error);

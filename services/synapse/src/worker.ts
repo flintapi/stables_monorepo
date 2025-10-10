@@ -28,9 +28,10 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
         ],
         id: chainId as ChainId
       })
+      const rpc = `https://lb.drpc.org/ogrpc?network=base-sepolia&dkey=At9aYslK60iJtak8JBM3b_fwPKBpsiIR75q_uivZK8k9`
       const publicClient = createPublicClient({
         chain,
-        transport: http()
+        transport: http(rpc)
       })
 
       const listenerService = new EventListenerService(publicClient)

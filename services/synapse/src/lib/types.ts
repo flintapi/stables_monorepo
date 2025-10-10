@@ -1,5 +1,5 @@
 import { Address } from "viem";
-import { EventStream } from "../steams/event.stream";
+import { EventStream } from "../streams/event.stream";
 
 // Event Listener Types
 export interface EventFilter {
