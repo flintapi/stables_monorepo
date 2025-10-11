@@ -5,3 +5,9 @@ pnpm-lock.yaml
 .turbo
 .DS_Store
 .env.local
+services/kms
+services/payout
+./services/payout
+flintapi_arch.excalidraw
+flintapi_arch_02.excalidraw
+TODO.md

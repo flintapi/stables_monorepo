@@ -1,0 +1,48 @@
+version: "3.9"
+
+name: flintapi-monorepo
+
+services:
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   ports: ["5672:5672", "15672:15672"]
+  #   container_name: rabbitmq
+  #   volumes:
+  #     - ./rabbitmq/:/var/lib/rabbitmq/mnesia
+
+  # One-off Prisma schema push (dev)
+  # db-init:
+  #   <<: *worker_base
+  #   command: ["pnpm","run","db:push-dev"]
+  #   restart: "no"
+
+  worker-synapse:
+    # <<: *worker_base
+    # depends_on: [ db-init ]
+    build:
+      context: .
+      dockerfile: Dockerfile.synapse
+      args:
+        NODE_ENV: development
+    command: ["pnpm", "start"]
+
+  worker-ramp:
+    build:
+      context: .
+      dockerfile: Dockerfile.ramp
+      args:
+        NODE_ENV: development
+    command: ["pnpm", "start"]
+
+  # worker-withdrawal-process:
+  #   <<: *worker_base
+  #   depends_on: [ db-init ]
+  #   command: ["node","dist/src/Core/Queues/Workers/withdrawal.worker.js"]
+
+  # worker-bantu-process:
+  #   <<: *worker_base
+  #   depends_on: [ db-init ]
+  #   command: [ "node","dist/src/Core/Queues/Workers/bantu.worker.js" ]
+# secrets:
+#   gh_npmrc:
+#     file: ./.npmrc.githubpackages
