@@ -1,9 +1,11 @@
-// TODO: import adapters
+import { CentiivAdapter, BellbankAdapter } from "@flintapi/shared/Adapters"
 
 
 class VirtualAccountFactory {
   private static instance: VirtualAccountFactory;
-  constructor() { }
+  constructor(
+    adapter: CentiivAdapter | BellbankAdapter
+  ) { }
 
   static getInstance() {
     if(!VirtualAccountFactory.instance) {
@@ -22,7 +24,10 @@ class VirtualAccountFactory {
     // TODO: Implement
 
     return {
-      accountNumber: "09900000000", bankCode: '000', bankName: 'Palmpay', accountName: 'Palmpay Virtual Account'
+      accountNumber: "09900000000",
+      bankCode: '000',
+      bankName: 'Palmpay',
+      accountName: 'Palmpay Virtual Account'
     }
   }
 
