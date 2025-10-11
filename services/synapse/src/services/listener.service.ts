@@ -9,7 +9,8 @@ import Factory from "../listener.factory";
 import { QueueInstances, QueueNames } from "@flintapi/shared/Queue"
 
 interface ListenerService {
-  CreateOfframpListener(request: any): Promise<any>;
+  CreateOfframpListener(request: EventServiceJob): Promise<any>;
+  CreateOnRampListener(request: any): Promise<any>;
   GetMetrics(listenerId?: string): Promise<any>;
   GetListeners(): Promise<Array<any>>;
 }
@@ -53,6 +54,10 @@ export default class EventListenerService implements ListenerService {
     }
 
     throw new Error('Unsupported event name')
+  }
+
+  async CreateOnRampListener(request: any): Promise<any> {
+    // TODO: Implement on-ramp listener creation logic
   }
 
   async GetMetrics(listenerId?: string): Promise<any> {

@@ -20,7 +20,7 @@ export class EventProcessor extends Transform {
       // This is where your custom logic runs
       await this.config.onEvent(event);
 
-      const source = new EventSource(`https://example.com/events`);
+      // const source = new EventSource(`https://example.com/events`);
 
       // If temporary listener, signal shutdown after first event
       // if (!this.config.persistent) {

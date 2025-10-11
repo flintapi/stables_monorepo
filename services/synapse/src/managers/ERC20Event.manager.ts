@@ -46,6 +46,7 @@ export default class EventListenerManager {
     // Create event stream with backpressure handling
     const eventStream = new EventStream(config);
     const eventProcessor = new EventProcessor(config, config.id);
+    // TODO: Bring in database processor
     const metricsCollector = new MetricsCollector(config, config.id);
 
     // Handle stream events
@@ -58,7 +59,7 @@ export default class EventListenerManager {
     });
 
     metricsCollector.on('shutdown', (listenerId) => {
-      console.log("Metrics for listener", listenerId, metricsCollector.printMetrics(), null, 3)
+      console.log("Metrics for listener", listenerId, metricsCollector.printMetrics())
       this.stopListener(listenerId);
     });
 
@@ -151,7 +152,8 @@ export default class EventListenerManager {
 
     // Close stream first
     if (listener.eventStream && !listener.eventStream.destroyed) {
-      listener.eventStream.destroy();
+      console.log("Stream will auto close...")
+      // listener.eventStream.destroy();
     }
 
     listener.unwatch();

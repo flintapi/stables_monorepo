@@ -83,6 +83,20 @@ const events = ensureQueueEventHandlers(name, (events) => {
   })
 })
 
+function reportMemoryUsage() {
+    const memoryUsage = process.memoryUsage();
+    console.log('Worker Memory Usage:');
+    console.log(`  RSS: ${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`  Heap Total: ${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`  Heap Used: ${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`  External: ${(memoryUsage.external / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`  ArrayBuffers: ${(memoryUsage.arrayBuffers / 1024 / 1024).toFixed(2)} MB`);
+    if (typeof (global as any).gc === 'function') {
+        (global as any).gc();
+    }
+}
+setInterval(reportMemoryUsage, 3000)
+
 const shutdown = async () => {
   await Promise.allSettled([worker.close(), events.close()])
   console.log("Closing worker and events...")
