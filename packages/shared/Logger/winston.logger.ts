@@ -32,7 +32,7 @@ export const logger = winston.createLogger({
   ),
   transports: [
     new winston.transports.Console(),
-    new LogtailTransport(logtail)
+    new LogtailTransport(logtail, {silent: process.env.NODE_ENV === "development"})
   ],
   defaultMeta: {
     service: 'global'
@@ -43,7 +43,7 @@ export const logger = winston.createLogger({
   ],
   rejectionHandlers: [
     new winston.transports.Console(),
-    new LogtailTransport(logtail)
+    new LogtailTransport(logtail, {silent: process.env.NODE_ENV === "development"})
   ],
   exitOnError: false
 })
