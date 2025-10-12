@@ -26,6 +26,11 @@
       "types": "./dist/Utils/index.d.ts",
       "default": "./dist/Utils/index.js",
       "import": "./dist/Utils/index.js"
+    },
+    "./Logger": {
+      "types": "./dist/Logger/index.d.ts",
+      "default": "./dist/Logger/index.js",
+      "import": "./dist/Logger/index.js"
     }
   },
   "scripts": {
