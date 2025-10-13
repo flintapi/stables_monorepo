@@ -1,9 +1,11 @@
+import { PaymentProvider } from "Adapters";
 import { Address } from "viem";
 
 export type RampServiceJob = {
     type: "off" | "on";
-    organizationData: any;
-    transactionData: any;
+    organizationId: string;
+    transactionId: string;
+    prevProviders?: PaymentProvider[];
 };
 
 export type SwapServiceJob = {
@@ -19,8 +21,8 @@ export interface EventServiceJob {
   persist: boolean;
   rampData?: {
     type: "off" | "on";
-    organizationData: any;
-    transactionData: any;
+    organizationId: string;
+    transactionId: string;
   }
 }
 

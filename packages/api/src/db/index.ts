@@ -5,20 +5,20 @@ import fs from "node:fs/promises";
 
 import env from "@/env";
 
-import * as orgSchema from "./org-schema";
-import * as schema from "./schema";
+import { orgSchema, appSchema} from "@flintapi/shared/Utils"
 
 const db = drizzle({
   connection: {
-    url: env.DATABASE_URL,
+    url: env.DATABASE_URL!,
     authToken: env.DATABASE_AUTH_TOKEN,
   },
   casing: "snake_case",
-  schema,
+  schema: {...appSchema},
 });
 
 export default db;
 
+// @ts-ignore
 export function tursoApi() {
   if (env.NODE_ENV === "development") {
     return {
@@ -40,12 +40,12 @@ export function tursoApi() {
         },
       },
     };
+  } else {
+    return createClient({
+      org: "flintapi",
+      token: env.TURSO_API_TOKEN!,
+    });
   }
-
-  return createClient({
-    org: "flintapi",
-    token: env.TURSO_API_TOKEN,
-  });
 }
 
 interface OrgDatabaseProps {
@@ -55,7 +55,7 @@ export function orgDb({ dbUrl }: OrgDatabaseProps) {
   return drizzle({
     connection: {
       url: dbUrl,
-      authToken: env.DATABASE_AUTH_TOKEN,
+      authToken: env.DATABASE_AUTH_TOKEN!,
     },
     casing: "snake_case",
     schema: orgSchema,

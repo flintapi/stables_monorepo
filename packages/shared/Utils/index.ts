@@ -6,3 +6,8 @@ export * from "./wallet/wallet.entities"
 export * from "./wallet/wallet.factory"
 export * from "./wallet/wallet.utils"
 export {HSMSigner};
+
+export * as appSchema from "./db/app-schema"
+export * as orgSchema from "./db/org-schema"
+export * from "./db/types"
+export * from "./db/utils"
