@@ -1,11 +1,11 @@
 {
-  "name": "@flintapi/ramp-service",
+  "name": "@flintapi/ramp",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm with-env tsx watch ./src/workers/ramp.worker.ts",
-    "start": "node ./dist/src/workers/ramp.worker.js",
+    "dev": "pnpm with-env tsx watch ./src/index.ts",
+    "start": "node ./dist/src/index.js",
     "build": "tsc && tsc-alias",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e .env --"

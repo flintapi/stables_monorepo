@@ -1,8 +1,11 @@
 import type { RampServiceJob } from "@flintapi/shared/Queue";
 
 import { CacheFacade } from "@flintapi/shared/Cache";
+import { rampLogger } from "@flintapi/shared/Logger";
 import { ensureQueueEventHandlers, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import { Worker } from "bullmq";
+
+import Ramp from "@/services/ramp.service";
 
 // Will be run in its own docker container
 
@@ -10,13 +13,38 @@ const name = QueueNames.RAMP_QUEUE;
 const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
   name,
   async (job) => {
-    console.log("Job: ", job.id, await job.getState());
-    console.log("Job Name: ", job.name);
-    // TODO: implement handler
+    // Log job start
+    rampLogger.info("Processing ramp job", {
+      jobId: job.id,
+      jobName: job.name,
+      attemptsMade: job.attemptsMade,
+      data: job.data,
+    });
+    switch (job.name) {
+      case "off-ramp": {
+        try {
+          return await Ramp.processOffRampJob(job.data, job.attemptsMade);
+        }
+        catch (offRampError: any) {
+          // TODO: Log error attempt and retry with updated job
+          rampLogger.error(offRampError);
 
-    // throw new Error('Simulated error from a provider')
+          const updatedData = { ...job.data };
 
-    return `finished processing ${job.name}`;
+          await job.updateData(updatedData);
+
+          throw offRampError;
+        }
+
+        break;
+      }
+      case "on-ramp": {
+        break;
+      }
+      default:
+        throw new Error("Invalid job name");
+        break;
+    }
   },
   {
     connection: CacheFacade.redisCache,
@@ -24,42 +52,49 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
     lockDuration: 120_000,
     maxStalledCount: 2,
     removeOnComplete: {
-      age: 1000 * 60 * 60 * 24 * 7, // 7 days
+      age: 1000 * 60 * 60 * 24 * 1, // 1 day
     },
   },
 );
 
 const events = ensureQueueEventHandlers(name, (events) => {
   events.on("failed", async ({ jobId, failedReason }) => {
-    console.log("Failed job", jobId, "Cos of: ", failedReason);
     try {
       const job = await QueueInstances["ramp-queue"].getJob(jobId);
-      console.log("Current attempts", job?.attemptsMade);
-      console.log("Job options", job?.opts);
+      rampLogger.error(`Failed job with id: ${jobId}`, {
+        failedReason,
+        name: job?.name,
+        opts: job?.opts,
+        data: job?.data,
+        retryCount: job?.attemptsMade,
+      });
     }
     catch (error: any) {
-      console.error("Failed to handle retry", error);
+      rampLogger.error("Failed to get job", error);
     }
   });
 
-  events.on("ioredis:close", () => {
-    console.log("Redis connection is closed");
-  });
-
-  events.on("active", () => {
-    console.log("Active job");
-  });
-
-  events.on("completed", async ({ jobId, returnvalue, prev }) => {
-    console.log("Job finished with ", jobId, returnvalue, prev);
-    const job = await QueueInstances["ramp-queue"].getJob(jobId);
-    console.log("Job name", job?.name);
+  events.on("completed", async ({ jobId, returnvalue }) => {
+    try {
+      const job = await QueueInstances["ramp-queue"].getJob(jobId);
+      rampLogger.info(`Complete job with id: ${jobId}`, {
+        returnvalue,
+        name: job?.name,
+        opts: job?.opts,
+        data: job?.data,
+        retryCount: job?.attemptsMade,
+      });
+      rampLogger.info("Job name", job?.name);
+    }
+    catch (error: any) {
+      rampLogger.error("Failed to get job", error);
+    }
   });
 });
 
 async function shutdown() {
+  rampLogger.info(`Closing worker and events for ${name}...`);
   await Promise.allSettled([worker.close(), events.close()]);
-  console.log("Closing worker and events...");
   process.exit(0);
 }
 
