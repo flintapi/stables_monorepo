@@ -10,7 +10,7 @@ import { QueueInstances, QueueNames } from "@flintapi/shared/Queue"
 
 interface ListenerService {
   CreateOfframpListener(request: EventServiceJob): Promise<any>;
-  CreateOnRampListener(request: any): Promise<any>;
+  CreateOnRampListener(request: EventServiceJob): Promise<any>;
   GetMetrics(listenerId?: string): Promise<any>;
   GetListeners(): Promise<Array<any>>;
 }
@@ -56,8 +56,34 @@ export default class EventListenerService implements ListenerService {
     throw new Error('Unsupported event name')
   }
 
-  async CreateOnRampListener(request: any): Promise<any> {
-    // TODO: Implement on-ramp listener creation logic
+  async CreateOnRampListener(data: EventServiceJob): Promise<any> {
+    const { eventName, tokenAddress, persist = false, address, eventArgType, chainId, rampData } = data;
+    let newListenerConfig: Omit<ListenerConfig, 'id'>;
+    if(eventName === "Transfer") {
+      newListenerConfig = Factory.createERC20TransferListener(
+        tokenAddress,
+        {
+          [eventArgType]: address
+        },
+        persist,
+        chainId,
+        (rampData? this.getDefaultTransferEventHandler(
+          rampData?.type,
+          rampData?.organizationData,
+          rampData?.transactionData
+        ) : async (event) => {
+          console.log("Custom event handler to ERC20 transfer factory function", event)
+        })
+      )
+      const listenerId = await this.manager.createListener({
+        id: this.generateEventId(eventName),
+        ...newListenerConfig,
+        onStart: async () => {
+          console.log("Listener starting...")
+        }
+      });
+      return { listenerId };
+    }
   }
 
   async GetMetrics(listenerId?: string): Promise<any> {
@@ -80,7 +106,7 @@ export default class EventListenerService implements ListenerService {
 
       // Default payout trigger logic
       const rampQueue = QueueInstances[QueueNames.RAMP_QUEUE];
-      await rampQueue.add("off-ramp", {
+      await rampQueue.add(type === "off"? "off-ramp" : "on-ramp", {
         type,
         organizationData,
         transactionData
