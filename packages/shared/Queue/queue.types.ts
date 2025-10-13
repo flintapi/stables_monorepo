@@ -23,3 +23,7 @@ export interface EventServiceJob {
     transactionData: any;
   }
 }
+
+export interface MiscJob {
+  data: any
+}
