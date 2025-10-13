@@ -17,5 +17,6 @@
   },
   "tsc-alias": {
     "resolveFullPaths": true
-  }
+  },
+  "exclude": ["./src/routes/tasks/*"]
 }

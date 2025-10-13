@@ -5,7 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP, multiSession, organization, twoFactor, apiKey } from "better-auth/plugins";
 
 import db from "@/db";
-import * as schema from "@/db/schema";
+import {appSchema} from "@/db/schema";
 import env from "@/env";
 
 import { sendEmail } from "./email";
@@ -13,7 +13,7 @@ import { sendEmail } from "./email";
 const authOptions = {
   database: drizzleAdapter(db, {
     provider: "sqlite",
-    schema: { ...schema },
+    schema: { ...appSchema },
   }),
   databaseHooks: {
     session: {

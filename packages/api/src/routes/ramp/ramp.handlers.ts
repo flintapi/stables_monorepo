@@ -1,8 +1,7 @@
 import { AppRouteHandler } from "@/lib/types"
 import type { RampRequest } from "./ramp.routes"
-import WalletFactory from "@/lib/factories/wallet/wallet.factory"
-import VirtualAccountFactory from "@/lib/factories/vaccount/vaccount.factory"
-import { networkToChainidMap } from "@/lib/factories/wallet/wallet.constants"
+import { BellbankAdapter } from "@flintapi/shared/Adapters"
+import { networkToChainidMap, WalletFactory} from "@flintapi/shared/Utils"
 import * as HttpStatusCodes from "stoker/http-status-codes";
 import env from "@/env"
 
@@ -14,8 +13,9 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
     case "off": {
       const { amount, reference, network, destination } = body
 
-      // TODO: Add to db
-      // TODO: get deposit address
+      // TODO: Create transaction requirements
+      // TODO: Add to transaction db, with transaction metadata
+      // TODO: Get deposit address
       const account = await WalletFactory.createOrGet({
         chainId: networkToChainidMap[network],
         keyLabel: env.MASTER_LABEL_KEY
@@ -34,7 +34,18 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
     case "on": {
       const {amount, reference, network, destination} = body
 
-      const { accountNumber, bankCode, bankName, accountName } = await VirtualAccountFactory.createOrGet()
+      const bankAdapter = new BellbankAdapter();
+
+      const { accountNumber, bankCode, bankName, accountName } = await bankAdapter.createVirtualAccount({
+        type: "corporate",
+        rcNumber: "1234567890",
+        businessName: "",
+        emailAddress: "",
+        phoneNumber: "",
+        bvn: "",
+        dateOfBirth: "",
+        incorporationDate: ""
+      })
 
       // TODO: Add transaction to DB
 

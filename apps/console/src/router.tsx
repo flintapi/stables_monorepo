@@ -23,7 +23,6 @@ export const createRouter = () => {
     },
   })
 
-  // @ts-expect-error "QueryClient is not assignable to type 'QueryClient'"
   setupRouterSsrQueryIntegration({ router, queryClient: rqContext.queryClient })
 
   return router

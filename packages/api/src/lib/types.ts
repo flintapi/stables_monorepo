@@ -1,10 +1,10 @@
-import { selectOrganization } from "@/db/schema";
+import { appSchema } from "@/db/schema";
 import type { OpenAPIHono, RouteConfig, RouteHandler } from "@hono/zod-openapi";
 import type { Schema } from "hono";
 import type { PinoLogger } from "hono-pino";
 import {z} from "zod"
 
-export type Organization = z.infer<typeof selectOrganization>;
+export type Organization = z.infer<typeof appSchema.selectOrganization>;
 
 export interface AppBindings {
   Variables: {

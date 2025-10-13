@@ -41,6 +41,10 @@ const EnvSchema = z.object({
 
   MASTER_LABEL_KEY: z.string().min(18).max(1024),
   PALMPAY_URL: z.string().optional(),
+
+  // Better stack
+  BETTER_STACK_TOKEN_ID: z.string().optional(),
+  BETTER_STACK_INGESTION_HOST: z.string().optional(),
 }).superRefine((input, ctx) => {
   if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
     ctx.addIssue({

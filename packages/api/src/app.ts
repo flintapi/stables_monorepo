@@ -9,7 +9,6 @@ import { auth } from "@/lib/auth";
 import configureOpenAPI from "@/lib/configure-open-api";
 import createApp from "@/lib/create-app";
 import index from "@/routes/index.route";
-import tasks from "@/routes/tasks/tasks.index";
 
 const app = createApp();
 
@@ -20,6 +19,7 @@ createBullBoard({
   queues: [
     new BullMQAdapter(QueueInstances["ramp-queue"]),
     new BullMQAdapter(QueueInstances["swap-queue"]),
+    new BullMQAdapter(QueueInstances["event-queue"]),
   ],
   serverAdapter,
 });
@@ -36,7 +36,7 @@ routes.forEach((route) => {
 });
 
 const protectedRoutes = [
-  tasks,
+  // tasks,
 ] as const;
 
 // Add auth hadnler

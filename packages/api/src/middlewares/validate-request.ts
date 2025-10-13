@@ -3,7 +3,7 @@ import * as HttpStatusCodes from "stoker/http-status-codes";
 
 import { auth } from "@/lib/auth";
 import db from "@/db";
-import { APIKeyMetada } from "@/db/types";
+import { APIKeyMetada } from "@flintapi/shared/Utils";
 import { AppBindings, Organization } from "@/lib/types";
 import { APIError } from "better-auth";
 
