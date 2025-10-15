@@ -24,6 +24,7 @@ export interface TransactionMetadata {
   walletId?: string;
   bankCode?: string;
   accountNumber?: string;
+  index?: bigint;
   [key: string]: any
 }
 

@@ -78,10 +78,10 @@ export class WalletFactory {
 
     if(!index) {
       const storedIndex = await manager.get(keyLabel)
-        index = BigInt(storedIndex);
+      index = BigInt(storedIndex);
 
-        await manager.set(keyLabel, storedIndex+1)
-      }
+      await manager.set(keyLabel, storedIndex+1)
+    }
 
     const { account } = await this.getSmartAccount(signer, client, {
       index: index,
