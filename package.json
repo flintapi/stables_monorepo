@@ -13,7 +13,7 @@
     "clean": "git clean -xdf node_modules pnpm-lock.yaml",
     "app:faucet:dev": "turbo dev --filter=@flintapi/faucet",
     "dev": "turbo dev",
-    "dev:app:console": "turbo dev --parallel --filter=@flintapi/api --filter=@flintapi/console",
+    "dev:app:console": "turbo dev --parallel --filter=@flintapi/api... --filter=@flintapi/console",
     "dev:packages:api": "turbo dev --filter=@flintapi/api",
     "dev:services:ramp": "turbo dev --filter=@flintapi/ramp",
     "dev:services:synapse": "turbo dev --filter=@flintapi/synapse",

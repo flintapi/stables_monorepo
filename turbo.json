@@ -6,13 +6,18 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "@flintapi/shared#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "test": {
       "dependsOn": ["build"],
       "outputs": []
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["@flintapi/shared#build"]
     },
     "lint": {
       "outputs": []
