@@ -289,8 +289,6 @@ export default class {
   async listBanks() {
     const token = await this.getToken();
 
-    console.log("Token", token);
-
     const { data, error } = await this.fetch<{
       success: boolean;
       message: string;
@@ -306,8 +304,6 @@ export default class {
       console.log("error listing banks", error);
       throw error;
     }
-
-    console.log("Banks", data.data);
 
     return data.data;
   }

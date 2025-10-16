@@ -19,7 +19,7 @@ export interface NameEnquiryRequest {
 export interface FiatPaymentStrategy {
   transfer: (request: TransferRequest) => Promise<any>;
   nameEnquiry: (request: NameEnquiryRequest) => Promise<any>;
-  listBanks: () => Promise<any[]>;
+  listBanks: () => Promise<{ institutionCode: string; institutionName: string }[]>;
   queryTransaction: (reference: string) => Promise<any>;
 }
 
@@ -44,8 +44,13 @@ export class BellbankPaymentStrategy implements FiatPaymentStrategy {
     return this.adapter.nameEnquiry(request);
   }
 
-  async listBanks(): Promise<any[]> {
-    return this.adapter.listBanks();
+  async listBanks(): Promise<{ institutionCode: string; institutionName: string }[]> {
+    const banks = await this.adapter.listBanks();
+
+    return banks.map(bank => ({
+      institutionCode: bank.institutionCode,
+      institutionName: bank.institutionName,
+    }));
   }
 
   async queryTransaction(reference: string): Promise<any> {
@@ -68,8 +73,13 @@ export class CentiivPaymentStrategy implements FiatPaymentStrategy {
     return this.adapter.nameEnquiry(request);
   }
 
-  async listBanks(): Promise<any[]> {
-    return this.adapter.listBanks();
+  async listBanks(): Promise<{ institutionCode: string; institutionName: string }[]> {
+    const banks = await this.adapter.listBanks();
+
+    return banks.map(bank => ({
+      institutionCode: bank.code,
+      institutionName: bank.name,
+    }));
   }
 
   async queryTransaction(reference: string): Promise<any> {
@@ -119,7 +129,7 @@ export class FiatPaymentContext {
     return this.strategy.nameEnquiry(request);
   }
 
-  async listBanks(): Promise<any[]> {
+  async listBanks(): Promise<{ institutionCode: string; institutionName: string }[]> {
     return this.strategy.listBanks();
   }
 

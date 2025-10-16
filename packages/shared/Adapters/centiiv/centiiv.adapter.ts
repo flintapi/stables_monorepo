@@ -83,18 +83,18 @@ export default class {
     return accountDetailsResponse.data;
   }
 
-  async listBanks(): Promise<Array<Record<string, any>>> {
+  async listBanks() {
     const { data: bankListResponse, error } = await this.fetch<{
       success: boolean;
       message: string;
       code: string;
-      data: Array<Record<string, any>>;
+      data: Array<{ code: string; name: string }>;
     }>("/banking/banks");
     if (error) {
       throw error;
     }
 
-    return (bankListResponse.data as Array<any>) || [];
+    return bankListResponse.data;
   }
 
   async getTransaction(id: string): Promise<Record<string, any>> {
