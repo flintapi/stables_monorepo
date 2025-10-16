@@ -1,4 +1,5 @@
 import type { BetterFetch } from "@better-fetch/fetch";
+
 import { createFetch } from "@better-fetch/fetch";
 // import env from "@/env";
 
@@ -13,7 +14,7 @@ type CreateVirtualAccountDto = ({
   dateOfBirth: string;
   metadata?: Record<string, any>;
 } | {
-  type: "corporate",
+  type: "corporate";
   rcNumber: string;
   businessName: string;
   emailAddress: string;
@@ -23,15 +24,15 @@ type CreateVirtualAccountDto = ({
   incorporationDate: string;
   dateOfBirth: string;
   metadata?: string;
-})
+});
 
 interface CorporateVirtualAccountResponse {
   success: boolean;
   data: {
-    metadata: {};
+    metadata: any;
     createdAt: number;
     updatedAt: number;
-    id: any,
+    id: any;
     businessName: string;
     accountNumber: string;
     accountName: string;
@@ -52,10 +53,10 @@ interface CorporateVirtualAccountResponse {
 interface IndividualVirtualAccountResponse {
   success: boolean;
   data: {
-    metadata: {};
+    metadata: any;
     createdAt: number;
     updatedAt: number;
-    id: any,
+    id: any;
     accountNumber: string;
     accountName: string;
     accountType: string;
@@ -137,7 +138,7 @@ export default class {
 
     const { type } = dto;
 
-    switch(type) {
+    switch (type) {
       case "individual": {
         const { data, error } = await this.fetch<IndividualVirtualAccountResponse>(`/v1/account/clients/individual`, {
           method: "POST",
@@ -178,7 +179,7 @@ export default class {
             bvn: dto.bvn,
             incorporationDate: dto.incorporationDate,
             dateOfBirth: dto.dateOfBirth,
-            metadata: dto.metadata
+            metadata: dto.metadata,
           },
         });
 
@@ -190,7 +191,7 @@ export default class {
         return data.data;
       };
       default: {
-        throw new Error("Invalid account type")
+        throw new Error("Invalid account type");
       }
     }
   }
@@ -288,6 +289,8 @@ export default class {
   async listBanks() {
     const token = await this.getToken();
 
+    console.log("Token", token);
+
     const { data, error } = await this.fetch<{
       success: boolean;
       message: string;
@@ -303,6 +306,8 @@ export default class {
       console.log("error listing banks", error);
       throw error;
     }
+
+    console.log("Banks", data.data);
 
     return data.data;
   }

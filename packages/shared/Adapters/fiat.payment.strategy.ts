@@ -17,10 +17,10 @@ export interface NameEnquiryRequest {
 }
 
 export interface FiatPaymentStrategy {
-  transfer(request: TransferRequest): Promise<any>;
-  nameEnquiry(request: NameEnquiryRequest): Promise<any>;
-  listBanks(): Promise<any[]>;
-  queryTransaction(reference: string): Promise<any>;
+  transfer: (request: TransferRequest) => Promise<any>;
+  nameEnquiry: (request: NameEnquiryRequest) => Promise<any>;
+  listBanks: () => Promise<any[]>;
+  queryTransaction: (reference: string) => Promise<any>;
 }
 
 export class BellbankPaymentStrategy implements FiatPaymentStrategy {

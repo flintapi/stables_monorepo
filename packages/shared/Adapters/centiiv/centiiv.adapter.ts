@@ -1,5 +1,5 @@
 // import env from "@/env"
-import { createFetch, type BetterFetch } from "@better-fetch/fetch"
+import { type BetterFetch, createFetch } from "@better-fetch/fetch";
 
 export interface TransferDto {
   accountNumber: string;
@@ -21,7 +21,7 @@ interface CentiivDisbursementInput {
 }
 
 export default class {
-  private fetch: BetterFetch
+  private fetch: BetterFetch;
 
   constructor() {
     this.fetch = createFetch({
@@ -35,9 +35,8 @@ export default class {
       //   delay: 1000,
       //   type: "linear",
       // },
-    })
+    });
   }
-
 
   async transfer(dto: TransferDto) {
     const disbursements: Array<CentiivDisbursementInput> = [{
@@ -110,9 +109,7 @@ export default class {
     return (data as Record<string, any>) || {};
   }
 
-
   private convertToKOBO(amount: number): number {
     return (amount * 100); // multiply by 100 to convert to kobo
   }
-
 }
