@@ -21,7 +21,8 @@
     "build:services:payout": "pnpm run --filter @flintapi/payout build",
     "start:services:payout": "pnpm run --filter @flintapi/payout start",
     "deploy": "flyctl deploy --config ./services/payout/fly.toml --dockerfile ./Dockerfile --build-arg DATABASE_URL='postgresql://neondb_owner:npg_Vi8RSIKLkj0N@ep-holy-base-abke7cgz-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'",
-    "deploy:softhsm": "flyctl deploy --config ./services/softhsm/fly.toml --dockerfile ./services/softhsm/Dockerfile"
+    "deploy:softhsm": "flyctl deploy --config ./services/softhsm/fly.toml --dockerfile ./services/softhsm/Dockerfile",
+    "with-env": "dotenv -e .env.local --"
   },
   "dependencies": {
     "@better-fetch/fetch": "^1.1.18",
