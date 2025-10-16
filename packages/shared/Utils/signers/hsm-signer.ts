@@ -12,7 +12,7 @@ import {
   keccak256 as etherKeccak,
 } from 'ethereumjs-util';
 import { toAccount } from "viem/accounts"
-import type {Hex, Address, LocalAccount, HDAccount, SignAuthorizationReturnType} from 'viem'
+import type {Hex, Address, LocalAccount, HDAccount, SignAuthorizationReturnType, AuthorizationRequest} from 'viem'
 import { hashAuthorization } from "viem/utils";
 
 
@@ -35,6 +35,7 @@ class HSMSigner {
     const slot = slots.items(slotIndex) // only slots with tokens present
     this.session = slot.open(graphene.SessionFlag.SERIAL_SESSION | graphene.SessionFlag.RW_SESSION);
 
+    console.log(pin, ":::PIN")
     this.session.login(pin, graphene.UserType.USER);
 
     // get or generate Keypair for signer
@@ -72,6 +73,8 @@ class HSMSigner {
 
         const { signature } = signMessage(messageHash)
 
+        console.log("Signature inside signMessage:", signature)
+
         // Return signature in the format expected by viem
         return signature;
         // return `0x${r.slice(2)}${s.slice(2)}${v.toString(16).padStart(2, '0')}` as Hex
@@ -94,32 +97,40 @@ class HSMSigner {
         // return `0x${r.slice(2)}${s.slice(2)}${v.toString(16).padStart(2, '0')}` as Hex
       },
 
-      async signAuthorization(params){
-        const { chainId, nonce } = params;
+      // async signAuthorization(params: AuthorizationRequest){
 
-        const address = params.address as Hex;
-        const contractAddress = params.contractAddress || params.address as Hex;
+      //   console.log("Params", params)
 
-        const hexMessage = hashAuthorization({
-          contractAddress,
-          chainId,
-          nonce
-        })
+      //   const { chainId, nonce, contractAddress } = params;
 
-        const { r, s, v } = signMessage(hexMessage)
+      //   const address = params.address as Hex;
+      //   // const contractAddress = params.contractAddress || params.address as Hex;
 
-        const yParity = v === 27 ? 0 : 1;
+      //   const hexMessage = hashAuthorization({
+      //     contractAddress,
+      //     chainId,
+      //     nonce,
+      //     address,
+      //   })
 
-        return {
-          r,
-          s,
-          yParity,
-          chainId,
-          contractAddress,
-          nonce,
-          address,
-        } as SignAuthorizationReturnType
-      }
+      //   console.log("Hex Message", hexMessage)
+
+      //   const { r, s, v, signature } = signMessage(hexMessage)
+
+      //   console.log("Signature", {r, s, v, signature})
+
+      //   const yParity = v === 27 ? 0 : 1;
+
+      //   return {
+      //     r,
+      //     s,
+      //     yParity,
+      //     chainId,
+      //     contractAddress,
+      //     nonce,
+      //     address,
+      //   } as SignAuthorizationReturnType
+      // }
     })
   }
 

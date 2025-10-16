@@ -2,7 +2,7 @@ import { Address, Chain, createPublicClient, extractChain, http, LocalAccount, P
 import HSMSigner from "../signers/hsm-signer";
 import { ChainId, CollectionAddressParams, CreateOrGetAccountConfig } from "./wallet.entities"
 import { createKernelAccount, createKernelAccountClient, CreateKernelAccountParameters } from "@zerodev/sdk";
-import type { SmartAccountClientConfig } from "@zerodev/sdk"
+import type { CreateKernelAccountReturnType, KernelAccountClient, SmartAccountClientConfig } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 import { BUNDLER_URLS } from "./wallet.constants";
@@ -58,14 +58,14 @@ export class WalletFactory {
       index: 0n,
       isMaster: false,
     },
-  ) {
+  ): Promise<{ client: KernelAccountClient;  account: CreateKernelAccountReturnType<"0.7"> }> {
     // TODO: create or get the master wallet for the keyLabel config and its configuration
 
     const { keyLabel, chainId } = config
     let {index} = config
 
     const chain = this.getChain(chainId)
-    const client = createPublicClient({
+    const publicClient = createPublicClient({
       chain,
       transport: http()
     })
@@ -83,10 +83,10 @@ export class WalletFactory {
       await manager.set(keyLabel, storedIndex+1)
     }
 
-    const { account } = await this.getSmartAccount(signer, client, {
+    const { account, client } = await this.getSmartAccount(signer, publicClient, {
       index: index,
     })
-    return account;
+    return {account, client};
   }
 
   private getChain(id: ChainId): Chain {
