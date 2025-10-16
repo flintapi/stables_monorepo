@@ -1,17 +1,18 @@
-import { PaymentProvider } from "Adapters";
-import { ChainId } from "Utils";
-import { Address } from "viem";
+import type { Address, Hex } from "viem";
 
-export type RampServiceJob = {
-    type: "off" | "on";
-    organizationId: string;
-    transactionId: string;
-    prevProviders?: PaymentProvider[];
-};
+import type { PaymentProvider } from "Adapters";
+import type { ChainId } from "Utils";
 
-export type SwapServiceJob = {
-    data: any
-};
+export interface RampServiceJob {
+  type: "off" | "on";
+  organizationId: string;
+  transactionId: string;
+  prevProviders?: PaymentProvider[];
+}
+
+export interface SwapServiceJob {
+  data: any;
+}
 
 export interface EventServiceJob {
   chainId: number;
@@ -24,21 +25,23 @@ export interface EventServiceJob {
     type: "off" | "on";
     organizationId: string;
     transactionId: string;
-  }
+  };
 }
 
 export type WalletServiceJob = ({
   name: "get-address";
   chainId: ChainId;
-  keyLabel: string;
+  keyLabel?: string;
   index?: bigint;
 } | {
   name: "sign-transaction";
   chainId: ChainId;
-  keyLabel: string;
+  data: Hex;
+  contractAddress: Address;
+  keyLabel?: string;
   index?: bigint;
-})
+});
 
 export interface MiscJob {
-  data: any
+  data: any;
 }

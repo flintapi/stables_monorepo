@@ -1,10 +1,15 @@
-import { Queue, QueueOptions } from "bullmq";
+import type { QueueOptions } from "bullmq";
+import type { Address, TransactionReceipt } from "viem";
+
+import { Queue } from "bullmq";
+
 import { CacheFacade } from "Cache/cache.facade";
-import {SwapServiceJob, RampServiceJob, EventServiceJob, MiscJob, WalletServiceJob} from "./queue.types";
+
+import type { EventServiceJob, MiscJob, RampServiceJob, SwapServiceJob, WalletServiceJob } from "./queue.types";
 
 export const bullMqBase: QueueOptions = { connection: CacheFacade.redisCache };
 
-//NOTE: Make sure the queue name does not have `:` use `-` to avoid redis error
+// NOTE: Make sure the queue name does not have `:` use `-` to avoid redis error
 export enum QueueNames {
   RAMP_QUEUE = "ramp-queue",
   SWAP_QUEUE = "swap-queue",
@@ -24,9 +29,9 @@ const miscQueue = new Queue<MiscJob, any, "webhook" | "repeat-schedule">(QueueNa
 const rampServiceRetryQueue = new Queue<RampServiceJob, any, "off-ramp-retry" | "on-ramp-retry">(QueueNames.RAMP_RETRY_QUEUE, bullMqBase);
 
 // TODO: Implement queue for wallet service
-const walletServiceQueue = new Queue<WalletServiceJob, any, "get-address" | "sign-transaction">(QueueNames.WALLET_QUEUE, bullMqBase);
+const walletServiceQueue = new Queue<WalletServiceJob, { address?: Address; receipt?: TransactionReceipt }, "get-address" | "sign-transaction">(QueueNames.WALLET_QUEUE, bullMqBase);
 
-//For DLQ
+// For DLQ
 // export const webhookEvmDLQ = new Queue<WebhookEvmJob>(QueueNames.DLQ_BURN_EVM, bullMqBase);
 
 export const QueueInstances = {
