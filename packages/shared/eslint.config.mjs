@@ -14,6 +14,8 @@ export default antfu(
   },
   {
     rules: {
+      "test/no-only-tests": ["warn"],
+      "node/prefer-global/buffer": ["off"],
       "no-console": ["warn"],
       "antfu/no-top-level-await": ["off"],
       "node/prefer-global/process": ["off"],
