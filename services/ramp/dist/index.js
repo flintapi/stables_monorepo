@@ -1,2 +1,2 @@
-import "./workers/ramp.worker.js";
-import "./workers/retry.worker.js";
+import "@/workers/ramp.worker";
+import "@/workers/retry.worker";

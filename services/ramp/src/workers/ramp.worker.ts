@@ -1,5 +1,6 @@
 import type { RampServiceJob } from "@flintapi/shared/Queue";
 
+import { PaymentProvider } from "@flintapi/shared/Adapters";
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { rampLogger } from "@flintapi/shared/Logger";
 import { ensureQueueEventHandlers, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
@@ -27,23 +28,26 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
         }
         catch (offRampError: any) {
           // TODO: Log error attempt and retry with updated job
-          rampLogger.error(offRampError);
+          rampLogger.error(`Off-ramp failed`, offRampError);
 
-          const updatedData = { ...job.data };
+          const updatedData = { ...job.data, prevProviders: [...(job.data.prevProviders ? job.data?.prevProviders : []), PaymentProvider.BELLBANK] };
 
           await job.updateData(updatedData);
 
           throw offRampError;
         }
-
-        break;
       }
       case "on-ramp": {
+        try {
+          return await Ramp.processOnRampJob(job.data, job.attemptsMade);
+        }
+        catch (onRampError: any) {
+          rampLogger.error(`On-ramp failed`, onRampError);
+        }
         break;
       }
       default:
         throw new Error("Invalid job name");
-        break;
     }
   },
   {

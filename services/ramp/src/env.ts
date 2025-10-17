@@ -17,6 +17,7 @@ const EnvSchema = z.object({
   PORT: z.coerce.number().default(9999),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]),
 
+  DATABASE_URL: z.string().url().optional(),
   DATABASE_AUTH_TOKEN: z.string().optional(),
   TURSO_API_TOKEN: z.string(),
   TURSO_API_URL: z.string().url().optional(),
