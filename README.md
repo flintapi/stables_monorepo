@@ -1,13 +1,14 @@
 This monorepo contains all the flintapi packages and apps
 
 # Workspaces
-  - apps/*
-  - packages/*
-  - services/*
+
+- apps/\*
+- packages/\*
+- services/\*
 
 ## Packages
 
-- @flintapi/core
+- @flintapi/shared - core shared packages
 - @flintapi/api
 
 ## Apps
@@ -18,11 +19,12 @@ This monorepo contains all the flintapi packages and apps
 - faucet - open-source faucet for testing
 
 # Dev Dependencies
+
 - Bull MQ Job Queue and Worker functionality for interservice communication and event handling
 - Redis DB
 
-
 # Simple Architectural Choice
+
 Utilise Bull MQ Flows inside micro-services to handle chained inter-dependent tasks such as Provider settlements,
 validations, Callback/Webhook URL call invocations, Handle triggered blockchain events as Jobs.
 
