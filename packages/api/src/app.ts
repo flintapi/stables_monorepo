@@ -9,6 +9,8 @@ import { auth } from "@/lib/auth";
 import configureOpenAPI from "@/lib/configure-open-api";
 import createApp from "@/lib/create-app";
 import index from "@/routes/index.route";
+import ramp from "@/routes/ramp/ramp.index";
+import wallet from "@/routes/wallet/wallet.index";
 
 const app = createApp();
 
@@ -28,24 +30,25 @@ const bullMQBasePath = "/mq-board";
 serverAdapter.setBasePath(bullMQBasePath);
 app.route(bullMQBasePath, serverAdapter.registerPlugin());
 
-const routes = [
-  index,
-] as const;
+const routes = [index] as const;
 routes.forEach((route) => {
   app.route("/", route);
 });
 
-const protectedRoutes = [
-  // tasks,
-] as const;
+const protectedRoutes = [ramp, wallet] as const;
 
 // Add auth hadnler
-app.on(["POST", "GET", "OPTION", "DELETE", "PUT"], "/api/auth/*", async c => await auth.handler(c.req.raw));
+app.on(
+  ["POST", "GET", "OPTION", "DELETE", "PUT"],
+  "/api/auth/*",
+  async (c) => await auth.handler(c.req.raw),
+);
 
 protectedRoutes.forEach((route) => {
-  app.route("/", route);
+  app.route("/v1/", route);
 });
 
-export type AppType = typeof routes[number] & typeof protectedRoutes[number];
+export type AppType = (typeof routes)[number] &
+  (typeof protectedRoutes)[number];
 
 export default app;
