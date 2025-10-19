@@ -50,5 +50,11 @@ export const rampResponse = z.discriminatedUnion('type', [
   onRampResponseSchema
 ])
 
+export const bankListSchema = z.array(z.object({
+  institutionName: z.string().min(1).max(100),
+  institutionCode: z.string().min(3).max(10),
+}))
+
 export type RampRequestType = z.infer<typeof rampSchema>;
 export type RampResponseType = z.infer<typeof rampResponse>;
+export type BankListType = z.infer<typeof bankListSchema>;

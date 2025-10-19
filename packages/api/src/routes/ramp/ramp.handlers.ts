@@ -1,9 +1,12 @@
 import { AppRouteHandler } from "@/lib/types"
-import type { RampRequest } from "./ramp.routes"
-import { BellbankAdapter } from "@flintapi/shared/Adapters"
+import type { RampRequest, BankListRequest, TransactionRequest } from "./ramp.routes"
+import { BellbankAdapter, FiatPaymentContext, PaymentProvider, } from "@flintapi/shared/Adapters"
 import { networkToChainidMap, WalletFactory} from "@flintapi/shared/Utils"
 import * as HttpStatusCodes from "stoker/http-status-codes";
 import env from "@/env"
+import { QueueInstances, QueueNames } from "@flintapi/shared/Queue";
+
+const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE]
 
 export const ramp: AppRouteHandler<RampRequest> = async (c) => {
   // TODO: add to db, queue and respond with deposit or virtual account depending on the ramp type
@@ -15,20 +18,18 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
       // TODO: Create transaction requirements
       // TODO: Add to transaction db, with transaction metadata
-      // TODO: Get deposit address
-      const account = await WalletFactory.createOrGet({
-        chainId: networkToChainidMap[network],
-        keyLabel: env.MASTER_LABEL_KEY
-      })
-
+      const chainId = networkToChainidMap[network]
       // TODO: Add job to queue
-      const address = account.address
+      const job = await kmsQueue.add("get-address", {chainId, keyLabel: env.MASTER_LABEL_KEY, name: "get-address"})
+
+      // TODO: Get deposit address
+      const { address } = job.returnvalue;
 
       return c.json({
         type: "off",
         status: "pending",
         message: "Off ramp transaction initiated and pending",
-        depositAddress: address
+        depositAddress: address!
       }, HttpStatusCodes.OK)
     }
     case "on": {
@@ -64,4 +65,28 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
       }, HttpStatusCodes.OK)
     }
   }
+}
+
+
+export const banks: AppRouteHandler<BankListRequest> = async (c) => {
+
+  const provider = PaymentProvider.CENTIIV
+
+  const paymentContext = new FiatPaymentContext(provider)
+
+  const banks = await paymentContext.listBanks()
+
+  return c.json(banks || [{
+    institutionName: "BellBank",
+    institutionCode: "123456"
+  }], HttpStatusCodes.OK)
+}
+
+export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
+
+  return c.json({
+    metadata: {},
+    status: "pending",
+    depositAddress: `0x.....`,
+  }, HttpStatusCodes.OK)
 }
