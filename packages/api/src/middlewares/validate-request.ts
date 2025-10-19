@@ -7,7 +7,7 @@ import { APIKeyMetada } from "@flintapi/shared/Utils";
 import { AppBindings, Organization } from "@/lib/types";
 import { APIError } from "better-auth";
 
-export const validateRequest = createMiddleware<AppBindings>(async (c, next) => {
+export const validateRequest = () => createMiddleware<AppBindings>(async (c, next) => {
   const key = c.req.header("x-api-key") || c.req.header("flint-api-key");
 
   console.log("API Key", key);
