@@ -3,12 +3,15 @@
  */
 
 import type { Module, Session } from "graphene-pk11";
-import type { Address, AuthorizationRequest, Hex, LocalAccount, SignAuthorizationReturnType } from "viem";
+import type {
+  Address,
+  AuthorizationRequest,
+  Hex,
+  LocalAccount,
+  SignAuthorizationReturnType,
+} from "viem";
 
-import {
-  ecrecover,
-  fromRpcSig,
-} from "ethereumjs-util";
+import { ecrecover, fromRpcSig } from "ethereumjs-util";
 import * as graphene from "graphene-pk11";
 import keccak256 from "keccak";
 import { toAccount } from "viem/accounts";
@@ -20,7 +23,7 @@ class HSMSigner {
   keyPair: graphene.IKeyPair;
 
   constructor(
-    private keyLabel: string,
+    private keyLabel: string, // keyLabel {orgId}:{walletId}
     private libPath: string = "/opt/homebrew/opt/softhsm/lib/softhsm/libsofthsm2.so", // local path
     private slotIndex: number = 0,
     private pin: string = process.env.HSM_PIN!,
@@ -31,7 +34,9 @@ class HSMSigner {
     const slots = this.hsmModule.getSlots();
 
     const slot = slots.items(slotIndex); // only slots with tokens present
-    this.session = slot.open(graphene.SessionFlag.SERIAL_SESSION | graphene.SessionFlag.RW_SESSION);
+    this.session = slot.open(
+      graphene.SessionFlag.SERIAL_SESSION | graphene.SessionFlag.RW_SESSION,
+    );
 
     console.log(pin, ":::PIN");
     this.session.login(pin, graphene.UserType.USER);
@@ -46,7 +51,8 @@ class HSMSigner {
   toViemAccount(): LocalAccount {
     const address = this.deriveEthereumAddress(this.keyPair.publicKey);
 
-    const signMessage = (message: Hex | string) => this.signEthereumMessage(message);
+    const signMessage = (message: Hex | string) =>
+      this.signEthereumMessage(message);
     const signRawHash = (hash: Hex | string) => this.signRawHash(hash);
 
     return toAccount({
@@ -69,29 +75,29 @@ class HSMSigner {
         if (typeof message === "string") {
           // UTF-8 string message
           messageToSign = message;
-        }
-        else if (typeof message === "object" && "raw" in message) {
+        } else if (typeof message === "object" && "raw" in message) {
           // Raw hex or byte array
           const raw = message.raw;
           if (typeof raw === "string") {
             // Convert hex string to bytes
             const hexStr = raw.startsWith("0x") ? raw.slice(2) : raw;
             messageToSign = Buffer.from(hexStr, "hex");
-          }
-          else {
+          } else {
             messageToSign = raw;
           }
-        }
-        else {
+        } else {
           // Fallback: assume it's a hex string
-          const hexStr = (message as string).startsWith("0x") ? (message as string).slice(2) : (message as string);
+          const hexStr = (message as string).startsWith("0x")
+            ? (message as string).slice(2)
+            : (message as string);
           messageToSign = Buffer.from(hexStr, "hex");
         }
 
         // Create EIP-191 personal message format
-        const messageBytes = typeof messageToSign === "string"
-          ? Buffer.from(messageToSign, "utf8")
-          : Buffer.from(messageToSign);
+        const messageBytes =
+          typeof messageToSign === "string"
+            ? Buffer.from(messageToSign, "utf8")
+            : Buffer.from(messageToSign);
 
         const prefix = `\x19Ethereum Signed Message:\n${messageBytes.length}`;
         const prefixedMessage = Buffer.concat([
@@ -100,7 +106,9 @@ class HSMSigner {
         ]);
 
         // Hash the prefixed message
-        const messageHash = keccak256("keccak256").update(prefixedMessage).digest();
+        const messageHash = keccak256("keccak256")
+          .update(prefixedMessage)
+          .digest();
         const messageHashHex = `0x${messageHash.toString("hex")}` as Hex;
 
         console.log("Message Hash (with EIP-191 prefix)", messageHashHex);
@@ -118,26 +126,33 @@ class HSMSigner {
         console.log("Transaction:", transaction);
         // For transaction signing, we need to serialize and hash the transaction
         // This is handled by viem's transaction serialization
-        throw new Error("Direct transaction signing not supported - use signMessage with transaction hash");
+        throw new Error(
+          "Direct transaction signing not supported - use signMessage with transaction hash",
+        );
       },
 
       async signTypedData(typedData) {
         // TODO: Implement proper EIP-712 typed data hashing
         // For now, this is a placeholder that needs proper EIP-712 encoding
         console.warn("signTypedData needs proper EIP-712 implementation");
-        const hash = keccak256("keccak256").update(JSON.stringify(typedData)).digest();
+        const hash = keccak256("keccak256")
+          .update(JSON.stringify(typedData))
+          .digest();
         const messageHash = `0x${hash.toString("hex")}` as Hex;
 
         const { signature } = signMessage(messageHash);
         return signature;
       },
 
-      async signAuthorization(params: AuthorizationRequest): Promise<SignAuthorizationReturnType> {
+      async signAuthorization(
+        params: AuthorizationRequest,
+      ): Promise<SignAuthorizationReturnType> {
         console.log("Params", params);
 
         const { chainId, nonce } = params;
 
-        const contractAddress = params.contractAddress ?? params.address as Hex;
+        const contractAddress =
+          params.contractAddress ?? (params.address as Hex);
 
         const hexMessage = hashAuthorization({
           contractAddress,
@@ -182,12 +197,14 @@ class HSMSigner {
 
       const privateKey = privateKeys.items(0);
       // Find the public key with the same ID
-      const publicKey = this.session.find({
-        class: graphene.ObjectClass.PUBLIC_KEY,
-        keyType: graphene.KeyType.EC,
-        id: Buffer.from(keyId),
-        label: keyLabel,
-      }).items(0);
+      const publicKey = this.session
+        .find({
+          class: graphene.ObjectClass.PUBLIC_KEY,
+          keyType: graphene.KeyType.EC,
+          id: Buffer.from(keyId),
+          label: keyLabel,
+        })
+        .items(0);
 
       return {
         privateKey,
@@ -197,24 +214,28 @@ class HSMSigner {
 
     // generate ECDSA key pair
     console.log("generating new keypair");
-    const keys = this.session.generateKeyPair(graphene.KeyGenMechanism.EC, {
-      class: graphene.ObjectClass.PUBLIC_KEY,
-      keyType: graphene.KeyType.EC,
-      id: Buffer.from(keyId),
-      label: keyLabel,
-      token: true,
-      verify: true,
-      derive: true,
-      paramsEC: graphene.NamedCurve.getByName("secp256k1").value,
-    }, {
-      class: graphene.ObjectClass.PRIVATE_KEY,
-      keyType: graphene.KeyType.EC,
-      id: Buffer.from(keyId),
-      label: keyLabel,
-      token: true,
-      sign: true,
-      derive: true,
-    });
+    const keys = this.session.generateKeyPair(
+      graphene.KeyGenMechanism.EC,
+      {
+        class: graphene.ObjectClass.PUBLIC_KEY,
+        keyType: graphene.KeyType.EC,
+        id: Buffer.from(keyId),
+        label: keyLabel,
+        token: true,
+        verify: true,
+        derive: true,
+        paramsEC: graphene.NamedCurve.getByName("secp256k1").value,
+      },
+      {
+        class: graphene.ObjectClass.PRIVATE_KEY,
+        keyType: graphene.KeyType.EC,
+        id: Buffer.from(keyId),
+        label: keyLabel,
+        token: true,
+        sign: true,
+        derive: true,
+      },
+    );
 
     return keys;
   }
@@ -246,8 +267,9 @@ class HSMSigner {
   }
 
   private decodeEcPoint(ecPointBuffer: Buffer | any) {
-    if (ecPointBuffer[0] !== 0x04)
+    if (ecPointBuffer[0] !== 0x04) {
       throw new Error("Expected OCTET STRING");
+    }
     const len = ecPointBuffer[1];
     return ecPointBuffer.slice(2, 2 + len);
   }
@@ -274,7 +296,9 @@ class HSMSigner {
     const ecPoint = publicKey.getAttribute({ pointEC: null }).pointEC;
     const rawPoint = this.decodeEcPoint(ecPoint);
     if (rawPoint[0] !== 0x04) {
-      throw new Error("Only uncompressed EC points are supported from the HSM public key.");
+      throw new Error(
+        "Only uncompressed EC points are supported from the HSM public key.",
+      );
     }
     const rawPublicKeyBytes = rawPoint.slice(1); // X || Y (64 bytes)
 
@@ -285,18 +309,23 @@ class HSMSigner {
     for (let i = 0; i < 2; i++) {
       try {
         recoveredPub = ecrecover(messageHash, i, r, s);
-        if (recoveredPub.toString("hex") === rawPublicKeyBytes.toString("hex")) {
+        if (
+          recoveredPub.toString("hex") === rawPublicKeyBytes.toString("hex")
+        ) {
           v = i + 27; // Ethereum's v values are typically 27 or 28
           break;
         }
-      }
-      catch (e: any) {
-        console.warn(`Attempted recovery with v_candidate=${i} failed: ${e.message}`);
+      } catch (e: any) {
+        console.warn(
+          `Attempted recovery with v_candidate=${i} failed: ${e.message}`,
+        );
       }
     }
 
     if (v === undefined) {
-      throw new Error("Could not determine the correct recovery ID (v) for the signature.");
+      throw new Error(
+        "Could not determine the correct recovery ID (v) for the signature.",
+      );
     }
 
     const finalSignatureBuffer = Buffer.concat([r, s, Buffer.from([v])]);
@@ -320,7 +349,12 @@ class HSMSigner {
    * @param {Hex | string} messageHex The message hash to sign (already hashed, no prefix added)
    * @returns {object} An object containing the r, s, v components and the full 0x-prefixed signature.
    */
-  private signEthereumMessage(messageHex: Hex | string) {
+  private signEthereumMessage(messageHex: Hex | string): {
+    r: Hex;
+    s: Hex;
+    v: number;
+    signature: `0x${string}`;
+  } {
     const privateKey: graphene.PrivateKey = this.keyPair.privateKey;
     const publicKey: graphene.PublicKey = this.keyPair.publicKey;
 
@@ -339,7 +373,9 @@ class HSMSigner {
     const ecPoint = publicKey.getAttribute({ pointEC: null }).pointEC; // [0x04 || X || Y]
     const rawPoint = this.decodeEcPoint(ecPoint); // [0x04 || X || Y]
     if (rawPoint[0] !== 0x04) {
-      throw new Error("Only uncompressed EC points are supported from the HSM public key.");
+      throw new Error(
+        "Only uncompressed EC points are supported from the HSM public key.",
+      );
     }
     const rawPublicKeyBytes = rawPoint.slice(1); // X || Y (64 bytes)
 
@@ -354,7 +390,9 @@ class HSMSigner {
         // The v value in ecrecover is 0 or 1, which internally gets converted to 27 or 28.
         recoveredPub = ecrecover(messageHash, i, r, s);
         // Compare the recovered public key with the actual public key from the HSM
-        if (recoveredPub.toString("hex") === rawPublicKeyBytes.toString("hex")) {
+        if (
+          recoveredPub.toString("hex") === rawPublicKeyBytes.toString("hex")
+        ) {
           // console.log("recoveredPub == > ", recoveredPub.toString("hex"));
           // console.log("rawPublicKeyBytes == > ", rawPublicKeyBytes.toString("hex"));
 
@@ -363,15 +401,18 @@ class HSMSigner {
           console.log("Raw bytes hex compare...", i, v);
           break;
         }
-      }
-      catch (e: any) {
+      } catch (e: any) {
         // Handle potential errors during recovery (e.g., invalid signature components)
-        console.log(`Attempted recovery with v_candidate=${i} failed: ${e.message}`);
+        console.log(
+          `Attempted recovery with v_candidate=${i} failed: ${e.message}`,
+        );
       }
     }
 
     if (v === undefined) {
-      throw new Error("Could not determine the correct recovery ID (v) for the signature.");
+      throw new Error(
+        "Could not determine the correct recovery ID (v) for the signature.",
+      );
     }
 
     // 7. Format the output as an Ethereum signature
@@ -385,7 +426,10 @@ class HSMSigner {
     //   s: '0x' + s.toString('hex'),
     //   v: v
     // });
-    console.log("Full Ethereum Signature length:", finalSignatureBuffer.byteLength);
+    console.log(
+      "Full Ethereum Signature length:",
+      finalSignatureBuffer.byteLength,
+    );
 
     return {
       r: `0x${r.toString("hex")}` as Hex,
@@ -397,7 +441,11 @@ class HSMSigner {
 
   // Verify Ethereum signature
 
-  verifyEthereumSignature(message: Hex, signature: Hex, expectedAddress: Address) {
+  verifyEthereumSignature(
+    message: Hex,
+    signature: Hex,
+    expectedAddress: Address,
+  ): boolean {
     try {
       // Create the Ethereum personal message format
       // const personalMessage = `\x19Ethereum Signed Message:\n${message.length}${message}`;
@@ -410,20 +458,34 @@ class HSMSigner {
       const sig = fromRpcSig(signature);
 
       // Recover public key
-      const publicKey = ecrecover(messageHash, sig.v === 28 ? 1 : 0, sig.r, sig.s);
+      const publicKey = ecrecover(
+        messageHash,
+        sig.v === 28 ? 1 : 0,
+        sig.r,
+        sig.s,
+      );
 
       // Derive address
       // const recoveredAddress = `0x${etherKeccak(publicKey).toString("hex").slice(-20)}`;
-      const recoveredAddress = keccak256("keccak256").update(publicKey).digest().slice(-20).toString("hex");
+      const recoveredAddress = keccak256("keccak256")
+        .update(publicKey)
+        .digest()
+        .slice(-20)
+        .toString("hex");
 
       // 6. Last 20 bytes → Ethereum address
       // return `0x${hash.slice(-20).toString("hex")}` as Address;
 
-      console.log("Recovered address and v", `0x${recoveredAddress.toLowerCase()}`, sig.v);
+      console.log(
+        "Recovered address and v",
+        `0x${recoveredAddress.toLowerCase()}`,
+        sig.v,
+      );
 
-      return `0x${recoveredAddress.toLowerCase()}` === expectedAddress.toLowerCase();
-    }
-    catch (error) {
+      return (
+        `0x${recoveredAddress.toLowerCase()}` === expectedAddress.toLowerCase()
+      );
+    } catch (error) {
       console.error("Signature verification failed:", error);
       return false;
     }
@@ -434,12 +496,14 @@ class HSMSigner {
   // --------------------------
 
   private toBufferFromHexOrNumber(value: any) {
-    if (value === undefined || value === null)
+    if (value === undefined || value === null) {
       return Buffer.alloc(0);
+    }
     if (typeof value === "string") {
       const hex = value.startsWith("0x") ? value.slice(2) : value;
-      if (hex.length === 0)
+      if (hex.length === 0) {
         return Buffer.alloc(0);
+      }
       const buf = Buffer.from(hex.length % 2 === 0 ? hex : `0${hex}`, "hex");
       // strip leading zero bytes for RLP minimal encoding; zero => empty buffer
       let i = 0;
@@ -448,17 +512,19 @@ class HSMSigner {
     }
     if (typeof value === "number" || typeof value === "bigint") {
       let bn = BigInt(value);
-      if (bn === 0n)
+      if (bn === 0n) {
         return Buffer.alloc(0);
+      }
       const bytes = [];
       while (bn > 0n) {
-        bytes.push(Number(bn & 0xFFn));
+        bytes.push(Number(bn & 0xffn));
         bn >>= 8n;
       }
       return Buffer.from(bytes.reverse());
     }
-    if (Buffer.isBuffer(value))
+    if (Buffer.isBuffer(value)) {
       return value;
+    }
     throw new Error("Unsupported value type for buffer conversion");
   }
 

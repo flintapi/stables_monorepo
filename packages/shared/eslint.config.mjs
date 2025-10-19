@@ -10,7 +10,7 @@ export default antfu(
       semi: true,
       quotes: "double",
     },
-    ignores: ["**/migrations/*"],
+    ignores: ["**/migrations/*", "**/__tests__/*"],
   },
   {
     rules: {
@@ -20,6 +20,8 @@ export default antfu(
       "antfu/no-top-level-await": ["off"],
       "node/prefer-global/process": ["off"],
       "node/no-process-env": ["off"],
+      "style/operator-linebreak": ["off"],
+      "style/brace-style": ["off"],
       "perfectionist/sort-imports": [
         "error",
         {

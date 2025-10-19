@@ -12,7 +12,9 @@
     "strict": true,
     "outDir": "./dist",
     "skipLibCheck": true,
-    "declaration": true
+    "declaration": true,
+    "allowJs": true,
+    "checkJs": true
   },
   "tsc-alias": {
     "resolveFullPaths": true
