@@ -23,7 +23,7 @@ import {
   parseEther,
   zeroAddress,
 } from "viem";
-import { baseSepolia } from "viem/chains";
+import { baseSepolia, bscTestnet } from "viem/chains";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import HSMSigner from "../hsm-signer";
@@ -33,7 +33,7 @@ describe("hSMSigner Test Suit", () => {
   const keyLabel = "test-key-01";
   const HSM_OWNER = `0x6480d80d340d57ad82a7e79a91f0ecec3869d479` as Hex;
   const ZERODEV_RPC =
-    "https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/84532";
+    "https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/97?provider=PIMLICO";
 
   beforeAll(() => {
     // initialize with keyLabel
@@ -301,6 +301,85 @@ describe("hSMSigner Test Suit", () => {
       const kernelClient = createKernelAccountClient({
         account,
         chain: baseSepolia,
+        bundlerTransport: http(ZERODEV_RPC),
+        paymaster: paymasterClient,
+        client: publicClient,
+        userOperation: {
+          estimateFeesPerGas: async ({ bundlerClient }) => {
+            return getUserOperationGasPrice(bundlerClient);
+          },
+        },
+      });
+
+      const userOpHash = await kernelClient.sendTransaction({
+        authorization,
+        to: zeroAddress,
+        value: BigInt(0),
+        data: "0x",
+      });
+
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: userOpHash,
+      });
+
+      console.log("Transaction receupt: ", receipt);
+      expect(userOpHash).toContain("0x");
+    },
+    { timeout: 100 * 100000 },
+  );
+
+  it.only(
+    "should create a EIP7702 account from eoa for bsc network",
+    async () => {
+      const entryPoint = getEntryPoint("0.7");
+      const kernelVersion = KERNEL_V3_3;
+      const kernelAddress = KernelVersionToAddressesMap[kernelVersion];
+
+      const publicClient = createPublicClient({
+        transport: http(ZERODEV_RPC),
+        chain: bscTestnet,
+      });
+
+      const paymasterClient = createZeroDevPaymasterClient({
+        chain: bscTestnet,
+        transport: http(
+          `https://api.pimlico.io/v2/97/rpc?apikey=pim_ZkLxqjsRCe4FRVhkd5LQQG`,
+        ),
+      });
+
+      // const eip7702Account = privateKeyToAccount(generatePrivateKey());
+      const eip7702Account = signer.toViemAccount();
+
+      const authorization =
+        eip7702Account.signAuthorization &&
+        (await eip7702Account.signAuthorization({
+          contractAddress: kernelAddress.accountImplementationAddress,
+          chainId: publicClient.chain.id,
+          nonce: await publicClient.getTransactionCount({
+            address: eip7702Account.address,
+          }),
+          // address: KERNEL_7702_DELEGATION_ADDRESS || eip7702Account.address as `0x${string}`
+        }));
+      console.log("Authorization", authorization);
+      console.log("Address", eip7702Account.address);
+
+      const account = await createKernelAccount(publicClient, {
+        eip7702Account,
+        entryPoint,
+        kernelVersion,
+        plugins: {
+          sudo: await signerToEcdsaValidator(publicClient, {
+            signer: eip7702Account,
+            kernelVersion,
+            entryPoint,
+          }),
+        },
+        eip7702Auth: authorization,
+      });
+
+      const kernelClient = createKernelAccountClient({
+        account,
+        chain: bscTestnet,
         bundlerTransport: http(ZERODEV_RPC),
         paymaster: paymasterClient,
         client: publicClient,
