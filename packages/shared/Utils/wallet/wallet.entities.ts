@@ -1,12 +1,13 @@
-import { SupportedChains } from "./wallet.constants";
+import type { SupportedChains } from "./wallet.constants";
+
 import * as supportedChains from "./wallet.chains";
-import { Address } from "viem";
 
 // Types and interfaces
 export interface CollectionAddressParams {
   treasuryKeyLabel: string;
   sweep: boolean;
   chain: SupportedChains;
+  index: bigint;
 }
 
 export interface CreateOrGetAccountConfig {
@@ -19,10 +20,9 @@ export interface CreateOrGetAccountConfig {
 export type Network = "base" | "bsc";
 
 // Collection of available bundler URLs
-const ids = (Object.values(supportedChains).map((network) => network.id));
-export type ChainId = typeof ids[number];
+const ids = Object.values(supportedChains).map((network) => network.id);
+export type ChainId = (typeof ids)[number];
 export type BundlerCollection = Map<ChainId, Array<string>>;
-
 
 export interface IndexManager {
   get: (keyLabel: string) => Promise<number>; // get the last recorded index for the keyLabel

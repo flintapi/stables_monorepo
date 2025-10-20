@@ -22,6 +22,7 @@ export default antfu(
       "node/no-process-env": ["off"],
       "style/operator-linebreak": ["off"],
       "style/brace-style": ["off"],
+      "style/indent": ["off"],
       "perfectionist/sort-imports": [
         "error",
         {
@@ -35,6 +36,7 @@ export default antfu(
           ignore: ["README.md"],
         },
       ],
+      "unicorn/number-literal-case": ["off"],
     },
   },
 );
