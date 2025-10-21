@@ -28,19 +28,27 @@ export interface EventServiceJob {
   };
 }
 
-export type WalletServiceJob = ({
-  name: "get-address";
+/**
+ * Get or create a wallet for a user or off/on ramp operation
+ */
+export interface WalletGetOrCreateJob {
   chainId: ChainId;
+  isSmartAccount: boolean; // for getting on/off ramp or one off accounts
   keyLabel?: string;
   index?: bigint;
-} | {
-  name: "sign-transaction";
+}
+
+/**
+ * Sign and send transactions from wallet operations or default off/on ramp operations
+ */
+export interface WalletSignTransactionJob {
   chainId: ChainId;
   data: Hex;
   contractAddress: Address;
+  isSmartAccount: boolean; // for on/off ramp is always smart accounts
   keyLabel?: string;
   index?: bigint;
-});
+}
 
 export interface MiscJob {
   data: any;

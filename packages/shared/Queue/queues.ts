@@ -5,7 +5,14 @@ import { Queue } from "bullmq";
 
 import { CacheFacade } from "Cache/cache.facade";
 
-import type { EventServiceJob, MiscJob, RampServiceJob, SwapServiceJob, WalletServiceJob } from "./queue.types";
+import type {
+  EventServiceJob,
+  MiscJob,
+  RampServiceJob,
+  SwapServiceJob,
+  WalletGetOrCreateJob,
+  WalletSignTransactionJob,
+} from "./queue.types";
 
 export const bullMqBase: QueueOptions = { connection: CacheFacade.redisCache };
 
@@ -19,17 +26,38 @@ export enum QueueNames {
   WALLET_QUEUE = "wallet-queue",
 }
 
-const rampServiceQueue = new Queue<RampServiceJob, any, "off-ramp" | "on-ramp">(QueueNames.RAMP_QUEUE, bullMqBase);
-const swapServiceQueue = new Queue<SwapServiceJob>(QueueNames.SWAP_QUEUE, bullMqBase);
-const eventServiceQueue = new Queue<EventServiceJob, any, "Transfer" | "Approval">(QueueNames.EVENT_QUEUE, bullMqBase);
+const rampServiceQueue = new Queue<RampServiceJob, any, "off-ramp" | "on-ramp">(
+  QueueNames.RAMP_QUEUE,
+  bullMqBase,
+);
+const swapServiceQueue = new Queue<SwapServiceJob>(
+  QueueNames.SWAP_QUEUE,
+  bullMqBase,
+);
+const eventServiceQueue = new Queue<
+  EventServiceJob,
+  any,
+  "Transfer" | "Approval"
+>(QueueNames.EVENT_QUEUE, bullMqBase);
 // This queue will run other jobs that can't go into its own dedicated queue:
 // Such as: webhook calls, failed ramp ops auto re-try, scheduled repeating jobs etc
-const miscQueue = new Queue<MiscJob, any, "webhook" | "repeat-schedule">(QueueNames.MISC_QUEUE, bullMqBase);
+const miscQueue = new Queue<MiscJob, any, "webhook" | "repeat-schedule">(
+  QueueNames.MISC_QUEUE,
+  bullMqBase,
+);
 // TODO: Implement new queue for payment failed re-retry with different provider
-const rampServiceRetryQueue = new Queue<RampServiceJob, any, "off-ramp-retry" | "on-ramp-retry">(QueueNames.RAMP_RETRY_QUEUE, bullMqBase);
+const rampServiceRetryQueue = new Queue<
+  RampServiceJob,
+  any,
+  "off-ramp-retry" | "on-ramp-retry"
+>(QueueNames.RAMP_RETRY_QUEUE, bullMqBase);
 
 // TODO: Implement queue for wallet service
-const walletServiceQueue = new Queue<WalletServiceJob, { address?: Address; receipt?: TransactionReceipt }, "get-address" | "sign-transaction">(QueueNames.WALLET_QUEUE, bullMqBase);
+const walletServiceQueue = new Queue<
+  WalletGetOrCreateJob | WalletSignTransactionJob,
+  { address?: Address; receipt?: TransactionReceipt },
+  "get-address" | "sign-transaction"
+>(QueueNames.WALLET_QUEUE, bullMqBase);
 
 // For DLQ
 // export const webhookEvmDLQ = new Queue<WebhookEvmJob>(QueueNames.DLQ_BURN_EVM, bullMqBase);
