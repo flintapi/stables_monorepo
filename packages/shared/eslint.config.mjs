@@ -1,6 +1,9 @@
-import antfu from "@antfu/eslint-config";
+// import antfu from "@antfu/eslint-config";
+import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
 
-export default antfu(
+export default defineConfig([
+  tseslint.configs.recommended,
   {
     type: "app",
     typescript: true,
@@ -39,4 +42,45 @@ export default antfu(
       "unicorn/number-literal-case": ["off"],
     },
   },
-);
+]);
+
+// export default antfu(
+//   {
+//     type: "app",
+//     typescript: true,
+//     formatters: true,
+//     stylistic: {
+//       indent: 2,
+//       semi: true,
+//       quotes: "double",
+//     },
+//     ignores: ["**/migrations/*", "**/__tests__/*"],
+//   },
+//   {
+//     rules: {
+//       "test/no-only-tests": ["warn"],
+//       "node/prefer-global/buffer": ["off"],
+//       "no-console": ["warn"],
+//       "antfu/no-top-level-await": ["off"],
+//       "node/prefer-global/process": ["off"],
+//       "node/no-process-env": ["off"],
+//       "style/operator-linebreak": ["off"],
+//       "style/brace-style": ["off"],
+//       "style/indent": ["off"],
+//       "perfectionist/sort-imports": [
+//         "error",
+//         {
+//           tsconfigRootDir: ".",
+//         },
+//       ],
+//       "unicorn/filename-case": [
+//         "error",
+//         {
+//           case: "kebabCase",
+//           ignore: ["README.md"],
+//         },
+//       ],
+//       "unicorn/number-literal-case": ["off"],
+//     },
+//   },
+// );
