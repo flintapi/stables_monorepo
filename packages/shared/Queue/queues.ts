@@ -1,5 +1,5 @@
 import type { QueueOptions } from "bullmq";
-import type { Address, TransactionReceipt } from "viem";
+import type { Address, Hex, TransactionReceipt } from "viem";
 
 import { Queue } from "bullmq";
 
@@ -55,7 +55,7 @@ const rampServiceRetryQueue = new Queue<
 // TODO: Implement queue for wallet service
 const walletServiceQueue = new Queue<
   WalletGetOrCreateJob | WalletSignTransactionJob,
-  { address: Address; index: bigint } | { receipt: TransactionReceipt },
+  { address: Address; index: number } | { hash: Hex },
   "get-address" | "sign-transaction"
 >(QueueNames.WALLET_QUEUE, bullMqBase);
 

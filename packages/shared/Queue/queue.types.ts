@@ -36,7 +36,7 @@ export type WalletGetOrCreateJob =
       type: "smart"; // for off/on ramp
       chainId: ChainId;
       keyLabel: string;
-      index?: bigint;
+      index?: number;
     }
   | {
       type: "eoa";
@@ -51,9 +51,8 @@ export interface WalletSignTransactionJob {
   chainId: ChainId;
   data: Hex;
   contractAddress: Address;
-  isSmartAccount: boolean; // for on/off ramp is always smart accounts
-  keyLabel?: string;
-  index?: bigint;
+  keyLabel: string;
+  index?: number;
 }
 
 export interface MiscJob {
