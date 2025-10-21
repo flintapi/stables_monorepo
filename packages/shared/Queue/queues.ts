@@ -55,7 +55,7 @@ const rampServiceRetryQueue = new Queue<
 // TODO: Implement queue for wallet service
 const walletServiceQueue = new Queue<
   WalletGetOrCreateJob | WalletSignTransactionJob,
-  { address?: Address; receipt?: TransactionReceipt },
+  { address: Address; index: bigint } | { receipt: TransactionReceipt },
   "get-address" | "sign-transaction"
 >(QueueNames.WALLET_QUEUE, bullMqBase);
 

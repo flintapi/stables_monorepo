@@ -1,3 +1,4 @@
+import { CacheFacade } from "@flintapi/shared/Cache";
 import type {
   WalletGetOrCreateJob,
   WalletSignTransactionJob,
@@ -13,41 +14,75 @@ import { Worker } from "bullmq";
 
 import kmsService from "../services/kms.services";
 import env from "@/env";
+import { Address, TransactionReceipt } from "viem";
 
 const name = QueueNames.WALLET_QUEUE;
 const worker = new Worker<
   WalletGetOrCreateJob | WalletSignTransactionJob,
-  any,
+  { address: Address; index?: bigint } | { receipt: TransactionReceipt },
   "get-address" | "sign-transaction"
->(name, async (job) => {
-  switch (job.name) {
-    case "get-address": {
-      const { chainId, keyLabel, index, isSmartAccount } =
-        job.data as WalletGetOrCreateJob;
-      const address = await kmsService.getAddress(
-        keyLabel || env.TREASURY_KEY_LABEL,
-        chainId,
-        index,
-      );
+>(
+  name,
+  async (job) => {
+    console.log("Job name:", job.name);
+    switch (job.name) {
+      case "get-address": {
+        const jobData = job.data as WalletGetOrCreateJob;
 
-      return { address };
+        switch (jobData.type) {
+          case "smart": {
+            const { keyLabel, chainId, index } = jobData;
+            const { address } = await kmsService.getCollectionAddress(
+              keyLabel,
+              chainId,
+              index,
+            );
+
+            return { address, index };
+          }
+          case "eoa": {
+            const { keyLabel, chainId } = jobData;
+            console.log("keyLabel", keyLabel);
+
+            const address = await kmsService.getAddress(
+              keyLabel || env.TREASURY_KEY_LABEL,
+              chainId,
+            );
+
+            kmsLogger.info("Address", address);
+
+            console.log("Address", address);
+
+            return { address };
+          }
+        }
+      }
+
+      case "sign-transaction": {
+        const { keyLabel, chainId, index, data, contractAddress } =
+          job.data as WalletSignTransactionJob;
+        const receipt = await kmsService.transfer(
+          keyLabel || process.env.MASTER_LABEL_KEY!,
+          chainId,
+          contractAddress,
+          data,
+          index,
+        );
+
+        return { receipt };
+      }
     }
-
-    case "sign-transaction": {
-      const { keyLabel, chainId, index, data, contractAddress } =
-        job.data as WalletSignTransactionJob;
-      const receipt = await kmsService.transfer(
-        keyLabel || process.env.MASTER_LABEL_KEY!,
-        chainId,
-        contractAddress,
-        data,
-        index,
-      );
-
-      return { receipt };
-    }
-  }
-});
+  },
+  {
+    connection: CacheFacade.redisCache,
+    concurrency: 10,
+    lockDuration: 120_000,
+    maxStalledCount: 2,
+    removeOnComplete: {
+      age: 1000 * 60 * 60 * 24 * 1, // 1 day
+    },
+  },
+);
 
 const event = ensureQueueEventHandlers(name, (events) => {
   events.on("failed", async ({ failedReason, jobId }) => {

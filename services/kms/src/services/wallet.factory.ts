@@ -1,4 +1,5 @@
 import type {
+  CreateKernelAccountParameters,
   CreateKernelAccountReturnType,
   KernelAccountClient,
   SmartAccountClientConfig,
@@ -16,6 +17,7 @@ import HSMSigner from "../signers/hsm-signer";
 import { supportedChains } from "@flintapi/shared/Utils";
 import { BUNDLER_URLS } from "./wallet.constants";
 import { indexManager } from "@flintapi/shared/Utils";
+import { KERNEL_V3_VERSION_TYPE } from "@zerodev/sdk/types";
 
 // Types and interfaces
 export interface CollectionAddressParams {
@@ -101,8 +103,8 @@ class WalletFactory {
   }
 
   /**
-   * Create or get smart accounts for collection
-   * Smart accounts for collections
+   * Create or get eip-7702 smart accounts
+   * tied to the EOA from HSM keypairs
    */
   async createOrGet(
     config: CreateOrGetAccountConfig = {
@@ -113,7 +115,7 @@ class WalletFactory {
     client: KernelAccountClient;
     account: CreateKernelAccountReturnType<"0.7">;
   }> {
-    // TODO: create or get the master wallet for the keyLabel config and its configuration
+    // TODO: create or get the EOA wallet for the keyLabel config and its configuration
 
     const { keyLabel, chainId } = config;
 
@@ -130,6 +132,9 @@ class WalletFactory {
     const { account, client } = await this.getSmartAccount(
       signer,
       publicClient,
+      {
+        eip7702Account: signer,
+      },
     );
     return { account, client };
   }
@@ -144,7 +149,10 @@ class WalletFactory {
   private async getSmartAccount(
     signer: LocalAccount,
     publicClient: PublicClient,
-    kernelAccountConfig?: { index: bigint; [key: string]: any },
+    kernelAccountConfig?: Pick<
+      CreateKernelAccountParameters<"0.7", KERNEL_V3_VERSION_TYPE>,
+      "eip7702Account" | "eip7702Auth" | "index" | "plugins"
+    >,
     kernelClientConfig?: {
       paymaster?: SmartAccountClientConfig["paymaster"];
       chain?: SmartAccountClientConfig["chain"];

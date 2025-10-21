@@ -31,12 +31,18 @@ export interface EventServiceJob {
 /**
  * Get or create a wallet for a user or off/on ramp operation
  */
-export interface WalletGetOrCreateJob {
-  chainId: ChainId;
-  isSmartAccount: boolean; // for getting on/off ramp or one off accounts
-  keyLabel?: string;
-  index?: bigint;
-}
+export type WalletGetOrCreateJob =
+  | {
+      type: "smart"; // for off/on ramp
+      chainId: ChainId;
+      keyLabel: string;
+      index?: bigint;
+    }
+  | {
+      type: "eoa";
+      chainId: ChainId;
+      keyLabel: string;
+    };
 
 /**
  * Sign and send transactions from wallet operations or default off/on ramp operations

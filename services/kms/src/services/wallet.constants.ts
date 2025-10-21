@@ -92,8 +92,3 @@ export const TOKEN_ADDRESSES = {
     cngn: { address: "0x20354A3Ad3B67836ab9c6D7D82cF5e5Ddfe104dD", decimal: 6 },
   },
 };
-
-export const networkToChainidMap: Record<Network, ChainId> = {
-  base: process.env.NODE_ENV === "development" ? 84532 : 8453,
-  bsc: process.env.NODE_ENV === "development" ? 97 : 56,
-};
