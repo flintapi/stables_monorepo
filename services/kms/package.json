@@ -1,0 +1,22 @@
+{
+  "name": "@flintapi/kms",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "KMS for managing secrets and keys for the wallet servicec",
+  "keywords": [],
+  "author": "miraclef60@gmail.com",
+  "license": "ISC",
+  "scripts": {
+    "dev": "pnpm with-env tsx watch ./src/workers/kp.worker.ts",
+    "build": "tsc && tsc-alias",
+    "start": "node ./dist/src/index.js",
+    "typecheck": "tsc --noEmit",
+    "with-env": "dotenv -e .env --"
+  },
+  "dependencies": {
+    "@flintapi/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10"
+  }
+}

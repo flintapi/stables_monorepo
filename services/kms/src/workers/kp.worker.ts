@@ -14,12 +14,16 @@ import { Worker } from "bullmq";
 
 import kmsService from "../services/kms.services";
 import env from "@/env";
-import { Address, TransactionReceipt } from "viem";
+import { Address, Hex, TransactionReceipt } from "viem";
+import walletFactory from "@/services/wallet.factory";
 
 const name = QueueNames.WALLET_QUEUE;
+
+console.log("Queue name:", name);
+
 const worker = new Worker<
   WalletGetOrCreateJob | WalletSignTransactionJob,
-  { address: Address; index?: bigint } | { receipt: TransactionReceipt },
+  { address: Address; index?: number } | { hash: Hex },
   "get-address" | "sign-transaction"
 >(
   name,
@@ -32,11 +36,16 @@ const worker = new Worker<
         switch (jobData.type) {
           case "smart": {
             const { keyLabel, chainId, index } = jobData;
+
+            console.log("Job data", keyLabel, chainId, index);
+
             const { address } = await kmsService.getCollectionAddress(
               keyLabel,
               chainId,
-              index,
+              typeof index !== "undefined" ? BigInt(index) : undefined,
             );
+
+            kmsLogger.info(address, index);
 
             return { address, index };
           }
@@ -44,16 +53,13 @@ const worker = new Worker<
             const { keyLabel, chainId } = jobData;
             console.log("keyLabel", keyLabel);
 
-            const address = await kmsService.getAddress(
-              keyLabel || env.TREASURY_KEY_LABEL,
-              chainId,
-            );
+            const address = await kmsService.getAddress(keyLabel, chainId);
 
             kmsLogger.info("Address", address);
 
             console.log("Address", address);
 
-            return { address };
+            return { address: address };
           }
         }
       }
@@ -61,15 +67,18 @@ const worker = new Worker<
       case "sign-transaction": {
         const { keyLabel, chainId, index, data, contractAddress } =
           job.data as WalletSignTransactionJob;
+
         const receipt = await kmsService.transfer(
-          keyLabel || process.env.MASTER_LABEL_KEY!,
+          keyLabel,
           chainId,
           contractAddress,
           data,
-          index,
+          typeof index !== "undefined" ? BigInt(index) : undefined,
         );
 
-        return { receipt };
+        console.log("Receipt", receipt);
+
+        return { hash: receipt.transactionHash };
       }
     }
   },

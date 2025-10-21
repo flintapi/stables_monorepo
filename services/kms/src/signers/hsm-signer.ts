@@ -39,7 +39,23 @@ class HSMSigner {
     );
 
     console.log(pin, ":::PIN");
-    this.session.login(pin, graphene.UserType.USER);
+
+    try {
+      this.session.login(pin, graphene.UserType.USER);
+    } catch (error: any) {
+      this.cleanup();
+
+      this.hsmModule.initialize();
+
+      const slots = this.hsmModule.getSlots();
+
+      const slot = slots.items(slotIndex); // only slots with tokens present
+      this.session = slot.open(
+        graphene.SessionFlag.SERIAL_SESSION | graphene.SessionFlag.RW_SESSION,
+      );
+
+      this.session.login(pin, graphene.UserType.USER);
+    }
 
     // get or generate Keypair for signer
     this.keyPair = this.getKeyPair(keyLabel);

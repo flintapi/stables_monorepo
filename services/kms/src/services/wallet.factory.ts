@@ -4,18 +4,30 @@ import type {
   KernelAccountClient,
   SmartAccountClientConfig,
 } from "@zerodev/sdk";
-import type { Address, Chain, LocalAccount, PublicClient } from "viem";
+import type { Address, Chain, Hex, LocalAccount, PublicClient } from "viem";
 
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
-import { createKernelAccount, createKernelAccountClient } from "@zerodev/sdk";
-import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import {
+  createKernelAccount,
+  createKernelAccountClient,
+  createZeroDevPaymasterClient,
+} from "@zerodev/sdk";
+import {
+  getEntryPoint,
+  KERNEL_V3_1,
+  KERNEL_V3_3,
+} from "@zerodev/sdk/constants";
 import { createPublicClient, extractChain, http } from "viem";
 
-import type { ChainId, SupportedChains } from "@flintapi/shared/Utils";
+import { ChainId, SupportedChains } from "@flintapi/shared/Utils";
 
 import HSMSigner from "../signers/hsm-signer";
 import { supportedChains } from "@flintapi/shared/Utils";
-import { BUNDLER_URLS } from "./wallet.constants";
+import {
+  BUNDLER_URLS,
+  getBundlerUrl,
+  getPaymasterUrl,
+} from "./wallet.constants";
 import { indexManager } from "@flintapi/shared/Utils";
 import { KERNEL_V3_VERSION_TYPE } from "@zerodev/sdk/types";
 
@@ -50,7 +62,7 @@ class WalletFactory {
   // private organizationWallets: Map<string, OrganizationWallet> = new Map();
 
   private smartAAConfig = {
-    kernelVersion: KERNEL_V3_1,
+    kernelVersion: KERNEL_V3_3,
     entryPoint: getEntryPoint("0.7"),
   };
 
@@ -77,18 +89,18 @@ class WalletFactory {
     let index = params.index;
 
     const chain = this.getChain(chainId);
-    const hsmsigner = new HSMSigner(treasuryKeyLabel);
+    const hsmSigner = new HSMSigner(treasuryKeyLabel);
 
     const publicClient = createPublicClient({
       chain,
       transport: http(),
     });
 
-    const signer = hsmsigner.toViemAccount();
+    const signer = hsmSigner.toViemAccount();
 
     const manager = indexManager();
 
-    if (!index) {
+    if (typeof index === "undefined") {
       const storedIndex = await manager.get(treasuryKeyLabel);
       index = BigInt(storedIndex);
 
@@ -98,6 +110,9 @@ class WalletFactory {
     const { account } = await this.getSmartAccount(signer, publicClient, {
       index,
     });
+
+    // cleanup before return
+    hsmSigner.cleanup();
 
     return { address: account.address, index }; // Return a valid address
   }
@@ -136,7 +151,54 @@ class WalletFactory {
         eip7702Account: signer,
       },
     );
+
+    hsmSigner.cleanup();
+
     return { account, client };
+  }
+
+  async sendTransaction(params: {
+    keyLabel: string;
+    chainId: ChainId;
+    data: Hex;
+    contractAddress: Address;
+    index?: bigint;
+  }) {
+    const { keyLabel, chainId, data, contractAddress, index } = params;
+
+    const chain = this.getChain(chainId);
+
+    const publicClient = createPublicClient({
+      chain,
+      transport: http(),
+    });
+
+    const hsmSigner = new HSMSigner(keyLabel);
+
+    const signer = hsmSigner.toViemAccount();
+
+    const { client } = await this.getSmartAccount(
+      signer,
+      publicClient,
+      typeof index !== "undefined"
+        ? {
+            index,
+          }
+        : { eip7702Account: signer },
+    );
+
+    const hash = await client.sendTransaction({
+      chain,
+      to: contractAddress,
+      value: 0n,
+      data,
+    });
+
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+    hsmSigner.cleanup();
+
+    return receipt;
   }
 
   private getChain(id: ChainId): Chain {
@@ -150,7 +212,7 @@ class WalletFactory {
     signer: LocalAccount,
     publicClient: PublicClient,
     kernelAccountConfig?: Pick<
-      CreateKernelAccountParameters<"0.7", KERNEL_V3_VERSION_TYPE>,
+      CreateKernelAccountParameters<"0.7", typeof KERNEL_V3_3>,
       "eip7702Account" | "eip7702Auth" | "index" | "plugins"
     >,
     kernelClientConfig?: {
@@ -172,16 +234,27 @@ class WalletFactory {
       ...(kernelAccountConfig && kernelAccountConfig),
     });
 
-    const bundlerUrls = BUNDLER_URLS.get(publicClient.chain?.id as any);
-
-    if (!bundlerUrls) {
-      throw new Error("Bundler URL's are not provided for this chain, confirm");
-    }
+    const paymasterClient = createZeroDevPaymasterClient({
+      chain: publicClient.chain,
+      transport: http(
+        getPaymasterUrl(
+          publicClient.chain!.id as ChainId,
+          publicClient.chain!.id,
+        ),
+      ),
+    });
 
     const client = createKernelAccountClient({
       account,
+      client: publicClient,
       chain: publicClient.chain,
-      bundlerTransport: http(bundlerUrls[0]), // Pick first one by default
+      paymaster: paymasterClient,
+      bundlerTransport: http(
+        getBundlerUrl(
+          publicClient.chain!.id as ChainId,
+          publicClient.chain!.id,
+        ),
+      ), // Pick first one by default
       ...kernelClientConfig,
     });
 

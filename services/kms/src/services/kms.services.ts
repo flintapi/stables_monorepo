@@ -15,7 +15,7 @@ class KmsService {
     return KmsService.instance;
   }
 
-  async getAddress(keyLabel: string, chainId: ChainId, index?: bigint) {
+  async getAddress(keyLabel: string, chainId: ChainId) {
     const { account } = await WalletFactory.createOrGet({
       keyLabel,
       chainId,
@@ -43,25 +43,13 @@ class KmsService {
     data: Hex,
     index?: bigint,
   ) {
-    const { client, account } = await WalletFactory.createOrGet({
+    return WalletFactory.sendTransaction({
       keyLabel,
       chainId,
+      contractAddress,
+      data,
+      index,
     });
-
-    const userOpHash = await client.sendUserOperation({
-      callData: await account.encodeCalls([
-        {
-          to: contractAddress,
-          value: BigInt(0),
-          data,
-        },
-      ]),
-    });
-
-    const opReceipt = await client.waitForUserOperationReceipt({
-      hash: userOpHash,
-    });
-    return opReceipt.receipt;
   }
 }
 
