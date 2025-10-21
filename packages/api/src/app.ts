@@ -2,7 +2,7 @@
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
-import { QueueInstances } from "@flintapi/shared/Queue";
+import { QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import { serveStatic } from "@hono/node-server/serve-static";
 
 import { auth } from "@/lib/auth";
@@ -22,6 +22,7 @@ createBullBoard({
     new BullMQAdapter(QueueInstances["ramp-queue"]),
     new BullMQAdapter(QueueInstances["swap-queue"]),
     new BullMQAdapter(QueueInstances["event-queue"]),
+    new BullMQAdapter(QueueInstances[QueueNames.WALLET_QUEUE]),
   ],
   serverAdapter,
 });
