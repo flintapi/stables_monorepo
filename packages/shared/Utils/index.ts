@@ -1,14 +1,8 @@
-import HSMSigner from "./signers/hsm-signer";
-import WalletFactory from "./wallet/wallet.factory";
-
 export * as appSchema from "./db/app-schema";
 export * as orgSchema from "./db/org-schema";
 export * from "./db/types";
 export * from "./db/utils";
-export { WalletFactory };
-export { HSMSigner };
 
-export * from "./wallet/wallet.chains";
-export * from "./wallet/wallet.constants";
+export * as supportedChains from "./wallet/wallet.chains";
 export * from "./wallet/wallet.entities";
 export * from "./wallet/wallet.utils";

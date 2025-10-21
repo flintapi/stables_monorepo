@@ -1,11 +1,9 @@
-import type { BundlerCollection, ChainId, Network } from "./wallet.entities";
-
-export enum SupportedChains {
-  bsc = 56,
-  bscTestnet = 97,
-  base = 8453,
-  baseSepolia = 84532,
-}
+import type {
+  BundlerCollection,
+  ChainId,
+  Network,
+} from "@flintapi/shared/Utils";
+import { SupportedChains } from "@flintapi/shared/Utils";
 
 export const BUNDLER_URLS: BundlerCollection = new Map([
   [

@@ -1,20 +1,10 @@
-import type { SupportedChains } from "./wallet.constants";
-
 import * as supportedChains from "./wallet.chains";
 
-// Types and interfaces
-export interface CollectionAddressParams {
-  treasuryKeyLabel: string;
-  sweep: boolean;
-  chain: SupportedChains;
-  index: bigint;
-}
-
-export interface CreateOrGetAccountConfig {
-  chainId: ChainId;
-  keyLabel: string;
-  index?: bigint;
-  isMaster?: boolean;
+export enum SupportedChains {
+  bsc = 56,
+  bscTestnet = 97,
+  base = 8453,
+  baseSepolia = 84532,
 }
 
 export type Network = "base" | "bsc";

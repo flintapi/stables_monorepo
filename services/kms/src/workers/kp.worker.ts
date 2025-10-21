@@ -12,6 +12,7 @@ import {
 import { Worker } from "bullmq";
 
 import kmsService from "../services/kms.services";
+import env from "@/env";
 
 const name = QueueNames.WALLET_QUEUE;
 const worker = new Worker<
@@ -21,9 +22,10 @@ const worker = new Worker<
 >(name, async (job) => {
   switch (job.name) {
     case "get-address": {
-      const { chainId, keyLabel, index } = job.data;
+      const { chainId, keyLabel, index, isSmartAccount } =
+        job.data as WalletGetOrCreateJob;
       const address = await kmsService.getAddress(
-        keyLabel || process.env.MASTER_LABEL_KEY!,
+        keyLabel || env.TREASURY_KEY_LABEL,
         chainId,
         index,
       );
@@ -32,20 +34,17 @@ const worker = new Worker<
     }
 
     case "sign-transaction": {
-      const { name } = job.data;
-      if (name === "sign-transaction") {
-        const { keyLabel, chainId, index, data, contractAddress } = job.data;
-        const receipt = await kmsService.transfer(
-          keyLabel || process.env.MASTER_LABEL_KEY!,
-          chainId,
-          contractAddress,
-          data,
-          index,
-        );
+      const { keyLabel, chainId, index, data, contractAddress } =
+        job.data as WalletSignTransactionJob;
+      const receipt = await kmsService.transfer(
+        keyLabel || process.env.MASTER_LABEL_KEY!,
+        chainId,
+        contractAddress,
+        data,
+        index,
+      );
 
-        return { receipt };
-      }
-      throw new Error("Invalid job name");
+      return { receipt };
     }
   }
 });

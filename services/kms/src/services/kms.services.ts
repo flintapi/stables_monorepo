@@ -2,7 +2,7 @@
 import type { ChainId } from "@flintapi/shared/Utils";
 import type { Address, Hex } from "viem";
 
-import { WalletFactory } from "@flintapi/shared/Utils";
+import WalletFactory from "./wallet.factory";
 
 class KmsService {
   private static instance: KmsService | null;
@@ -16,23 +16,51 @@ class KmsService {
   }
 
   async getAddress(keyLabel: string, chainId: ChainId, index?: bigint) {
-    const { account } = await WalletFactory.createOrGet({ keyLabel, chainId, index });
+    const { account } = await WalletFactory.createOrGet({
+      keyLabel,
+      chainId,
+    });
 
     return account.address;
   }
 
-  async transfer(keyLabel: string, chainId: ChainId, contractAddress: Address, data: Hex, index?: bigint) {
-    const { client, account } = await WalletFactory.createOrGet({ keyLabel, chainId, index });
+  async getCollectionAddress(
+    keyLabel: string,
+    chainId: ChainId,
+    index?: bigint,
+  ) {
+    return WalletFactory.createCollectionAddress({
+      treasuryKeyLabel: keyLabel,
+      chainId,
+      index,
+    });
+  }
 
-    const userOpHash = await client.sendUserOperation({
-      callData: await account.encodeCalls([{
-        to: contractAddress,
-        value: BigInt(0),
-        data,
-      }]),
+  async transfer(
+    keyLabel: string,
+    chainId: ChainId,
+    contractAddress: Address,
+    data: Hex,
+    index?: bigint,
+  ) {
+    const { client, account } = await WalletFactory.createOrGet({
+      keyLabel,
+      chainId,
     });
 
-    const opReceipt = await client.waitForUserOperationReceipt({ hash: userOpHash });
+    const userOpHash = await client.sendUserOperation({
+      callData: await account.encodeCalls([
+        {
+          to: contractAddress,
+          value: BigInt(0),
+          data,
+        },
+      ]),
+    });
+
+    const opReceipt = await client.waitForUserOperationReceipt({
+      hash: userOpHash,
+    });
     return opReceipt.receipt;
   }
 }

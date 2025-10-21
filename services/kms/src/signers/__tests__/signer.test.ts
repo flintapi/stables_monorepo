@@ -27,13 +27,21 @@ import { baseSepolia, bscTestnet } from "viem/chains";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import HSMSigner from "../hsm-signer";
+import {
+  getBundlerUrl,
+  getPaymasterUrl,
+  SupportedChains,
+} from "../../wallet/wallet.constants";
 
 describe("hSMSigner Test Suit", () => {
   let signer: HSMSigner;
   const keyLabel = "test-key-01";
   const HSM_OWNER = `0x6480d80d340d57ad82a7e79a91f0ecec3869d479` as Hex;
-  const ZERODEV_RPC =
-    "https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/97?provider=PIMLICO";
+  const ZERODEV_RPC = getBundlerUrl(
+    SupportedChains.bscTestnet,
+    SupportedChains.bscTestnet,
+  );
+  // ("https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/97?provider=PIMLICO");
 
   beforeAll(() => {
     // initialize with keyLabel
@@ -336,14 +344,16 @@ describe("hSMSigner Test Suit", () => {
       const kernelAddress = KernelVersionToAddressesMap[kernelVersion];
 
       const publicClient = createPublicClient({
-        transport: http(ZERODEV_RPC),
+        transport: http(
+          getBundlerUrl(SupportedChains.bscTestnet, SupportedChains.bscTestnet),
+        ),
         chain: bscTestnet,
       });
 
       const paymasterClient = createZeroDevPaymasterClient({
         chain: bscTestnet,
         transport: http(
-          `https://api.pimlico.io/v2/97/rpc?apikey=pim_ZkLxqjsRCe4FRVhkd5LQQG`,
+          getPaymasterUrl(bscTestnet.id, SupportedChains.bscTestnet),
         ),
       });
 

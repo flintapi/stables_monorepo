@@ -10,16 +10,29 @@ import { createKernelAccount, createKernelAccountClient } from "@zerodev/sdk";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 import { createPublicClient, extractChain, http } from "viem";
 
-import type {
-  ChainId,
-  CollectionAddressParams,
-  CreateOrGetAccountConfig,
-} from "./wallet.entities";
+import type { ChainId, SupportedChains } from "@flintapi/shared/Utils";
 
 import HSMSigner from "../signers/hsm-signer";
-import * as supportedChains from "./wallet.chains";
+import { supportedChains } from "@flintapi/shared/Utils";
 import { BUNDLER_URLS } from "./wallet.constants";
-import { indexManager } from "./wallet.utils";
+import { indexManager } from "@flintapi/shared/Utils";
+
+// Types and interfaces
+export interface CollectionAddressParams {
+  treasuryKeyLabel: string;
+  chainId: ChainId;
+  index?: bigint;
+}
+
+export interface CollectionAddressReturnType {
+  address: Address;
+  index: bigint;
+}
+
+export interface CreateOrGetAccountConfig {
+  chainId: ChainId;
+  keyLabel: string;
+}
 
 /**
  * WalletFactory - Implements the Factory Pattern for wallet creation and management
@@ -29,7 +42,7 @@ import { indexManager } from "./wallet.utils";
  * - Creating organization root/master wallets
  * - Deriving public keys from master wallets
  */
-export class WalletFactory {
+class WalletFactory {
   private static instance: WalletFactory;
   private supportedChains = supportedChains;
   // private organizationWallets: Map<string, OrganizationWallet> = new Map();
@@ -57,8 +70,9 @@ export class WalletFactory {
    */
   async createCollectionAddress(
     params: CollectionAddressParams,
-  ): Promise<Address> {
-    const { treasuryKeyLabel, index, chain: chainId } = params;
+  ): Promise<CollectionAddressReturnType> {
+    const { treasuryKeyLabel, chainId } = params;
+    let index = params.index;
 
     const chain = this.getChain(chainId);
     const hsmsigner = new HSMSigner(treasuryKeyLabel);
@@ -70,11 +84,20 @@ export class WalletFactory {
 
     const signer = hsmsigner.toViemAccount();
 
+    const manager = indexManager();
+
+    if (!index) {
+      const storedIndex = await manager.get(treasuryKeyLabel);
+      index = BigInt(storedIndex);
+
+      await manager.set(treasuryKeyLabel, storedIndex + 1);
+    }
+
     const { account } = await this.getSmartAccount(signer, publicClient, {
       index,
     });
 
-    return account.address; // Return a valid address
+    return { address: account.address, index }; // Return a valid address
   }
 
   /**
@@ -85,8 +108,6 @@ export class WalletFactory {
     config: CreateOrGetAccountConfig = {
       chainId: 97,
       keyLabel: process.env.TREASURY_KEY_LABEL!, // by default get the progentitor key
-      index: 0n,
-      isMaster: false,
     },
   ): Promise<{
     client: KernelAccountClient;
@@ -95,7 +116,6 @@ export class WalletFactory {
     // TODO: create or get the master wallet for the keyLabel config and its configuration
 
     const { keyLabel, chainId } = config;
-    let { index } = config;
 
     const chain = this.getChain(chainId);
     const publicClient = createPublicClient({
@@ -107,28 +127,16 @@ export class WalletFactory {
 
     const signer = hsmSigner.toViemAccount();
 
-    const manager = indexManager();
-
-    if (!index) {
-      const storedIndex = await manager.get(keyLabel);
-      index = BigInt(storedIndex);
-
-      await manager.set(keyLabel, storedIndex + 1);
-    }
-
     const { account, client } = await this.getSmartAccount(
       signer,
       publicClient,
-      {
-        index,
-      },
     );
     return { account, client };
   }
 
   private getChain(id: ChainId): Chain {
     return extractChain({
-      chains: Object.values(this.supportedChains),
+      chains: Object.values(supportedChains),
       id,
     });
   }
