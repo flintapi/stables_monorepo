@@ -26,15 +26,14 @@ import {
 import { baseSepolia, bscTestnet } from "viem/chains";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import HSMSigner from "../hsm-signer";
+import hsmSigner from "../hsm-signer";
 import {
   getBundlerUrl,
   getPaymasterUrl,
-  SupportedChains,
-} from "../../wallet/wallet.constants";
+} from "../../services/wallet.constants";
+import { SupportedChains } from "@flintapi/shared/Utils";
 
 describe("hSMSigner Test Suit", () => {
-  let signer: HSMSigner;
   const keyLabel = "test-key-01";
   const HSM_OWNER = `0x6480d80d340d57ad82a7e79a91f0ecec3869d479` as Hex;
   const ZERODEV_RPC = getBundlerUrl(
@@ -43,26 +42,15 @@ describe("hSMSigner Test Suit", () => {
   );
   // ("https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/97?provider=PIMLICO");
 
-  beforeAll(() => {
-    // initialize with keyLabel
-    signer = new HSMSigner(keyLabel);
-  });
-
-  afterAll(() => {
-    // Cleanup HSMSigner
-    if (signer) {
-      signer.cleanup();
-    }
-  });
-
   it.only(
-    "should generate keypair from keyLabel, derive address and sign a transaction",
+    "should generate viem account from keylabel and return address",
     async () => {
-      const address = signer?.deriveEthereumAddress(signer.keyPair.publicKey);
+      const address = hsmSigner.toViemAccount(keyLabel).address;
 
       console.log("Address for: ", keyLabel, " => ", address);
 
       expect(address).toContain("0x");
+      expect(address).toEqual(HSM_OWNER);
     },
     { timeout: 100 * 10000 },
   );
@@ -84,9 +72,9 @@ describe("hSMSigner Test Suit", () => {
         transport: http(ZERODEV_RPC),
       });
 
-      const hsmSigner = signer.toViemAccount();
+      const signer = hsmSigner.toViemAccount(keyLabel);
       const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
-        signer: hsmSigner,
+        signer,
         kernelVersion,
         entryPoint,
       });
@@ -114,7 +102,7 @@ describe("hSMSigner Test Suit", () => {
       });
 
       console.log("Smart account address", kernelClient.account.address);
-      console.log("HSM Owner address: ", hsmSigner.address);
+      console.log("HSM Owner address: ", signer.address);
 
       const hash = await kernelClient.sendTransaction({
         to: "0x1333946C8F7e30A74f6934645188bf75A13688Be" as Hex,
@@ -157,9 +145,9 @@ describe("hSMSigner Test Suit", () => {
         transport: http(ZERODEV_RPC),
       });
 
-      const hsmSigner = signer.toViemAccount();
+      const signer = hsmSigner.toViemAccount(keyLabel);
       const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
-        signer: hsmSigner,
+        signer,
         kernelVersion,
         entryPoint,
       });
@@ -279,7 +267,7 @@ describe("hSMSigner Test Suit", () => {
       });
 
       // const eip7702Account = privateKeyToAccount(generatePrivateKey());
-      const eip7702Account = signer.toViemAccount();
+      const eip7702Account = hsmSigner.toViemAccount(keyLabel);
 
       const authorization =
         eip7702Account.signAuthorization &&
@@ -358,7 +346,7 @@ describe("hSMSigner Test Suit", () => {
       });
 
       // const eip7702Account = privateKeyToAccount(generatePrivateKey());
-      const eip7702Account = signer.toViemAccount();
+      const eip7702Account = hsmSigner.toViemAccount(keyLabel);
 
       const authorization =
         eip7702Account.signAuthorization &&

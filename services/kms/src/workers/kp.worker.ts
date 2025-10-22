@@ -13,9 +13,7 @@ import {
 import { Worker } from "bullmq";
 
 import kmsService from "../services/kms.services";
-import env from "@/env";
-import { Address, Hex, TransactionReceipt } from "viem";
-import walletFactory from "@/services/wallet.factory";
+import { Address, Hex } from "viem";
 
 const name = QueueNames.WALLET_QUEUE;
 
@@ -76,7 +74,7 @@ const worker = new Worker<
           typeof index !== "undefined" ? BigInt(index) : undefined,
         );
 
-        console.log("Receipt", receipt);
+        // console.log("Receipt", receipt);
 
         return { hash: receipt.transactionHash };
       }
@@ -96,6 +94,8 @@ const worker = new Worker<
 const event = ensureQueueEventHandlers(name, (events) => {
   events.on("failed", async ({ failedReason, jobId }) => {
     const job = await QueueInstances[name].getJob(jobId);
+
+    console.log("Job failed", failedReason);
 
     kmsLogger.error("Job failed", failedReason, {
       name: job?.name,

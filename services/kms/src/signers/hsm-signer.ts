@@ -2,7 +2,7 @@
  * This library provides a wrapper around communication with softhsm
  */
 
-import type { Module, Session } from "graphene-pk11";
+import type { IKeyPair, Module, Session } from "graphene-pk11";
 import type {
   Address,
   AuthorizationRequest,
@@ -20,13 +20,13 @@ import { hashAuthorization } from "viem/utils";
 class HSMSigner {
   private session: Session;
   private hsmModule: Module;
-  keyPair: graphene.IKeyPair;
+  static instance: HSMSigner;
 
   constructor(
-    private keyLabel: string, // keyLabel {orgId}:{walletId}
     private libPath: string = "/opt/homebrew/opt/softhsm/lib/softhsm/libsofthsm2.so", // local path
     private slotIndex: number = 0,
     private pin: string = process.env.HSM_PIN!,
+    private keyLabel?: string, // keyLabel {orgId}:{walletId}
   ) {
     this.hsmModule = graphene.Module.load(libPath, "SoftHSM2");
     this.hsmModule.initialize();
@@ -56,35 +56,41 @@ class HSMSigner {
 
       this.session.login(pin, graphene.UserType.USER);
     }
+  }
 
-    // get or generate Keypair for signer
-    this.keyPair = this.getKeyPair(keyLabel);
+  /**
+   * Use singleton instance to keep track of session cleanup
+   * */
+  static getInstance(): HSMSigner {
+    if (!this.instance) {
+      // TODO: Update with default values
+      console.log("Initializing HSM instance...");
+      this.instance = new HSMSigner();
+    }
+    return this.instance;
   }
 
   /**
    * Creates a viem LocalAccount compatible with ZeroDev
    */
-  toViemAccount(): LocalAccount {
-    const address = this.deriveEthereumAddress(this.keyPair.publicKey);
+  toViemAccount(keyLabel: string): LocalAccount {
+    const keyPair: IKeyPair = this.getKeyPair(keyLabel);
+    const address = this.deriveEthereumAddress(keyPair.publicKey);
 
     const signMessage = (message: Hex | string) =>
-      this.signEthereumMessage(message);
-    const signRawHash = (hash: Hex | string) => this.signRawHash(hash);
+      this.signEthereumMessage(message, keyPair);
+    const signRawHash = (hash: Hex | string) => this.signRawHash(hash, keyPair);
 
     return toAccount({
       address,
       async sign({ hash }) {
-        console.log("Signing raw hash (UserOp):", hash);
         // For UserOperation signing, sign the hash directly without any prefix
         const { signature } = signRawHash(hash);
-        console.log("Generated signature:", signature);
 
         return signature;
       },
 
       async signMessage({ message }) {
-        console.log("Pre modded message", message);
-
         let messageToSign: string | Uint8Array;
 
         // Handle different message formats like viem does
@@ -127,12 +133,8 @@ class HSMSigner {
           .digest();
         const messageHashHex = `0x${messageHash.toString("hex")}` as Hex;
 
-        console.log("Message Hash (with EIP-191 prefix)", messageHashHex);
-
         // Sign the hash
         const { signature } = signMessage(messageHashHex);
-
-        console.log("Signature inside signMessage:", signature);
 
         // Return signature in the format expected by viem
         return signature;
@@ -163,8 +165,6 @@ class HSMSigner {
       async signAuthorization(
         params: AuthorizationRequest,
       ): Promise<SignAuthorizationReturnType> {
-        console.log("Params", params);
-
         const { chainId, nonce } = params;
 
         const contractAddress =
@@ -178,11 +178,7 @@ class HSMSigner {
           // address: address!,
         });
 
-        console.log("Hex Message", hexMessage);
-
         const { r, s, v, signature } = signMessage(hexMessage);
-
-        console.log("Signature", { r, s, v, signature });
 
         const yParity = v === 27 ? 0 : 1;
 
@@ -209,8 +205,6 @@ class HSMSigner {
     });
 
     if (privateKeys.length > 0) {
-      console.log("Found exisiting keys... length: ", privateKeys.length);
-
       const privateKey = privateKeys.items(0);
       // Find the public key with the same ID
       const publicKey = this.session
@@ -229,7 +223,6 @@ class HSMSigner {
     }
 
     // generate ECDSA key pair
-    console.log("generating new keypair");
     const keys = this.session.generateKeyPair(
       graphene.KeyGenMechanism.EC,
       {
@@ -273,7 +266,7 @@ class HSMSigner {
     const keyBytes = rawPoint.slice(1);
 
     // 4. Console log the public key in hex format
-    console.log(`Public Key (uncompressed): 0x${keyBytes.toString("hex")}`);
+    // console.log(`Public Key (uncompressed): 0x${keyBytes.toString("hex")}`);
 
     // 5. Hash with Keccak-256
     const hash = keccak256("keccak256").update(keyBytes).digest();
@@ -295,9 +288,9 @@ class HSMSigner {
    * @param {Hex | string} messageHex The raw hash to sign (no prefix added)
    * @returns {object} An object containing the r, s, v components and the full signature
    */
-  private signRawHash(messageHex: Hex | string) {
-    const privateKey: graphene.PrivateKey = this.keyPair.privateKey;
-    const publicKey: graphene.PublicKey = this.keyPair.publicKey;
+  private signRawHash(messageHex: Hex | string, keyPair: IKeyPair) {
+    const privateKey: graphene.PrivateKey = keyPair.privateKey;
+    const publicKey: graphene.PublicKey = keyPair.publicKey;
 
     // Sign the hash directly without any prefix
     const sign = this.session.createSign("ECDSA", privateKey);
@@ -365,14 +358,17 @@ class HSMSigner {
    * @param {Hex | string} messageHex The message hash to sign (already hashed, no prefix added)
    * @returns {object} An object containing the r, s, v components and the full 0x-prefixed signature.
    */
-  private signEthereumMessage(messageHex: Hex | string): {
+  private signEthereumMessage(
+    messageHex: Hex | string,
+    keyPair: IKeyPair,
+  ): {
     r: Hex;
     s: Hex;
     v: number;
     signature: `0x${string}`;
   } {
-    const privateKey: graphene.PrivateKey = this.keyPair.privateKey;
-    const publicKey: graphene.PublicKey = this.keyPair.publicKey;
+    const privateKey: graphene.PrivateKey = keyPair.privateKey;
+    const publicKey: graphene.PublicKey = keyPair.publicKey;
 
     // Sign the hash directly using the HSM
     // Ensure the mechanism is 'ECDSA' for raw secp256k1 signatures
@@ -414,7 +410,6 @@ class HSMSigner {
 
           v = i + 27; // Ethereum's v values are typically 27 or 28
 
-          console.log("Raw bytes hex compare...", i, v);
           break;
         }
       } catch (e: any) {
@@ -442,10 +437,6 @@ class HSMSigner {
     //   s: '0x' + s.toString('hex'),
     //   v: v
     // });
-    console.log(
-      "Full Ethereum Signature length:",
-      finalSignatureBuffer.byteLength,
-    );
 
     return {
       r: `0x${r.toString("hex")}` as Hex,
@@ -557,4 +548,15 @@ class HSMSigner {
   }
 }
 
-export default HSMSigner;
+const hsmInstance = HSMSigner.getInstance();
+
+export default hsmInstance;
+
+const shutdown = () => {
+  // Explicitly close singleton HSM instance when process stops
+  console.log("Cleaning up HSM instance...");
+  hsmInstance.cleanup();
+};
+
+// process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

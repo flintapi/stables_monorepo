@@ -21,7 +21,7 @@ import { createPublicClient, extractChain, http } from "viem";
 
 import { ChainId, SupportedChains } from "@flintapi/shared/Utils";
 
-import HSMSigner from "../signers/hsm-signer";
+import hsmSigner from "../signers/hsm-signer";
 import { supportedChains } from "@flintapi/shared/Utils";
 import {
   BUNDLER_URLS,
@@ -89,14 +89,13 @@ class WalletFactory {
     let index = params.index;
 
     const chain = this.getChain(chainId);
-    const hsmSigner = new HSMSigner(treasuryKeyLabel);
 
     const publicClient = createPublicClient({
       chain,
       transport: http(),
     });
 
-    const signer = hsmSigner.toViemAccount();
+    const signer = hsmSigner.toViemAccount(treasuryKeyLabel);
 
     const manager = indexManager();
 
@@ -110,9 +109,6 @@ class WalletFactory {
     const { account } = await this.getSmartAccount(signer, publicClient, {
       index,
     });
-
-    // cleanup before return
-    hsmSigner.cleanup();
 
     return { address: account.address, index }; // Return a valid address
   }
@@ -140,9 +136,7 @@ class WalletFactory {
       transport: http(),
     });
 
-    const hsmSigner = new HSMSigner(keyLabel);
-
-    const signer = hsmSigner.toViemAccount();
+    const signer = hsmSigner.toViemAccount(keyLabel);
 
     const { account, client } = await this.getSmartAccount(
       signer,
@@ -151,8 +145,6 @@ class WalletFactory {
         eip7702Account: signer,
       },
     );
-
-    hsmSigner.cleanup();
 
     return { account, client };
   }
@@ -172,10 +164,7 @@ class WalletFactory {
       chain,
       transport: http(),
     });
-
-    const hsmSigner = new HSMSigner(keyLabel);
-
-    const signer = hsmSigner.toViemAccount();
+    const signer = hsmSigner.toViemAccount(keyLabel);
 
     const { client } = await this.getSmartAccount(
       signer,
@@ -195,8 +184,6 @@ class WalletFactory {
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
-
-    hsmSigner.cleanup();
 
     return receipt;
   }
