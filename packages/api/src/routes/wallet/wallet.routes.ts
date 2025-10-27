@@ -1,7 +1,12 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 import { jsonContent, jsonContentRequired } from "stoker/openapi/helpers";
-import { walletSchema } from "./wallet.schema";
+import {
+  createWalletResponseSchema,
+  insertWalletSchema,
+  selectWalletSchema,
+  updateWalletSchema,
+} from "./wallet.schema";
 import { createErrorSchema } from "stoker/openapi/schemas";
 import { validateRequest } from "@/middlewares/validate-request";
 
@@ -13,16 +18,24 @@ export const create = createRoute({
   method: "post",
   middleware: [validateRequest()],
   request: {
-    body: jsonContentRequired(walletSchema, "Create a new wallet"),
+    body: jsonContentRequired(insertWalletSchema, "Create a new wallet"),
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      walletSchema,
+      createWalletResponseSchema(selectWalletSchema),
       "New wallet created successfully",
     ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
-      createErrorSchema(walletSchema),
+      createErrorSchema(insertWalletSchema),
       "Validation error",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createWalletResponseSchema("Internal server error"),
+      "Internal server error",
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(
+      createWalletResponseSchema("Request is invalid, kindly check again"),
+      "Request is invalid",
     ),
   },
 });
@@ -40,12 +53,21 @@ export const list = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      z.array(walletSchema),
+      createWalletResponseSchema(z.array(selectWalletSchema)),
       "Wallets retrieved successfully",
     ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
-      createErrorSchema(z.object({})),
-      "Validation error",
+      createErrorSchema(
+        z.object({
+          limit: z.number().min(1).max(100).default(10),
+          offset: z.number().min(0).default(0),
+        }),
+      ),
+      "Validation or retrieval error",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createWalletResponseSchema("Internal server error"),
+      "Internal server error",
     ),
   },
 });
@@ -62,12 +84,16 @@ export const getOne = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      walletSchema,
+      createWalletResponseSchema(selectWalletSchema),
       "Wallet retrieved successfully",
     ),
     [HttpStatusCodes.NOT_FOUND]: jsonContent(
-      createErrorSchema(walletSchema),
+      createWalletResponseSchema("Wallet not found"),
       "Wallet not found",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createWalletResponseSchema("Internal server error"),
+      "Internal server error",
     ),
   },
 });
@@ -81,15 +107,20 @@ export const update = createRoute({
     params: z.object({
       walletId: z.uuid(),
     }),
+    body: jsonContentRequired(updateWalletSchema, "Update a wallet"),
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      walletSchema,
+      createWalletResponseSchema(selectWalletSchema),
       "Wallet updated successfully",
     ),
     [HttpStatusCodes.NOT_FOUND]: jsonContent(
-      createErrorSchema(walletSchema),
+      createWalletResponseSchema("Wallet not found"),
       "Wallet not found",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createWalletResponseSchema("Internal server error"),
+      "Internal server error",
     ),
   },
 });
@@ -105,18 +136,34 @@ export const operation = createRoute({
     params: z.object({
       walletId: z.uuid(),
       action: z
-        .enum(["send", "sign"])
+        .enum(["send", "call"])
         .describe("Operations to carry out on a wallet"),
     }),
+    body: jsonContentRequired(
+      z.object({
+        network: z.enum(["bsc", "base"]),
+        contractAddress: z.string().startsWith("0x"),
+        data: z.string().startsWith("0x"),
+      }),
+      "Operation configuration and input data",
+    ),
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      walletSchema,
+      createWalletResponseSchema("Wallet operation successful"),
       "Wallet operation successful",
     ),
     [HttpStatusCodes.NOT_FOUND]: jsonContent(
-      createErrorSchema(walletSchema),
+      createWalletResponseSchema("Wallet not found"),
       "Wallet not found",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createWalletResponseSchema("Internal server error"),
+      "Internal server error",
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(
+      createWalletResponseSchema("Invalid request"),
+      "Invalid request",
     ),
   },
 });
@@ -137,11 +184,11 @@ export const getWalletData = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      walletSchema,
+      createWalletResponseSchema(z.any()),
       "Wallet operation successful",
     ),
     [HttpStatusCodes.NOT_FOUND]: jsonContent(
-      createErrorSchema(walletSchema),
+      createWalletResponseSchema("Could not find wallet data"),
       "Wallet not found",
     ),
   },
