@@ -18,7 +18,7 @@ import {
   networkToChainidMap,
 } from "@flintapi/shared/Utils";
 import env from "@/env";
-import { Address } from "viem";
+import { Address, Hex } from "viem";
 import { wallet } from "./wallet.schema";
 import { eq } from "drizzle-orm";
 
@@ -276,21 +276,26 @@ export const operation: AppRouteHandler<WalletOperationRequest> = async (c) => {
       );
     }
 
-    const chainId = networkToChainidMap[body.network];
-    const jobData =
-      params.action === "send"
-        ? {
-            chainId,
-          }
-        : {};
-
-    const job = await walletQueue.add(
-      "sign-transaction",
-      {},
+    return c.json(
       {
-        jobId: ``,
+        status: "success",
+        data: null,
+        message: "Wallet operation successful",
       },
+      HttpStatusCodes.OK,
     );
+
+    const chainId = networkToChainidMap[body.network];
+    const jobData = {
+      chainId,
+      keyLabel: wallet!.keyLabel,
+      contractAddress: body.contractAddress as Address,
+      data: body.data as Hex,
+    };
+
+    const job = await walletQueue.add("sign-transaction", jobData, {
+      attempts: 1,
+    });
     const result = await job.waitUntilFinished(walletQueueEvents);
 
     // Call wallet queue to trigger send or call based on action
@@ -309,4 +314,50 @@ export const operation: AppRouteHandler<WalletOperationRequest> = async (c) => {
   }
 };
 
-export const data: AppRouteHandler<WalletDataRequest> = async () => {};
+export const data: AppRouteHandler<WalletDataRequest> = async (c) => {
+  try {
+    const params = c.req.valid("param");
+    const organization = c.get("organization");
+    const orgDatabase = c.get("orgDatabase");
+
+    const wallet = await orgDatabase.query.wallet.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.id, params.walletId);
+      },
+    });
+
+    if (!wallet) {
+      return c.json(
+        {
+          status: "failed",
+          data: null,
+          message: "Wallet not found",
+        },
+        HttpStatusCodes.NOT_FOUND,
+      );
+    }
+
+    return c.json(
+      {
+        status: "success",
+        message: "Wallet data retrieved successfully",
+        data: [],
+      },
+      HttpStatusCodes.OK,
+    );
+
+    // Call wallet queue to trigger send or call based on action
+  } catch (error: any) {
+    // Log error
+
+    return c.json(
+      {
+        status: "failed",
+        data: null,
+        message:
+          "Something went wrong internally while performing wallet operation",
+      },
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
+};

@@ -22,7 +22,9 @@ export const create = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      createWalletResponseSchema(selectWalletSchema),
+      createWalletResponseSchema(
+        selectWalletSchema.omit({ createdAt: true, updatedAt: true, id: true }),
+      ),
       "New wallet created successfully",
     ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
@@ -53,7 +55,15 @@ export const list = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      createWalletResponseSchema(z.array(selectWalletSchema)),
+      createWalletResponseSchema(
+        z.array(
+          selectWalletSchema.omit({
+            createdAt: true,
+            updatedAt: true,
+            id: true,
+          }),
+        ),
+      ),
       "Wallets retrieved successfully",
     ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
@@ -84,7 +94,9 @@ export const getOne = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      createWalletResponseSchema(selectWalletSchema),
+      createWalletResponseSchema(
+        selectWalletSchema.omit({ createdAt: true, updatedAt: true, id: true }),
+      ),
       "Wallet retrieved successfully",
     ),
     [HttpStatusCodes.NOT_FOUND]: jsonContent(
@@ -131,6 +143,7 @@ export const operation = createRoute({
   tags,
   path: "/wallet/{walletId}/{action}",
   method: "post",
+  hide: true,
   middleware: [validateRequest()],
   request: {
     params: z.object({
@@ -172,6 +185,7 @@ export const getWalletData = createRoute({
   tags,
   path: "/wallet/{walletId}/{type}",
   method: "get",
+  hide: true,
   middleware: [validateRequest()],
   description: "Get specific data for a wallet with `walletId`",
   request: {
@@ -190,6 +204,10 @@ export const getWalletData = createRoute({
     [HttpStatusCodes.NOT_FOUND]: jsonContent(
       createWalletResponseSchema("Could not find wallet data"),
       "Wallet not found",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createWalletResponseSchema("Internal server error"),
+      "Internal server error",
     ),
   },
 });

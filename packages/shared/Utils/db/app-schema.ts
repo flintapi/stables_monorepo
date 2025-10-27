@@ -3,6 +3,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 // import { toZodV4SchemaTyped } from "@/lib/zod-utils";
 import z from "zod";
+import { OrgMetadata } from "./types";
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -31,14 +32,14 @@ export const organization = sqliteTable("organization", {
   name: text("name").notNull(),
   slug: text("slug").notNull(),
   logo: text("logo"),
-  metadata: text("metadata", { mode: "json" }),
+  metadata: text("metadata", { mode: "json" }).notNull().$type<OrgMetadata>(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .defaultNow()
     .notNull(),
 });
 
-export const selectOrganization = createSelectSchema(organization)
-export type Organization = z.infer<typeof selectOrganization>
+export const selectOrganization = createSelectSchema(organization);
+export type Organization = z.infer<typeof selectOrganization>;
 
 export const member = sqliteTable("member", {
   id: text("id").primaryKey(),
@@ -49,8 +50,7 @@ export const member = sqliteTable("member", {
     .notNull()
     .references(() => organization.id, { onDelete: "cascade" }),
   role: text("role"),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .defaultNow(),
+  createdAt: integer("created_at", { mode: "timestamp" }).defaultNow(),
 });
 
 export const invitation = sqliteTable("invitation", {
