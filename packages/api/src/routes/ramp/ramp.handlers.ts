@@ -124,8 +124,24 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           incorporationDate: "",
         });
 
-      // TODO: Add transaction to DB
-
+      // TODO: Create transaction data
+      // TODO: Add to transaction db, with transaction metadata
+      const [newTransaction] = await orgDatabase
+        .insert(transactionSchema)
+        .values({
+          type: "on-ramp",
+          status: "pending",
+          network,
+          reference,
+          amount,
+          metadata: {
+            isDestinationExternal: true,
+            address: destination.address,
+            collectionBankCode: bankCode,
+            collectionAccountNumber: accountNumber,
+          },
+        })
+        .returning();
       // TODO: Add job to queue
 
       return c.json(
