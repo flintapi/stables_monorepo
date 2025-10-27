@@ -147,8 +147,8 @@ export const list: AppRouteHandler<ListWalletRequest> = async (c) => {
     return c.json(
       {
         status: "failed",
-        data: null,
         message: "Something went wrong internally while listing wallets",
+        data: null,
       },
       HttpStatusCodes.INTERNAL_SERVER_ERROR,
     );

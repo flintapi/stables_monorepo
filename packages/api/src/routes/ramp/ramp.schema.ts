@@ -1,60 +1,82 @@
-import {z} from "zod";
+import { z } from "zod";
+import { orgSchema } from "@flintapi/shared/Utils";
+
+export const transaction = orgSchema.transactions;
+export const selectTransaction = orgSchema.selectTransactionSchema;
+export const insertTransaction = orgSchema.insertTransactionSchema;
+export const updateTransaction = orgSchema.patchTransactionSchema;
 
 const offRampSchema = z.object({
-  type: z.literal('off'),
+  type: z.literal("off"),
   reference: z.string().min(10),
-  network: z.enum(['base', 'bsc']),
+  network: z.enum(["base", "bsc"]),
   amount: z.number().min(500),
   destination: z.object({
     bankCode: z.string().min(3),
     accountNumber: z.string().min(10),
-  })
-})
+  }),
+});
 
 const offRampResponseSchema = z.object({
-  type: z.literal('off'),
-  status: z.enum(['pending', 'completed', 'failed']),
-  message: z.string().min(1).max(255),
-  depositAddress: z.string().min(12).startsWith('0x'),
-})
+  type: z.literal("off-ramp"),
+  status: z.enum(["pending", "completed", "failed"]),
+  depositAddress: z.string().min(12).startsWith("0x"),
+});
 
 const onRampSchema = z.object({
-  type: z.literal('on'),
+  type: z.literal("on"),
   reference: z.string().min(10),
-  network: z.enum(['base', 'bsc']),
+  network: z.enum(["base", "bsc"]),
   amount: z.number().min(500),
   destination: z.object({
-    address: z.string().min(12).startsWith('0x'),
-  })
-})
+    address: z.string().min(12).startsWith("0x"),
+  }),
+});
 
 const onRampResponseSchema = z.object({
-  type: z.literal('on'),
-  status: z.enum(['pending', 'completed', 'failed']),
-  message: z.string().min(1).max(255),
+  type: z.literal("on"),
+  status: z.enum(["pending", "completed", "failed"]),
   depositAccount: z.object({
     accountNumber: z.string().min(10),
     bankCode: z.string().min(3),
     bankName: z.string().optional(),
-    accountName: z.string().optional()
+    accountName: z.string().optional(),
   }),
-})
+});
 
-export const rampSchema = z.discriminatedUnion('type', [
+export const rampRequestSchema = z.discriminatedUnion("type", [
   offRampSchema,
-  onRampSchema
-])
+  onRampSchema,
+]);
 
-export const rampResponse = z.discriminatedUnion('type', [
+export const rampResponseSchema = z.discriminatedUnion("type", [
   offRampResponseSchema,
-  onRampResponseSchema
-])
+  onRampResponseSchema,
+]);
 
-export const bankListSchema = z.array(z.object({
-  institutionName: z.string().min(1).max(100),
-  institutionCode: z.string().min(3).max(10),
-}))
+export const bankListSchema = z.array(
+  z.object({
+    institutionName: z.string().min(1).max(100),
+    institutionCode: z.string().min(3).max(10),
+  }),
+);
 
-export type RampRequestType = z.infer<typeof rampSchema>;
-export type RampResponseType = z.infer<typeof rampResponse>;
+export const createRampResponseSchema = (
+  schemaOrMessage: z.ZodSchema | string,
+) =>
+  typeof schemaOrMessage === "string"
+    ? z.object({
+        status: z.enum(["success", "failed", "pending"]).default("failed"),
+        message: z.string().min(1).default(schemaOrMessage),
+        data: z.any().nullable().default(null),
+      })
+    : z.object({
+        status: z.enum(["success", "failed", "pending"]).default("pending"),
+        message: z.string().min(1),
+        data: schemaOrMessage,
+      });
+
+export type ResponseStatus = "success" | "failed" | "pending";
+export type RampRequestType = z.infer<typeof rampRequestSchema>;
+export type RampResponseType = z.infer<typeof rampResponseSchema>;
 export type BankListType = z.infer<typeof bankListSchema>;

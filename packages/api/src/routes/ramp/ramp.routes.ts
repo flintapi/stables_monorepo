@@ -1,7 +1,17 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import * as HttpStatusCodes from "stoker/http-status-codes";
-import { jsonContent, jsonContentRequired } from "stoker/openapi/helpers";
-import { bankListSchema, rampResponse, rampSchema } from "./ramp.schema";
+import {
+  jsonContent,
+  jsonContentOneOf,
+  jsonContentRequired,
+} from "stoker/openapi/helpers";
+import {
+  bankListSchema,
+  createRampResponseSchema,
+  rampResponseSchema,
+  rampRequestSchema,
+  selectTransaction,
+} from "./ramp.schema";
 import { createErrorSchema } from "stoker/openapi/schemas";
 import { validateRequest } from "@/middlewares/validate-request";
 
@@ -14,13 +24,20 @@ export const ramp = createRoute({
   description: "Initialise a Ramp transaction - either off-ramp or on-ramp",
   middleware: [validateRequest()],
   request: {
-    body: jsonContentRequired(rampSchema, "Ramp transaction schema"),
+    body: jsonContentRequired(rampRequestSchema, "Ramp transaction schema"),
   },
   responses: {
-    [HttpStatusCodes.OK]: jsonContent(rampResponse, "Ramp transaction schema"),
+    [HttpStatusCodes.OK]: jsonContent(
+      createRampResponseSchema(rampResponseSchema),
+      "Ramp transaction schema",
+    ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
-      createErrorSchema(rampSchema),
+      createErrorSchema(rampRequestSchema),
       "The validation error(s)",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createRampResponseSchema("Internal server error"),
+      "Internal server error",
     ),
   },
 });
@@ -30,17 +47,22 @@ export const transaction = createRoute({
   path: "/ramp/transaction",
   method: "get",
   description: "Get a transaction with id or reference",
-  middleware: [
-    // validateRequest()
-  ],
+  middleware: [validateRequest()],
   request: {
     query: z.object({
-      id: z.uuid().optional(),
-      reference: z.string().optional(),
+      id: z.string().startsWith("trx_").default(""),
+      reference: z.string().default(""),
     }),
   },
   responses: {
-    [HttpStatusCodes.OK]: jsonContent(z.any(), "Get transaction"),
+    [HttpStatusCodes.OK]: jsonContent(
+      createRampResponseSchema(selectTransaction),
+      "Get transaction",
+    ),
+    [HttpStatusCodes.NOT_FOUND]: jsonContent(
+      createRampResponseSchema("Transaction not found"),
+      "Transaction not found",
+    ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
       createErrorSchema(
         z.object({
@@ -49,6 +71,10 @@ export const transaction = createRoute({
         }),
       ),
       "The validation error(s)",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createRampResponseSchema("Internal server error"),
+      "Internal server error",
     ),
   },
 });
@@ -63,10 +89,17 @@ export const banks = createRoute({
   // hide: true,
   description: "Get a list of supported banks",
   responses: {
-    [HttpStatusCodes.OK]: jsonContent(bankListSchema, "Bank list schema"),
+    [HttpStatusCodes.OK]: jsonContent(
+      createRampResponseSchema(bankListSchema),
+      "Bank list schema",
+    ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
       createErrorSchema(bankListSchema),
       "The validation error(s)",
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createRampResponseSchema("Internal server error"),
+      "Internal server error",
     ),
   },
 });
