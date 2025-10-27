@@ -11,6 +11,7 @@ import createApp from "@/lib/create-app";
 import index from "@/routes/index.route";
 import ramp from "@/routes/ramp/ramp.index";
 import wallet from "@/routes/wallet/wallet.index";
+import webhook from "@/routes/webhooks/webhooks.index";
 
 const app = createApp();
 
@@ -31,7 +32,7 @@ const bullMQBasePath = "/mq-board";
 serverAdapter.setBasePath(bullMQBasePath);
 app.route(bullMQBasePath, serverAdapter.registerPlugin());
 
-const routes = [index] as const;
+const routes = [index, webhook] as const;
 routes.forEach((route) => {
   app.route("/", route);
 });
