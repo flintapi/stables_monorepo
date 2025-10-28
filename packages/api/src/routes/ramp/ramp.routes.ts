@@ -44,7 +44,7 @@ export const ramp = createRoute({
 
 export const transaction = createRoute({
   tags,
-  path: "/ramp/transaction",
+  path: "/ramp/transactions",
   method: "get",
   description: "Get a transaction with id or reference",
   middleware: [validateRequest()],

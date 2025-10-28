@@ -6,6 +6,8 @@ export const selectTransaction = orgSchema.selectTransactionSchema;
 export const insertTransaction = orgSchema.insertTransactionSchema;
 export const updateTransaction = orgSchema.patchTransactionSchema;
 
+export type Transaction = z.infer<typeof selectTransaction>;
+
 const offRampSchema = z.object({
   type: z.literal("off"),
   reference: z.string().min(10),

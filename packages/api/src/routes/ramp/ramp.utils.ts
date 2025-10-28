@@ -1,6 +1,7 @@
 import { orgDb } from "@/db";
 import { sql } from "drizzle-orm";
 import { transaction } from "./ramp.schema";
+import type { Transaction } from "./ramp.schema";
 import { CacheFacade } from "@flintapi/shared/Cache";
 
 export async function queryTransactionByVirtualAccount(

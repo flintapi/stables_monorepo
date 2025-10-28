@@ -17,6 +17,7 @@ import { QueueInstances, QueueNames, bullMqBase } from "@flintapi/shared/Queue";
 import { ResponseStatus } from "./ramp.schema";
 import { QueueEvents } from "bullmq";
 import { Address } from "viem";
+import { cacheVirtualAccount } from "./ramp.utils";
 
 const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -82,6 +83,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           address: result.address,
           tokenAddress,
           persist: false,
+          callbackUrl: `${env.API_URL}/ramp/callback`, // callback when event received
           rampData: {
             type: "off",
             organizationId: organization.id,
@@ -142,6 +144,12 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           },
         })
         .returning();
+
+      // Cache virtual account to be recoverable from a deposit webhook
+      await cacheVirtualAccount(accountNumber, {
+        organizationId: organization.id,
+        transactionId: newTransaction.id,
+      });
 
       return c.json(
         {

@@ -27,6 +27,7 @@ const EnvSchema = z
       "trace",
       "silent",
     ]),
+    API_URL: z.url(),
     DATABASE_URL: z.url(),
     DATABASE_AUTH_TOKEN: z.string().optional(),
     TURSO_API_TOKEN: z.string(),
