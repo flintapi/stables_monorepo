@@ -21,6 +21,7 @@ export interface EventServiceJob {
   address: Address;
   tokenAddress: Address;
   persist: boolean;
+  callbackUrl: string;
   rampData?: {
     type: "off" | "on";
     organizationId: string;
