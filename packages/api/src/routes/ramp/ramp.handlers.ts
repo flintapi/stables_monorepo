@@ -142,7 +142,6 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           },
         })
         .returning();
-      // TODO: Add job to queue
 
       return c.json(
         {

@@ -8,38 +8,47 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
-import { WalletMetadata, WalletAddresses } from "./types";
+import { WalletMetadata, WalletAddresses, TransactionMetadata } from "./types";
 
 // import { toZodV4SchemaTyped } from "@/lib/zod-utils";
 import { generateUniqueId } from "./utils";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
-export const transactions = sqliteTable("transactions", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => generateUniqueId("trx_")),
-  type: text("type", { enum: ["off-ramp", "on-ramp", "transfer", "deposit"] })
-    .default("off-ramp")
-    .notNull(),
-  status: text("status", { enum: ["pending", "completed", "failed"] })
-    .notNull()
-    .default("pending"),
-  network: text("network", { enum: ["bsc", "base"] })
-    .default("base")
-    .notNull(),
-  reference: text("reference").notNull(),
-  trackingId: text("tracking_id"),
-  walletId: text("wallet_id").references(() => wallet.id), // Will be null if type is on-ramp, destination is external wallet
-  amount: real("amount").notNull(),
-  narration: text("narration"),
-  metadata: text("metadata", { mode: "json" }), // should hold transaction properties based on type, network, and status
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-    () => new Date(),
-  ),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .$defaultFn(() => new Date())
-    .$onUpdate(() => new Date()),
-});
+export const transactions = sqliteTable(
+  "transactions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => generateUniqueId("trx_")),
+    type: text("type", { enum: ["off-ramp", "on-ramp", "transfer", "deposit"] })
+      .default("off-ramp")
+      .notNull(),
+    status: text("status", { enum: ["pending", "completed", "failed"] })
+      .notNull()
+      .default("pending"),
+    network: text("network", { enum: ["bsc", "base"] })
+      .default("base")
+      .notNull(),
+    reference: text("reference").notNull(),
+    trackingId: text("tracking_id"),
+    walletId: text("wallet_id").references(() => wallet.id), // Will be null if type is on-ramp, destination is external wallet
+    amount: real("amount").notNull(),
+    narration: text("narration"),
+    metadata: text("metadata", { mode: "json" }).$type<TransactionMetadata>(), // should hold transaction properties based on type, network, and status
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("virtual_account_idx").on(
+      sql`json_extract(${table.metadata}, '$.accountNumber')`,
+    ),
+    index("address_idx").on(sql`json_extract(${table.metadata}, '$.address')`),
+  ],
+);
 
 export const selectTransactionSchema = createSelectSchema(transactions);
 

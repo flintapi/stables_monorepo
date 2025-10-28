@@ -3,7 +3,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 // import { toZodV4SchemaTyped } from "@/lib/zod-utils";
 import z from "zod";
-import { OrgMetadata } from "./types";
+import { APIKeyMetadata, OrgMetadata } from "./types";
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -146,7 +146,9 @@ export const apiKey = sqliteTable("api_key", {
   lastRequest: integer("last_request", { mode: "timestamp" }),
   expiresAt: integer("expires_at", { mode: "timestamp" }),
   permissions: text("permissions"),
-  metadata: text("metadata", { mode: "json" }),
+  metadata: text("metadata", { mode: "json" })
+    .notNull()
+    .$type<APIKeyMetadata>(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .defaultNow()
     .notNull(),
