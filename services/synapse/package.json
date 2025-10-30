@@ -9,6 +9,7 @@
     "start": "node ./dist/src/worker.js",
     "build": "tsc && tsc-alias",
     "typecheck": "tsc --noEmit",
+    "deploy": "flyctl deploy --config ./services/synapse/fly.toml --dockerfile ./services/synapse/synapse.Dockerfile",
     "with-env": "dotenv -e .env --"
   },
   "dependencies": {
