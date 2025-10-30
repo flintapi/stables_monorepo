@@ -17,11 +17,13 @@
     "dev:packages:api": "turbo dev --filter=@flintapi/api",
     "dev:services:ramp": "turbo dev --filter=@flintapi/ramp",
     "dev:services:synapse": "turbo dev --filter=@flintapi/synapse",
+    "build:services:synapse": "turbo build --filter=@flintapi/synapse",
     "db": "pnpm run --filter @flintapi/payout db:generate && pnpm run --filter @flintapi/payout db:migrate",
     "build:services:payout": "pnpm run --filter @flintapi/payout build",
     "start:services:payout": "pnpm run --filter @flintapi/payout start",
     "deploy": "flyctl deploy --config ./services/payout/fly.toml --dockerfile ./Dockerfile --build-arg DATABASE_URL='postgresql://neondb_owner:npg_Vi8RSIKLkj0N@ep-holy-base-abke7cgz-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'",
     "deploy:softhsm": "flyctl deploy --config ./services/softhsm/fly.toml --dockerfile ./services/softhsm/Dockerfile",
+    "deploy:synapse": "pnpm run deploy --filter @flintapi/synapse",
     "with-env": "dotenv -e .env.local --"
   },
   "dependencies": {
