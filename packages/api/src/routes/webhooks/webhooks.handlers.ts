@@ -4,10 +4,14 @@ import { Webhook } from "svix";
 
 import type { AppRouteHandler } from "@/lib/types";
 
-import db from "@/db";
+import db, { orgDb } from "@/db";
 import { orgSchema } from "@flintapi/shared/Utils";
 
-import type { BellbankRoute, CentiivRoute } from "./webhooks.routes";
+import type {
+  BellbankRoute,
+  CentiivRoute,
+  OffRampRoute,
+} from "./webhooks.routes";
 import env from "@/env";
 
 export const centiiv: AppRouteHandler<CentiivRoute> = async (c) => {
@@ -80,6 +84,65 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
     },
     HttpStatusCodes.OK,
   );
+};
+
+export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
+  const body = c.req.valid("json");
+  console.log("Event log", body);
+  console.log("Event headers", c.req.raw.headers);
+
+  const transactionId = body.transactionId;
+  const organizationId = body.organizationId;
+  const event = JSON.parse(body.event);
+  const type = body.type;
+
+  const orgDatabase = c.get("orgDatabase");
+
+  if (type !== "off") {
+    return c.json(
+      {
+        success: false,
+        message: "Wrong type passed to webhook",
+      },
+      HttpStatusCodes.BAD_REQUEST,
+    );
+  }
+
+  try {
+    const transaction = orgDatabase.query.transactions.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.id, transactionId);
+      },
+    });
+
+    if (!transaction) {
+      return c.json(
+        {
+          success: false,
+          message: "Transaction not found",
+        },
+        HttpStatusCodes.NOT_FOUND,
+      );
+    }
+
+    // TODO: Add off-ramp job to ramp service queue
+
+    return c.json(
+      {
+        success: true,
+        message: "webhook received and processed!",
+      },
+      HttpStatusCodes.OK,
+    );
+  } catch (error: any) {
+    return c.json(
+      {
+        success: false,
+        message: "Failed to process transaction",
+      },
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
 };
 
 export const palmpay: AppRouteHandler<any> = async (c) => {

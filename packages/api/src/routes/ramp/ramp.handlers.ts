@@ -83,7 +83,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           address: result.address,
           tokenAddress,
           persist: false,
-          callbackUrl: `${env.API_URL}/ramp/callback`, // callback when event received
+          callbackUrl: `${env.API_URL}/webhook/ramp/offramp`, // callback when event received
           rampData: {
             type: "off",
             organizationId: organization.id,
