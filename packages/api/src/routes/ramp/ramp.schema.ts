@@ -78,7 +78,6 @@ export const createRampResponseSchema = (
         data: schemaOrMessage,
       });
 
-export type ResponseStatus = "success" | "failed" | "pending";
 export type RampRequestType = z.infer<typeof rampRequestSchema>;
 export type RampResponseType = z.infer<typeof rampResponseSchema>;
 export type BankListType = z.infer<typeof bankListSchema>;

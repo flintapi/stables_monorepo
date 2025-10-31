@@ -14,7 +14,7 @@ import { networkToChainidMap, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 import env from "@/env";
 import { QueueInstances, QueueNames, bullMqBase } from "@flintapi/shared/Queue";
-import { ResponseStatus } from "./ramp.schema";
+import { ResponseStatus } from "@/lib/types";
 import { QueueEvents } from "bullmq";
 import { Address } from "viem";
 import { cacheVirtualAccount } from "./ramp.utils";

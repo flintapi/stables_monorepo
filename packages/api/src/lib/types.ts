@@ -29,3 +29,5 @@ export type AppRouteHandler<R extends RouteConfig> = RouteHandler<
 export type Permissions = {
   [resourceType: string]: string[]; // TODO: experiment to find out if this can be changed to boolean for access to resource
 };
+
+export type ResponseStatus = "success" | "failed" | "pending";

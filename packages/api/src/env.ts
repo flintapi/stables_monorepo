@@ -30,8 +30,10 @@ const EnvSchema = z
     API_URL: z.url(),
     DATABASE_URL: z.url(),
     DATABASE_AUTH_TOKEN: z.string().optional(),
+    ORG_DATABASE_AUTH_TOKEN: z.string(),
     TURSO_API_TOKEN: z.string(),
     TURSO_API_URL: z.string().url().optional(),
+    TURSO_ORGANIZATION: z.string().optional(),
 
     // Auth providers
     GITHUB_CLIENT_ID: z.string().min(1),

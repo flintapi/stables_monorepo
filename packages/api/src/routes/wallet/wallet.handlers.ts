@@ -15,9 +15,11 @@ import {
   SupportedChains,
   WalletMetadata,
   generateUniqueId,
+  getWalletKeyLabel,
   networkToChainidMap,
 } from "@flintapi/shared/Utils";
 import env from "@/env";
+import { ResponseStatus } from "@/lib/types";
 import { Address, Hex } from "viem";
 import { wallet } from "./wallet.schema";
 import { eq } from "drizzle-orm";
@@ -31,7 +33,8 @@ export const create: AppRouteHandler<CreateWalletRequest> = async (c) => {
   const orgDatabase = c.get("orgDatabase");
   const orgMetadata = organization.metadata as OrgMetadata;
 
-  const keyLabel = generateUniqueId("wal_");
+  const id = generateUniqueId("wal_");
+  const keyLabel = getWalletKeyLabel(id);
 
   try {
     const keyLabelExists = await orgDatabase.query.wallet.findFirst({
@@ -44,7 +47,7 @@ export const create: AppRouteHandler<CreateWalletRequest> = async (c) => {
       // TODO: should not throw error since it is internal process
       return c.json(
         {
-          status: "failed",
+          status: "failed" as ResponseStatus,
           message: "Wallet with this key already exists",
           data: null,
         },
@@ -94,7 +97,7 @@ export const create: AppRouteHandler<CreateWalletRequest> = async (c) => {
       .values({
         id: keyLabel,
         addresses: [
-          { address: result.address, chain: body.network, type: "eoa" },
+          { address: result.address, network: body.network, type: "eoa" },
         ],
         primaryAddress: result.address,
         keyLabel,
@@ -107,13 +110,17 @@ export const create: AppRouteHandler<CreateWalletRequest> = async (c) => {
       .returning();
 
     return c.json(
-      { status: "success", message: "New wallet created!", data: newWallet },
+      {
+        status: "success" as ResponseStatus,
+        message: "New wallet created!",
+        data: newWallet,
+      },
       HttpStatusCodes.OK,
     );
   } catch (error) {
     return c.json(
       {
-        status: "failed",
+        status: "failed" as ResponseStatus,
         data: null,
         message: "Something went wrong internally while creating wallet",
       },
@@ -135,7 +142,7 @@ export const list: AppRouteHandler<ListWalletRequest> = async (c) => {
 
     return c.json(
       {
-        status: "success",
+        status: "success" as ResponseStatus,
         message: "Retrieved all wallets successfully!",
         data: wallets,
       },
@@ -146,7 +153,7 @@ export const list: AppRouteHandler<ListWalletRequest> = async (c) => {
 
     return c.json(
       {
-        status: "failed",
+        status: "failed" as ResponseStatus,
         message: "Something went wrong internally while listing wallets",
         data: null,
       },
@@ -170,7 +177,7 @@ export const getOne: AppRouteHandler<GetOneWalletRequest> = async (c) => {
     if (!wallet) {
       return c.json(
         {
-          status: "failed",
+          status: "failed" as ResponseStatus,
           message: "Wallet not found",
           data: null,
         },
@@ -180,7 +187,7 @@ export const getOne: AppRouteHandler<GetOneWalletRequest> = async (c) => {
 
     return c.json(
       {
-        status: "success",
+        status: "success" as ResponseStatus,
         message: "Retrieved wallet",
         data: wallet,
       },
@@ -191,7 +198,7 @@ export const getOne: AppRouteHandler<GetOneWalletRequest> = async (c) => {
 
     return c.json(
       {
-        status: "failed",
+        status: "failed" as ResponseStatus,
         data: null,
         message: "Something went wrong internally while getting wallets",
       },
@@ -216,7 +223,7 @@ export const update: AppRouteHandler<UpdateWalletRequest> = async (c) => {
     if (!walletExists) {
       return c.json(
         {
-          status: "failed",
+          status: "failed" as ResponseStatus,
           data: null,
           message: "Wallet not found",
         },
@@ -232,7 +239,7 @@ export const update: AppRouteHandler<UpdateWalletRequest> = async (c) => {
 
     return c.json(
       {
-        status: "success",
+        status: "success" as ResponseStatus,
         message: "Updated wallet",
         data: updatedWallet,
       },
@@ -243,7 +250,7 @@ export const update: AppRouteHandler<UpdateWalletRequest> = async (c) => {
 
     return c.json(
       {
-        status: "failed",
+        status: "failed" as ResponseStatus,
         data: null,
         message: "Something went wrong internally while updating wallet",
       },
@@ -268,7 +275,7 @@ export const operation: AppRouteHandler<WalletOperationRequest> = async (c) => {
     if (!wallet) {
       return c.json(
         {
-          status: "failed",
+          status: "failed" as ResponseStatus,
           data: null,
           message: "Wallet not found",
         },
@@ -278,7 +285,7 @@ export const operation: AppRouteHandler<WalletOperationRequest> = async (c) => {
 
     return c.json(
       {
-        status: "success",
+        status: "success" as ResponseStatus,
         data: null,
         message: "Wallet operation successful",
       },
@@ -304,7 +311,7 @@ export const operation: AppRouteHandler<WalletOperationRequest> = async (c) => {
 
     return c.json(
       {
-        status: "failed",
+        status: "failed" as ResponseStatus,
         data: null,
         message:
           "Something went wrong internally while performing wallet operation",
@@ -329,7 +336,7 @@ export const data: AppRouteHandler<WalletDataRequest> = async (c) => {
     if (!wallet) {
       return c.json(
         {
-          status: "failed",
+          status: "failed" as ResponseStatus,
           data: null,
           message: "Wallet not found",
         },
@@ -339,7 +346,7 @@ export const data: AppRouteHandler<WalletDataRequest> = async (c) => {
 
     return c.json(
       {
-        status: "success",
+        status: "success" as ResponseStatus,
         message: "Wallet data retrieved successfully",
         data: [],
       },
@@ -352,7 +359,7 @@ export const data: AppRouteHandler<WalletDataRequest> = async (c) => {
 
     return c.json(
       {
-        status: "failed",
+        status: "failed" as ResponseStatus,
         data: null,
         message:
           "Something went wrong internally while performing wallet operation",

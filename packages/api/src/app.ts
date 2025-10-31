@@ -12,6 +12,7 @@ import index from "@/routes/index.route";
 import ramp from "@/routes/ramp/ramp.index";
 import wallet from "@/routes/wallet/wallet.index";
 import webhook from "@/routes/webhooks/webhooks.index";
+import console from "@/routes/console/console.index";
 
 const app = createApp();
 
@@ -37,7 +38,7 @@ routes.forEach((route) => {
   app.route("/", route);
 });
 
-const protectedRoutes = [ramp, wallet] as const;
+const protectedRoutes = [ramp, wallet, console] as const;
 
 // Add auth hadnler
 app.on(

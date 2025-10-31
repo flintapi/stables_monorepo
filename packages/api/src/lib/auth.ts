@@ -1,14 +1,34 @@
 import type { BetterAuthOptions, BetterAuthPlugin, Session } from "better-auth";
+import { apiLogger } from "@flintapi/shared/Logger";
 
 import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP, multiSession, organization, twoFactor, apiKey } from "better-auth/plugins";
+import {
+  emailOTP,
+  multiSession,
+  organization,
+  twoFactor,
+  apiKey,
+} from "better-auth/plugins";
 
-import db from "@/db";
-import {appSchema} from "@/db/schema";
+import db, { orgDb, tursoApi } from "@/db";
+import { appSchema } from "@/db/schema";
 import env from "@/env";
 
 import { sendEmail } from "./email";
+import { bullMqBase, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
+import { QueueEvents } from "bullmq";
+import {
+  generateUniqueId,
+  getWalletKeyLabel,
+  orgSchema,
+  SupportedChains,
+  WalletMetadata,
+} from "@flintapi/shared/Utils";
+import { Address } from "viem";
+
+const walletQueue = QueueInstances[QueueNames.WALLET_QUEUE];
+const walletQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
 
 const authOptions = {
   database: drizzleAdapter(db, {
@@ -30,10 +50,7 @@ const authOptions = {
           console.log("Create before session", session);
           const organizations = await db.query.member.findMany({
             where(fields, ops) {
-              return ops.eq(
-                fields.userId,
-                session?.userId,
-              );
+              return ops.eq(fields.userId, session?.userId);
             },
           });
 
@@ -67,8 +84,23 @@ const authOptions = {
     organization({
       creatorRole: "owner",
       cancelPendingInvitationsOnReInvite: true,
-      sendInvitationEmail: async ({ organization, email, role, invitation, inviter, id }) => {
-        console.log("sendInvitationEmail", organization, email, role, invitation, inviter, id);
+      sendInvitationEmail: async ({
+        organization,
+        email,
+        role,
+        invitation,
+        inviter,
+        id,
+      }) => {
+        console.log(
+          "sendInvitationEmail",
+          organization,
+          email,
+          role,
+          invitation,
+          inviter,
+          id,
+        );
 
         const consoleUrl = env.CONSOLE_URL;
         const inviteLink = `${consoleUrl}/invite/${invitation.id}`;
@@ -82,8 +114,7 @@ const authOptions = {
               <br/><a href="${inviteLink}">${inviteLink}</a>`,
             to: email,
           });
-        }
-        catch (error) {
+        } catch (error) {
           console.log("Error sending email", error);
           throw new APIError("INTERNAL_SERVER_ERROR", {
             message: "Failed to send Invitation email",
@@ -95,25 +126,121 @@ const authOptions = {
           // TODO: track organization slug already exists and throw APIError
           console.log("beforeCreateOrganization", organization, user);
 
+          const tursoClient = tursoApi();
+
+          const database = await tursoClient.databases.create(
+            `${organization.slug}-tenant-db`,
+            {
+              group: "flintapi-tenants",
+            },
+          );
+          // TODO: Call migration function
+
+          apiLogger.info("New organization database", database);
+
           return {
             data: {
               ...organization,
               metadata: {
-                databaseUrl: "", // provissioned turso db url
+                dbUrl: `libsql://${database.hostname}`, // provissioned turso db url
               },
             },
           };
         },
         afterCreateOrganization: async ({ organization, member, user }) => {
-          // TODO: Send email
-          // TODO: Provision turso/sqlite db for organization
           console.log("afterCreateOrganization", organization, member, user);
+          // TODO: Send email
+          // TODO: Create default master wallet for organization with organization virtual account
+
+          const id = generateUniqueId("wal_");
+          const keyLabel = getWalletKeyLabel(id);
+
+          try {
+            const job = await walletQueue.add(
+              "get-address",
+              {
+                type: "eoa",
+                keyLabel,
+                chainId: SupportedChains.base,
+              },
+              {
+                jobId: `wallet-create-${keyLabel}`,
+                attempts: 2,
+                backoff: {
+                  type: "exponential",
+                  delay: 1000,
+                },
+                removeOnComplete: true,
+              },
+            );
+
+            const result = (await job.waitUntilFinished(walletQueueEvents)) as {
+              address: Address;
+              index: number;
+            };
+
+            // Step 2 - Create virtual account and add to wallet metadata
+
+            const walletMetadata = {
+              linkedVirtualAccounts: [],
+            } as WalletMetadata;
+
+            // Get org database
+            const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl });
+
+            // Step 3 - Store result and return address
+            const [newWallet] = await orgDatabase
+              .insert(orgSchema.wallet)
+              .values({
+                id,
+                addresses: [
+                  { address: result.address, network: "evm", type: "eoa" },
+                ],
+                primaryAddress: result.address,
+                keyLabel,
+                network: "evm",
+                autoSwap: false,
+                autoSweep: false,
+                isActive: true,
+                metadata: walletMetadata,
+              })
+              .returning();
+
+            apiLogger.info("Created default master wallet", newWallet);
+          } catch (error) {
+            apiLogger.error("Failed to create default master wallet", error);
+          }
+        },
+        beforeDeleteOrganization: async ({ organization, user }) => {
+          console.log("Before deleting organization", organization, user);
+
+          try {
+            const tursoClient = tursoApi();
+            const database = await tursoClient.databases.delete(
+              `${organization.slug}-tenant-db`,
+            );
+            apiLogger.info("Organization database deleted", database);
+          } catch (error) {
+            apiLogger.error("Failed to delete organization database", error);
+          }
         },
         beforeAcceptInvitation: async ({ invitation, organization, user }) => {
           console.log("beforeAcceptInvitation", invitation, organization, user);
         },
-        afterAcceptInvitation: async ({ invitation, member, user, organization }) => {
-          console.log("afterAcceptInvitation", invitation, member, user, organization);
+        afterAcceptInvitation: async ({
+          invitation,
+          member,
+          user,
+          organization,
+        }) => {
+          // TODO: send invitation accepted email
+          console.log(
+            "afterAcceptInvitation",
+            invitation,
+            member,
+            user,
+            organization,
+          );
         },
         beforeAddMember: async ({ member, user, organization }) => {
           console.log("beforeAddMember", member, user, organization);
@@ -124,11 +251,33 @@ const authOptions = {
         afterRemoveMember: async ({ member, user, organization }) => {
           console.log("afterRemoveMember", member, user, organization);
         },
-        beforeUpdateMemberRole: async ({ member, newRole, user, organization }) => {
-          console.log("beforeUpdateMemberRole", member, newRole, user, organization);
+        beforeUpdateMemberRole: async ({
+          member,
+          newRole,
+          user,
+          organization,
+        }) => {
+          console.log(
+            "beforeUpdateMemberRole",
+            member,
+            newRole,
+            user,
+            organization,
+          );
         },
-        afterUpdateMemberRole: async ({ member, previousRole, user, organization }) => {
-          console.log("afterUpdateMemberRole", member, previousRole, user, organization);
+        afterUpdateMemberRole: async ({
+          member,
+          previousRole,
+          user,
+          organization,
+        }) => {
+          console.log(
+            "afterUpdateMemberRole",
+            member,
+            previousRole,
+            user,
+            organization,
+          );
         },
       },
     }),
@@ -175,14 +324,16 @@ export const auth = betterAuth({
   ...authOptions,
   plugins: [
     apiKey({
-      defaultPrefix: "flnt_key_",
+      defaultPrefix: "live_key_",
       rateLimit: {
-        enabled: false,
+        enabled: true,
+        timeWindow: 60 * 1000,
+        maxRequests: 20, // Allow 20 requests in a second
       },
       enableMetadata: true,
       disableSessionForAPIKeys: true,
       apiKeyHeaders: ["x-api-key", "flint-api-key"],
     }),
-    ...authOptions.plugins as Array<BetterAuthPlugin>,
-  ]
+    ...(authOptions.plugins as Array<BetterAuthPlugin>),
+  ],
 });

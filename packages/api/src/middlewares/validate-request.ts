@@ -3,7 +3,7 @@ import * as HttpStatusCodes from "stoker/http-status-codes";
 
 import { auth } from "@/lib/auth";
 import db, { orgDb } from "@/db";
-import { APIKeyMetada, OrgMetadata } from "@flintapi/shared/Utils";
+import { APIKeyMetadata, OrgMetadata } from "@flintapi/shared/Utils";
 import { AppBindings, Organization } from "@/lib/types";
 import { APIError } from "better-auth";
 
@@ -42,7 +42,7 @@ export const validateRequest = () =>
       });
     }
 
-    const { organizationId } = result.key?.metadata as APIKeyMetada;
+    const { organizationId } = result.key?.metadata as APIKeyMetadata;
 
     const organization = await db.query.organization.findFirst({
       where(fields, ops) {

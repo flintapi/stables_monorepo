@@ -23,7 +23,7 @@ export async function queryTransactionByVirtualAccount(
 
 export async function cacheVirtualAccount(
   accountNumber: string,
-  data: { organizationId: string; transactionId: string },
+  data: { organizationId: string; transactionId?: string },
 ) {
   try {
     const key = `va:${accountNumber}`;
@@ -42,7 +42,7 @@ export async function fetchVirtualAccount(accountNumber: string) {
 
     const data = (await CacheFacade.redisCache.hgetall(key)) as {
       organizationId: string;
-      transactionId: string;
+      transactionId?: string;
     } | null;
     if (!data) {
       throw new Error("Virtual account not found");
