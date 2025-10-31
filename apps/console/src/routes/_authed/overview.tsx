@@ -36,7 +36,7 @@ function RouteComponent() {
               <ArrowUpRight className="size-4" />
             </div>
             <div>
-              <h2>Analytics</h2>
+              <h2>Wallet Analytics</h2>
               <span className="text-sm text-secondary-foreground/75">
                 Dive deep into asset performance and wallet health
               </span>

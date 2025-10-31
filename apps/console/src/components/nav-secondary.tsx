@@ -36,6 +36,7 @@ export function NavSecondary({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
+                disabled={item.title !== 'Transactions'}
                 asChild
                 onClick={() => {
                   if (isMobile) {
