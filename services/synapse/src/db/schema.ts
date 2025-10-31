@@ -8,13 +8,13 @@ export const events = sqliteTable("events", {
   blockNumber: integer("block_number").notNull(),
   name: text("event_name").notNull(),
   data: text("event_data", { mode: "json" }).notNull(),
+  chainId: text("chain_id").notNull(),
   organizationId: text("organization_id"),
   transactionId: text("transaction_id"),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .defaultNow()
-    .notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date(),
+  ),
   updatedAt: integer("updated_at", { mode: "timestamp" })
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
 });

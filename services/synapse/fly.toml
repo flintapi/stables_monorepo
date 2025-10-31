@@ -1,0 +1,26 @@
+# fly.toml app configuration file generated for synapse-service on 2025-10-30T12:39:39+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'synapse-service'
+primary_region = 'lhr'
+
+[build]
+  dockerfile = './synapse.Dockerfile'
+
+[env]
+  PORT = '9999'
+
+[http_service]
+  internal_port = 9990
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
