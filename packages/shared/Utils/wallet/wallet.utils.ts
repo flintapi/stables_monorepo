@@ -66,3 +66,10 @@ export const TOKEN_ADDRESSES = {
     cngn: { address: "0x20354A3Ad3B67836ab9c6D7D82cF5e5Ddfe104dD", decimal: 6 },
   },
 };
+
+export function getWalletKeyLabel(id: string, isMaster?: boolean) {
+  if (isMaster) {
+    return `master:${id}`;
+  }
+  return `user:${id}`;
+}

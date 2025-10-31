@@ -17,7 +17,7 @@ export const winstonLoggerOptions = {
           timestamp({
             format: "YYYY-MM-DD hh:mm:ss.SSS A", // 2022-01-25 03:23:10.350 PM
           }),
-          colorize(),
+          // colorize(),
           align(),
           // winston.format.json(),
           winston.format.printf((info) => {

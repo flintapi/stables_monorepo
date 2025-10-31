@@ -10,7 +10,8 @@ export interface WalletMetadata {
 export type WalletAddresses = Array<{
   type: "smart" | "eoa" | string;
   address: string;
-  chain: `eip155:${string}` | string;
+  network: "evm" | "btc" | "sol";
+  chain?: `eip155:${string}` | string;
   [key: string]: any;
 }>;
 
@@ -26,7 +27,6 @@ export interface TransactionMetadata {
 
 export interface APIKeyMetadata {
   organizationId: string;
-  clientId: string;
   webhookSecret: string;
   webhookUrl: string;
 }
