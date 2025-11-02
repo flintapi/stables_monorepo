@@ -7,6 +7,8 @@ import { APIError } from "better-auth";
 
 export const validateConsoleSession = () =>
   createMiddleware<AppBindings>(async (c, next) => {
+    console.log("Before get session");
+
     const session = await auth.api.getSession({
       headers: c.req.raw.headers,
     });
@@ -38,7 +40,11 @@ export const validateConsoleSession = () =>
 
       c.set("organization", organization as Organization);
       c.set("orgDatabase", orgDatabase);
+
+      console.log("Organization", organization);
+    } else {
     }
 
+    console.log("No organization ID");
     await next();
   });
