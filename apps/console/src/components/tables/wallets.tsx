@@ -62,6 +62,7 @@ import {
   OrganizationWallet,
 } from '@/lib/api-client'
 import { Switch } from '../ui/switch'
+import { cn } from '@/lib/utils'
 
 export const WalletTableContext = createContext<{
   table: Table<OrganizationWallet>
@@ -118,7 +119,8 @@ const columns: Array<ColumnDef<OrganizationWallet>> = [
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.primaryAddress.substring(0, 8)}
+          {row.original.primaryAddress.slice(0, 8)}...
+          {row.original.primaryAddress.slice(-10)}
         </Badge>
       </div>
     ),
@@ -185,7 +187,7 @@ const columns: Array<ColumnDef<OrganizationWallet>> = [
   },
   {
     id: 'actions',
-    cell: () => (
+    cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -198,8 +200,9 @@ const columns: Array<ColumnDef<OrganizationWallet>> = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Activate</DropdownMenuItem>
-          <DropdownMenuItem>Send Token</DropdownMenuItem>
+          <DropdownMenuItem className={cn('bg-accent')}>
+            {row.original.isActive ? 'Deactivate' : 'Activate'}
+          </DropdownMenuItem>
           <DropdownMenuItem>Get QRCode</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>

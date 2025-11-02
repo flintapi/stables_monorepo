@@ -18,6 +18,7 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconCircleCheckFilled,
+  IconCircleX,
   IconDotsVertical,
   IconLayoutColumns,
   IconLoader,
@@ -52,21 +53,16 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import {
+  getOrganizationTransactionsQueryOptions,
+  OrganizationTransaction,
+} from '@/lib/api-client'
 
-export const schema = z.object({
-  id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
-})
 export const TransactionTableContext = createContext<{
-  table: Table<z.infer<typeof schema>>
+  table: Table<OrganizationTransaction>
 }>({ table: {} as any })
 
-const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
+const columns: Array<ColumnDef<OrganizationTransaction>> = [
   // {
   //   id: 'drag',
   //   header: () => null,
@@ -99,8 +95,8 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
     enableHiding: false,
   },
   {
-    accessorKey: 'header',
-    header: 'Header',
+    accessorKey: 'reference',
+    header: 'Reference',
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />
     },
@@ -108,7 +104,7 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
   },
   {
     accessorKey: 'type',
-    header: 'Section Type',
+    header: 'Transaction Type',
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -122,98 +118,38 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
     header: 'Status',
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === 'Done' ? (
+        {row.original.status === 'completed' ? (
           <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
+        ) : row.original.status === 'pending' ? (
           <IconLoader />
+        ) : (
+          <IconCircleX className="fill-red-500 dark:fill-red-400" />
         )}
         {row.original.status}
       </Badge>
     ),
   },
   {
-    accessorKey: 'target',
-    header: () => <div className="w-full text-right">Target</div>,
+    accessorKey: 'network',
+    header: () => <div className="w-full text-right">Network</div>,
     cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: 'Done',
-            error: 'Error',
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.target}
-          id={`${row.original.id}-target`}
-        />
-      </form>
+      <div className="w-32">
+        <Badge variant="outline" className="text-muted-foreground px-1.5">
+          {row.original.network}
+        </Badge>
+      </div>
     ),
   },
   {
-    accessorKey: 'limit',
-    header: () => <div className="w-full text-right">Limit</div>,
+    accessorKey: 'amount',
+    header: () => <div className="w-full text-right">Amount</div>,
     cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: 'Done',
-            error: 'Error',
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.limit}
-          id={`${row.original.id}-limit`}
-        />
-      </form>
+      <div className="w-32">
+        <Badge variant="outline" className="text-muted-foreground px-1.5">
+          {row.original.amount}
+        </Badge>
+      </div>
     ),
-  },
-  {
-    accessorKey: 'reviewer',
-    header: 'Reviewer',
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== 'Assign reviewer'
-
-      if (isAssigned) {
-        return row.original.reviewer
-      }
-
-      return (
-        <>
-          <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
-          </Label>
-          <Select>
-            <SelectTrigger
-              className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-              size="sm"
-              id={`${row.original.id}-reviewer`}
-            >
-              <SelectValue placeholder="Assign reviewer" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-              <SelectItem value="Jamik Tashpulatov">
-                Jamik Tashpulatov
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </>
-      )
-    },
   },
   {
     id: 'actions',
@@ -230,11 +166,11 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
+          <DropdownMenuItem>Repeat</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+          <DropdownMenuItem variant="destructive">
+            Report transaction
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
@@ -242,14 +178,9 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
 ]
 
 export const TransactionsTable: FC = () => {
-  const { data: activityData } = useSuspenseQuery({
-    queryKey: ['activities', 'list'],
-    queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 4000))
-      const data = (await import('@/app/dashboard/data.json')).default
-      return data
-    },
-  })
+  const { data: activityData } = useSuspenseQuery(
+    getOrganizationTransactionsQueryOptions,
+  )
 
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})

@@ -51,19 +51,37 @@ export const getOrganizationApiKeysQueryOptions = (organizationId: string) =>
   })
 
 // @ts-ignore Use selectTransactionSchema to infer type
-type OrganizationTransaction = z.infer<typeof orgSchema.selectTransactionSchema>
+export type OrganizationTransaction = {
+  id: string
+  type: 'off-ramp' | 'on-ramp' | 'transfer' | 'deposit'
+  status: 'pending' | 'completed' | 'failed'
+  network: string
+  reference: string
+  trackingId?: string
+  walletId?: string
+  amount: string
+  narration?: string
+  metadata: Record<string, any>
+  createdAt: any
+  updatedAt: any
+}
 export const getOrganizationTransactionsQueryOptions = queryOptions({
   queryKey: ['organization', 'transactions'],
   queryFn: async () => {
-    const { data, error } = await authClient.$fetch<
-      Array<OrganizationTransaction>
-    >('/v1/console/transactions', {
-      method: 'GET',
-    })
+    try {
+      const response = await fetch(
+        `${env.VITE_API_URL}/v1/console/transactions`,
+        {
+          method: 'GET',
+          credentials: 'include',
+        },
+      )
+      const data = (await response.json()) as Array<OrganizationTransaction>
 
-    if (error) throw error
-
-    return data
+      return data
+    } catch (error: any) {
+      throw error
+    }
   },
 })
 
@@ -90,7 +108,6 @@ export const getOrganizationWalletsQueryOptions = queryOptions({
   queryKey: ['organization', 'wallets'],
   queryFn: async () => {
     try {
-      console.log('Attempting fetch')
       const response = await fetch(`${env.VITE_API_URL}/v1/console/wallets`, {
         method: 'GET',
         credentials: 'include',
