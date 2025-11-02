@@ -32,7 +32,7 @@ export const organization = sqliteTable("organization", {
   name: text("name").notNull(),
   slug: text("slug").notNull(),
   logo: text("logo"),
-  metadata: text("metadata", { mode: "json" }).notNull().$type<OrgMetadata>(),
+  metadata: text("metadata", { mode: "json" }).$type<OrgMetadata>(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .defaultNow()
     .notNull(),
@@ -127,7 +127,7 @@ export const verification = sqliteTable("verification", {
     .notNull(),
 });
 
-export const apiKey = sqliteTable("api_key", {
+export const apiKey = sqliteTable("apikey", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   start: text("start"),
