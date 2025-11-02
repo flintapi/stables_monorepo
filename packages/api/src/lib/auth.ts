@@ -11,7 +11,7 @@ import {
   apiKey,
 } from "better-auth/plugins";
 
-import db, { orgDb, tursoApi } from "@/db";
+import db, { migrateDatabase, orgDb, tursoApi } from "@/db";
 import { appSchema } from "@/db/schema";
 import env from "@/env";
 
@@ -26,6 +26,7 @@ import {
   WalletMetadata,
 } from "@flintapi/shared/Utils";
 import { Address } from "viem";
+import { eq } from "drizzle-orm";
 
 const walletQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const walletQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -126,6 +127,15 @@ const authOptions = {
           // TODO: track organization slug already exists and throw APIError
           console.log("beforeCreateOrganization", organization, user);
 
+          return {
+            data: {
+              ...organization,
+            },
+          };
+        },
+        afterCreateOrganization: async ({ organization, member, user }) => {
+          console.log("afterCreateOrganization", organization, member, user);
+          // TODO: Save organization dbUrl
           const tursoClient = tursoApi();
 
           const database = await tursoClient.databases.create(
@@ -134,26 +144,26 @@ const authOptions = {
               group: "flintapi-tenants",
             },
           );
-          // TODO: Call migration function
-
           apiLogger.info("New organization database", database);
 
-          return {
-            data: {
-              ...organization,
+          // TODO: Call migration function
+          await migrateDatabase(`libsql://${database.hostname}`);
+
+          const [updatedOrganization] = await db
+            .update(appSchema.organization)
+            .set({
               metadata: {
                 dbUrl: `libsql://${database.hostname}`, // provissioned turso db url
               },
-            },
-          };
-        },
-        afterCreateOrganization: async ({ organization, member, user }) => {
-          console.log("afterCreateOrganization", organization, member, user);
+            })
+            .where(eq(appSchema.organization.id, organization.id))
+            .returning();
           // TODO: Send email
           // TODO: Create default master wallet for organization with organization virtual account
-
           const id = generateUniqueId("wal_");
-          const keyLabel = getWalletKeyLabel(id);
+          const keyLabel = getWalletKeyLabel(id, true);
+
+          console.log("Custom id", id, "Key Label", keyLabel);
 
           try {
             const job = await walletQueue.add(
@@ -164,7 +174,7 @@ const authOptions = {
                 chainId: SupportedChains.base,
               },
               {
-                jobId: `wallet-create-${keyLabel}`,
+                jobId: `wallet-create-${id}`,
                 attempts: 2,
                 backoff: {
                   type: "exponential",
@@ -186,7 +196,9 @@ const authOptions = {
             } as WalletMetadata;
 
             // Get org database
-            const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl });
+            const orgDatabase = orgDb({
+              dbUrl: updatedOrganization.metadata?.dbUrl!,
+            });
 
             // Step 3 - Store result and return address
             const [newWallet] = await orgDatabase
@@ -199,6 +211,7 @@ const authOptions = {
                 primaryAddress: result.address,
                 keyLabel,
                 network: "evm",
+                hasVirtualAccount: true,
                 autoSwap: false,
                 autoSweep: false,
                 isActive: true,
@@ -208,6 +221,7 @@ const authOptions = {
 
             apiLogger.info("Created default master wallet", newWallet);
           } catch (error) {
+            console.log("error creating wallet", error);
             apiLogger.error("Failed to create default master wallet", error);
           }
         },
@@ -329,6 +343,13 @@ export const auth = betterAuth({
         enabled: true,
         timeWindow: 60 * 1000,
         maxRequests: 20, // Allow 20 requests in a second
+      },
+      permissions: {
+        defaultPermissions: {
+          ramp: ["on"],
+          wallets: ["on"],
+          events: ["on"],
+        },
       },
       enableMetadata: true,
       disableSessionForAPIKeys: true,
