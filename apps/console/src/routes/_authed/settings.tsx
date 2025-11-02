@@ -2,10 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import NiceModal from '@ebay/nice-modal-react'
 import z from 'zod'
-import { ChevronsUpDown, Copy, PlusCircle, Trash2 } from 'lucide-react'
-import { IconGlobe } from '@tabler/icons-react'
+import { Check, ChevronsUpDown, Copy, PlusCircle, Trash2 } from 'lucide-react'
+import { IconCancel, IconGlobe, IconMoodEmpty } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import TeamInviteModal from './-components/modals/TeamInvite'
+import CreateAPIKeyModal from './-components/modals/CreateAPIKey'
 import { showDeleteOrgModal } from './-components/modals/DeleteOrganization'
 import type { FC } from 'react'
 import { Container, Main, Section } from '@/components/craft'
@@ -32,6 +33,7 @@ import { FatInput } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import {
   getInvitationQueryOptions,
+  getOrganizationApiKeysQueryOptions,
   getOrganizationsQueryOptions,
   getTeamQueryOptions,
 } from '@/lib/api-client'
@@ -190,6 +192,25 @@ const DetailsTab: FC = () => {
 const APIKeyTab: FC = () => {
   const isMobile = useIsMobile()
 
+  const { data: organization, error: organizationError } =
+    authClient.useActiveOrganization()
+
+  if (organizationError || organization === null) {
+    toast.error('Failed to get active organization', {
+      description: organizationError
+        ? organizationError.message
+        : 'No active organization',
+    })
+  }
+
+  const { data: apiKeys } = useQuery(
+    getOrganizationApiKeysQueryOptions(organization?.id || ''),
+  )
+
+  const showCreateAPIKeyModel = () => {
+    NiceModal.show(CreateAPIKeyModal, { organizationId: organization?.id })
+  }
+
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
@@ -197,66 +218,98 @@ const APIKeyTab: FC = () => {
           <CardTitle>API Keys</CardTitle>
           <CardDescription>Manage your API Keys</CardDescription>
         </div>
-        <Button size={isMobile ? 'icon' : 'sm'}>
+        <Button size={isMobile ? 'icon' : 'sm'} onClick={showCreateAPIKeyModel}>
           <span className="hidden lg:inline">Add new key</span>
           <PlusCircle />
         </Button>
       </CardHeader>
       <CardContent>
-        <Collapsible className="flex max-w-xl flex-col gap-2">
-          <div className="flex items-center justify-between gap-4 px-4">
-            <h4 className="text-sm font-semibold flex items-center">
-              <IconGlobe className="size-4" /> Yoswap
-            </h4>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-8">
-                <ChevronsUpDown />
-                <span className="sr-only">Toggle</span>
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent>
-            <List>
-              <div className="flex flex-col gap-2 px-4">
-                <FatInput
-                  value={'pk_sdvbaosbdvobasd8v9asdviab'}
-                  disabled
-                  contentEditable={false}
-                  suffix={
-                    <Button size="icon" variant="ghost">
-                      <Copy />
-                    </Button>
-                  }
-                />
-                <FatInput
-                  value={'wk_sodasobobasdv98ab'}
-                  disabled
-                  contentEditable={false}
-                  suffix={
-                    <Button size="icon" variant="ghost">
-                      <Copy />
-                    </Button>
-                  }
-                />
+        {apiKeys && apiKeys.length ? (
+          apiKeys.map((key) => (
+            <Collapsible className="flex max-w-xl flex-col gap-2">
+              <div className="flex items-center justify-between gap-4 px-4">
+                <h4 className="text-sm font-semibold flex items-center">
+                  <IconGlobe className="size-4" /> {key.name}
+                </h4>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-8">
+                    <ChevronsUpDown />
+                    <span className="sr-only">Toggle</span>
+                  </Button>
+                </CollapsibleTrigger>
               </div>
-              <ListItem
-                title="Ramp service"
-                description="Enable api key to access the on/off ramp service"
-                suffix={<Switch />}
-              />
-              <ListItem
-                title="Wallet service"
-                description="Enable api key to access the wallet service"
-                suffix={<Switch />}
-              />
-              <ListItem
-                title="Event service"
-                description="Enable api key to access the event service"
-                suffix={<Switch />}
-              />
-            </List>
-          </CollapsibleContent>
-        </Collapsible>
+              <CollapsibleContent>
+                <List>
+                  <div>
+                    <Card>
+                      <CardContent className="flex flex-col gap-2 px-4">
+                        <FatInput
+                          value={'pk_sdvbaosbdvobasd8v9asdviab'}
+                          disabled
+                          contentEditable={false}
+                          suffix={
+                            <Button size="icon" variant="ghost">
+                              <Copy />
+                            </Button>
+                          }
+                        />
+                        <FatInput
+                          value={'wk_sodasobobasdv98ab'}
+                          disabled
+                          contentEditable={false}
+                          suffix={
+                            <Button size="icon" variant="ghost">
+                              <Copy />
+                            </Button>
+                          }
+                        />
+                        <FatInput
+                          defaultValue={'https://webhook.site/123456789'}
+                          placeholder="Enter webhook url"
+                          disabled={false}
+                          contentEditable={false}
+                          suffix={
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="space-x-2 flex items-center justify-center"
+                            >
+                              <span>Save URL</span>
+                              <Check />
+                            </Button>
+                          }
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <ListItem
+                    title="Ramp service"
+                    description="Enable api key to access the on/off ramp service"
+                    suffix={<Switch />}
+                  />
+                  <ListItem
+                    title="Wallet service"
+                    description="Enable api key to access the wallet service"
+                    suffix={<Switch />}
+                  />
+                  <ListItem
+                    title="Event service"
+                    description="Enable api key to access the event service"
+                    suffix={<Switch />}
+                  />
+                </List>
+              </CollapsibleContent>
+            </Collapsible>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="grid items-center justify-center">
+              <IconCancel className="mx-auto" />
+              <span>No API keys found</span>
+            </CardContent>
+          </Card>
+        )}
         <Separator />
       </CardContent>
     </Card>

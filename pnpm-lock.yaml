@@ -519,6 +519,9 @@ importers:
       cross-env:
         specifier: ^10.0.0
         version: 10.1.0
+      drizzle-kit:
+        specifier: ^0.31.6
+        version: 0.31.6
       eslint:
         specifier: ^9.32.0
         version: 9.38.0(jiti@2.6.1)

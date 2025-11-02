@@ -3,12 +3,18 @@ import { Shapes } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Container, Main, Section } from '@/components/craft'
 import { Card, CardContent } from '@/components/ui/card'
+import { useQuery } from '@tanstack/react-query'
+import { getOrganizationWalletsQueryOptions } from '@/lib/api-client'
 
 export const Route = createFileRoute(`/_authed/wallets`)({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const { data } = useQuery(getOrganizationWalletsQueryOptions)
+
+  console.log('Wallet data', data)
+
   return (
     <Main>
       <Section className="animate-fade-down">
