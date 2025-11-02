@@ -1,5 +1,4 @@
 import { createContext, useMemo, useState } from 'react'
-import { z } from 'zod'
 import {
   getCoreRowModel,
   getFacetedRowModel,
@@ -10,7 +9,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { toast } from 'sonner'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import {
   IconChevronDown,
   IconChevronLeft,
@@ -23,6 +22,7 @@ import {
   IconLoader,
   IconPlus,
 } from '@tabler/icons-react'
+import type { z } from 'zod'
 import type { FC } from 'react'
 import type {
   ColumnDef,
@@ -33,7 +33,12 @@ import type {
 } from '@tanstack/react-table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
-import { DataTable, DragHandle, TableCellViewer } from '@/components/data-table'
+import {
+  DataTable,
+  DragHandle,
+  TableCellViewer,
+  WalletTableCellViewer,
+} from '@/components/data-table'
 import {
   Select,
   SelectContent,
@@ -52,21 +57,17 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import {
+  getOrganizationWalletsQueryOptions,
+  OrganizationWallet,
+} from '@/lib/api-client'
+import { Switch } from '../ui/switch'
 
-export const schema = z.object({
-  id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
-})
-export const TransactionTableContext = createContext<{
-  table: Table<z.infer<typeof schema>>
+export const WalletTableContext = createContext<{
+  table: Table<OrganizationWallet>
 }>({ table: {} as any })
 
-const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
+const columns: Array<ColumnDef<OrganizationWallet>> = [
   // {
   //   id: 'drag',
   //   header: () => null,
@@ -99,121 +100,88 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
     enableHiding: false,
   },
   {
-    accessorKey: 'header',
-    header: 'Header',
+    accessorKey: 'id',
+    header: 'Wallet ID',
     cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
+      // const isAssigned = row.original.reviewer !== 'Assign reviewer'
+
+      // if (isAssigned) {
+      //   return row.original.reviewer
+      // }
+
+      return <WalletTableCellViewer item={row.original} />
     },
-    enableHiding: false,
   },
   {
-    accessorKey: 'type',
-    header: 'Section Type',
+    accessorKey: 'primaryAddress',
+    header: 'Primary Address',
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
+          {row.original.primaryAddress.substring(0, 8)}
         </Badge>
       </div>
     ),
   },
   {
-    accessorKey: 'status',
+    accessorKey: 'isActive',
     header: 'Status',
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === 'Done' ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
+        {row.original.isActive ? (
+          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 size-[20px]" />
         ) : (
           <IconLoader />
         )}
-        {row.original.status}
+        {row.original.isActive ? 'Active' : 'Inactive'}
       </Badge>
     ),
   },
   {
-    accessorKey: 'target',
-    header: () => <div className="w-full text-right">Target</div>,
+    accessorKey: 'autoSwap',
+    header: () => <div className="w-full text-right">Auto Swap</div>,
     cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: 'Done',
-            error: 'Error',
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.target}
-          id={`${row.original.id}-target`}
-        />
-      </form>
+      <div className="flex items-center justify-center">
+        <Switch defaultChecked={row.original.autoSwap} />
+      </div>
+      // <form
+      //   onSubmit={(e) => {
+      //     e.preventDefault()
+      //     toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+      //       loading: `Updating wallet: ${row.original.primaryAddress}`,
+      //       success: 'Done',
+      //       error: 'Error',
+      //     })
+      //   }}
+      // >
+      //   <Label htmlFor={`${row.original.id}-target`} className="sr-only">
+      //     Auto Swap
+      //   </Label>
+      // </form>
     ),
   },
   {
-    accessorKey: 'limit',
-    header: () => <div className="w-full text-right">Limit</div>,
+    accessorKey: 'autoSweep',
+    header: () => <div className="w-full text-right">Auto Sweep</div>,
     cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: 'Done',
-            error: 'Error',
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.limit}
-          id={`${row.original.id}-limit`}
-        />
-      </form>
+      <div className="flex items-center justify-center">
+        <Switch defaultChecked={row.original.autoSweep} />
+      </div>
+      // <form
+      //   onSubmit={(e) => {
+      //     e.preventDefault()
+      //     toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+      //       loading: `Update wallet ${row.original.primaryAddress}`,
+      //       success: 'Done',
+      //       error: 'Error',
+      //     })
+      //   }}
+      // >
+      //   <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
+      //     Auto Sweep
+      //   </Label>
+      // </form>
     ),
-  },
-  {
-    accessorKey: 'reviewer',
-    header: 'Reviewer',
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== 'Assign reviewer'
-
-      if (isAssigned) {
-        return row.original.reviewer
-      }
-
-      return (
-        <>
-          <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
-          </Label>
-          <Select>
-            <SelectTrigger
-              className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-              size="sm"
-              id={`${row.original.id}-reviewer`}
-            >
-              <SelectValue placeholder="Assign reviewer" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-              <SelectItem value="Jamik Tashpulatov">
-                Jamik Tashpulatov
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </>
-      )
-    },
   },
   {
     id: 'actions',
@@ -230,9 +198,9 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
+          <DropdownMenuItem>Activate</DropdownMenuItem>
+          <DropdownMenuItem>Send Token</DropdownMenuItem>
+          <DropdownMenuItem>Get QRCode</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
         </DropdownMenuContent>
@@ -241,15 +209,18 @@ const columns: Array<ColumnDef<z.infer<typeof schema>>> = [
   },
 ]
 
-export const TransactionsTable: FC = () => {
-  const { data: activityData } = useSuspenseQuery({
-    queryKey: ['activities', 'list'],
-    queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 4000))
-      const data = (await import('@/app/dashboard/data.json')).default
-      return data
-    },
-  })
+export const WalletsTable: FC = () => {
+  const { data: wallets, error } = useSuspenseQuery(
+    getOrganizationWalletsQueryOptions,
+  )
+
+  if (wallets) {
+    console.log('Wallets', wallets)
+  }
+
+  if (error) {
+    console.log('Error getting wallets:', error)
+  }
 
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -261,7 +232,7 @@ export const TransactionsTable: FC = () => {
   })
 
   const table = useReactTable({
-    data: activityData,
+    data: wallets,
     columns,
     state: {
       sorting,
@@ -291,12 +262,8 @@ export const TransactionsTable: FC = () => {
   )
 
   return (
-    <TransactionTableContext.Provider value={contextValue}>
-      <DataTable
-        data={activityData}
-        columns={columns}
-        table={contextValue.table}
-      />
+    <WalletTableContext.Provider value={contextValue}>
+      <DataTable data={wallets} columns={columns} table={contextValue.table} />
       <div className="flex items-center justify-between px-4 my-4">
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
@@ -374,6 +341,6 @@ export const TransactionsTable: FC = () => {
           </div>
         </div>
       </div>
-    </TransactionTableContext.Provider>
+    </WalletTableContext.Provider>
   )
 }

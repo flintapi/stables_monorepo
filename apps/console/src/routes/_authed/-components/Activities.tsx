@@ -40,6 +40,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { WalletsTable } from '@/components/tables/wallets'
 
 type ActivityTabs = 'transactions' | 'wallets' | 'events'
 
@@ -82,13 +83,16 @@ export const Activities: FC = () => {
           </Select>
           <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
             <TabsTrigger value="transactions">
-              Transactions <Badge variant="secondary">3</Badge>
+              Transactions
+              {/*<Badge variant="secondary">3</Badge>*/}
             </TabsTrigger>
             <TabsTrigger value="wallets">
-              Wallets <Badge variant="secondary">3</Badge>
+              Wallets
+              {/*<Badge variant="secondary">3</Badge>*/}
             </TabsTrigger>
             <TabsTrigger value="events">
-              Events <Badge variant="secondary">3</Badge>
+              Events
+              {/*<Badge variant="secondary">3</Badge>*/}
             </TabsTrigger>
           </TabsList>
           {/*<div className="flex items-center gap-2">
@@ -141,8 +145,15 @@ export const Activities: FC = () => {
             </Suspense>
           </div>
         </TabsContent>
-        <TabsContent value="wallets" className="flex flex-col px-4 lg:px-6">
-          <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
+        <TabsContent
+          value="wallets"
+          className="relative flex flex-col gap-4 overflow-auto"
+        >
+          <div className="overflow-hidden rounded-lg border">
+            <Suspense fallback={<Loader />}>
+              <WalletsTable />
+            </Suspense>
+          </div>
         </TabsContent>
         <TabsContent value="events" className="flex flex-col px-4 lg:px-6">
           <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
