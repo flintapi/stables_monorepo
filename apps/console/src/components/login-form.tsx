@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppForm } from '@/hooks/demo.form'
 import { authClient } from '@/lib/auth-client'
+import { env } from '@/env'
+import authIllustration from '../../public/transaction_illustration.svg?url'
 
 export function LoginForm({
   className,
@@ -80,7 +82,7 @@ export function LoginForm({
                       callbackURL:
                         typeof query !== 'undefined'
                           ? query.redirect
-                          : 'http://localhost:3000/overview',
+                          : `${env.VITE_APP_URL}/overview`,
                       // disableRedirect: true,
                     })
                     console.log('Github data', data.data?.url)
@@ -89,7 +91,7 @@ export function LoginForm({
                   <GithubIcon className="size-5" />
                   Login with Github
                 </Button>
-                <Button
+                {/*<Button
                   variant="outline"
                   type="button"
                   className="w-full"
@@ -104,14 +106,18 @@ export function LoginForm({
                     />
                   </svg>
                   Login with Google
-                </Button>
+                </Button>*/}
               </div>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
+                  Enter the forefront of stablecoin payments
                 </span>
               </div>
-              <div className="grid gap-6">
+              <img
+                src={authIllustration}
+                className="object-contain size-28 mx-auto"
+              />
+              {/*<div className="grid gap-6">
                 <div className="grid gap-3">
                   <form.Field
                     name="email"
@@ -172,7 +178,7 @@ export function LoginForm({
                     </Button>
                   )}
                 />
-              </div>
+              </div>*/}
               {/*<div className="text-center text-sm">
                 Don&apos;t have an account?{' '}
                 <a href="#" className="underline underline-offset-4">

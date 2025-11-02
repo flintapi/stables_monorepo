@@ -2,6 +2,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { authClient } from './auth-client'
 import type { z } from 'zod'
 import type { orgSchema } from '@flintapi/shared/Utils'
+import { env } from '@/env'
 
 export const getTeamQueryOptions = queryOptions({
   queryKey: ['team', 'list'],
@@ -64,5 +65,26 @@ export const getOrganizationTransactionsQueryOptions = queryOptions({
     if (error) throw error
 
     return data
+  },
+})
+
+// @ts-ignore Use selectTransactionSchema to infer type
+type OrganizationWallet = z.infer<typeof orgSchema.selectWalletSchema>
+export const getOrganizationWalletsQueryOptions = queryOptions({
+  queryKey: ['organization', 'wallets'],
+  queryFn: async () => {
+    try {
+      const response = await fetch(`${env.VITE_API_URL}/v1/console/wallets`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      const data = (await response.json()) as Array<OrganizationWallet>
+
+      return data
+    } catch (error: any) {
+      console.log('Error occured fetching wallets', error)
+      throw error
+    }
   },
 })
