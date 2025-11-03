@@ -39,6 +39,7 @@ import {
 } from '@/lib/api-client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { authClient } from '@/lib/auth-client'
+import { CopyButton } from '@/components/ui/shadcn-io/copy-button'
 
 export const Route = createFileRoute(`/_authed/settings`)({
   component: RouteComponent,
@@ -52,9 +53,7 @@ function RouteComponent() {
           <Tabs defaultValue="details">
             <TabsList>
               <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="api-keys">
-                API Keys <Badge>1</Badge>
-              </TabsTrigger>
+              <TabsTrigger value="api-keys">API Keys</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
             </TabsList>
@@ -244,27 +243,45 @@ const APIKeyTab: FC = () => {
                     <Card>
                       <CardContent className="flex flex-col gap-2 px-4">
                         <FatInput
-                          value={'pk_sdvbaosbdvobasd8v9asdviab'}
+                          value={
+                            sessionStorage.getItem('apiKey') ||
+                            'pk_sdvbaosbdvobasd8v9asdviab'
+                          }
                           disabled
                           contentEditable={false}
                           suffix={
-                            <Button size="icon" variant="ghost">
-                              <Copy />
-                            </Button>
+                            <CopyButton
+                              content={
+                                sessionStorage.getItem('apiKey') ||
+                                'pk_sdvbaosbdvobasd8v9asdviab'
+                              }
+                              size="sm"
+                              variant="outline"
+                              className="mr-1.5"
+                            />
                           }
                         />
                         <FatInput
-                          value={'wk_sodasobobasdv98ab'}
+                          value={
+                            key.metadata?.webhookSecret ||
+                            'wk_sodasobobasdv98ab'
+                          }
                           disabled
                           contentEditable={false}
                           suffix={
-                            <Button size="icon" variant="ghost">
-                              <Copy />
-                            </Button>
+                            <CopyButton
+                              content={key.metadata?.webhookSecret}
+                              size="sm"
+                              variant="outline"
+                              className="mr-1.5"
+                            />
                           }
                         />
                         <FatInput
-                          defaultValue={'https://webhook.site/123456789'}
+                          defaultValue={
+                            key.metadata?.webhookUrl ||
+                            'https://webhook.site/123456789'
+                          }
                           placeholder="Enter webhook url"
                           disabled={false}
                           contentEditable={false}
@@ -273,6 +290,9 @@ const APIKeyTab: FC = () => {
                               size="sm"
                               variant="ghost"
                               className="space-x-2 flex items-center justify-center"
+                              onClick={() => {
+                                // TODO: Update api key
+                              }}
                             >
                               <span>Save URL</span>
                               <Check />
@@ -286,19 +306,42 @@ const APIKeyTab: FC = () => {
                   <ListItem
                     title="Ramp service"
                     description="Enable api key to access the on/off ramp service"
-                    suffix={<Switch />}
+                    suffix={
+                      <Switch
+                        checked={key.permissions?.['ramp'].includes('on')}
+                      />
+                    }
                   />
                   <ListItem
                     title="Wallet service"
                     description="Enable api key to access the wallet service"
-                    suffix={<Switch />}
+                    suffix={
+                      <Switch
+                        checked={key.permissions?.['wallets'].includes('on')}
+                      />
+                    }
                   />
                   <ListItem
                     title="Event service"
                     description="Enable api key to access the event service"
-                    suffix={<Switch />}
+                    suffix={
+                      <Switch
+                        checked={key.permissions?.['events']?.includes('on')}
+                      />
+                    }
                   />
                 </List>
+                <div>
+                  <Button
+                    variant="destructive"
+                    size="default"
+                    onClick={() => {
+                      alert('Your about to delete your API Key')
+                    }}
+                  >
+                    Delete key
+                  </Button>
+                </div>
               </CollapsibleContent>
             </Collapsible>
           ))

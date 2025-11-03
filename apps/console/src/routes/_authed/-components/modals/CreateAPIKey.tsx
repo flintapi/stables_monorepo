@@ -16,6 +16,7 @@ import {
 import { useConsoleForm } from '@/hooks/console.form'
 import { authClient } from '@/lib/auth-client'
 import { getOrganizationApiKeysQueryOptions } from '@/lib/api-client'
+import { generateWebhookSecret } from '@/lib/utils'
 // import { generateWebhookSecret } from '@flintapi/shared/Utils'
 
 interface CreateAPIKeyModalProps {
@@ -43,7 +44,7 @@ const CreateAPIKeyModal = ({ organizationId }: CreateAPIKeyModalProps) => {
         metadata: {
           organizationId,
           webhookUrl: value.webhookUrl,
-          webhookSecret: organizationId,
+          webhookSecret: generateWebhookSecret(),
         },
       })
 
