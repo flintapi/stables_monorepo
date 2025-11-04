@@ -127,7 +127,7 @@ export const verification = sqliteTable("verification", {
     .notNull(),
 });
 
-export const apiKey = sqliteTable("apikey", {
+export const apikey = sqliteTable("apikey", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   start: text("start"),
