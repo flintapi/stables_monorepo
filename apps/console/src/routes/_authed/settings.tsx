@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import NiceModal from '@ebay/nice-modal-react'
 import z from 'zod'
 import { Check, ChevronsUpDown, Copy, PlusCircle, Trash2 } from 'lucide-react'
@@ -32,6 +32,7 @@ import { Switch } from '@/components/ui/switch'
 import { FatInput } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import {
+  deleteAPIKeyMutationOptions,
   getInvitationQueryOptions,
   getOrganizationApiKeysQueryOptions,
   getOrganizationsQueryOptions,
@@ -40,6 +41,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { authClient } from '@/lib/auth-client'
 import { CopyButton } from '@/components/ui/shadcn-io/copy-button'
+import { Loader } from '@/components/ui/loader'
 
 export const Route = createFileRoute(`/_authed/settings`)({
   component: RouteComponent,
@@ -206,6 +208,8 @@ const APIKeyTab: FC = () => {
     getOrganizationApiKeysQueryOptions(organization?.id || ''),
   )
 
+  const { mutateAsync, isPending } = useMutation(deleteAPIKeyMutationOptions)
+
   const showCreateAPIKeyModel = () => {
     NiceModal.show(CreateAPIKeyModal, { organizationId: organization?.id })
   }
@@ -294,8 +298,12 @@ const APIKeyTab: FC = () => {
                                 // TODO: Update api key
                               }}
                             >
-                              <span>Save URL</span>
-                              <Check />
+                              {
+                                <>
+                                  <span>Save URL</span>
+                                  <Check />
+                                </>
+                              }
                             </Button>
                           }
                         />
@@ -309,6 +317,7 @@ const APIKeyTab: FC = () => {
                     suffix={
                       <Switch
                         checked={key.permissions?.['ramp'].includes('on')}
+                        disabled
                       />
                     }
                   />
@@ -318,6 +327,7 @@ const APIKeyTab: FC = () => {
                     suffix={
                       <Switch
                         checked={key.permissions?.['wallets'].includes('on')}
+                        disabled
                       />
                     }
                   />
@@ -327,6 +337,7 @@ const APIKeyTab: FC = () => {
                     suffix={
                       <Switch
                         checked={key.permissions?.['events']?.includes('on')}
+                        disabled
                       />
                     }
                   />
@@ -335,11 +346,17 @@ const APIKeyTab: FC = () => {
                   <Button
                     variant="destructive"
                     size="default"
-                    onClick={() => {
-                      alert('Your about to delete your API Key')
+                    onClick={async () => {
+                      const { success } = await mutateAsync({ keyId: key.id })
+
+                      if (success) {
+                        toast.success('API Key deleted')
+                      } else {
+                        toast.error('Failed to delete API Key')
+                      }
                     }}
                   >
-                    Delete key
+                    {isPending ? <Loader /> : 'Delete key'}
                   </Button>
                 </div>
               </CollapsibleContent>

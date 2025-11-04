@@ -1,6 +1,5 @@
-import { queryOptions } from '@tanstack/react-query'
+import { mutationOptions, queryOptions } from '@tanstack/react-query'
 import { authClient } from './auth-client'
-import type { z } from 'zod'
 import { env } from '@/env'
 
 export const getTeamQueryOptions = queryOptions({
@@ -118,6 +117,49 @@ export const getOrganizationWalletsQueryOptions = queryOptions({
       return data
     } catch (error: any) {
       console.log('Error occured fetching wallets', error)
+      throw error
+    }
+  },
+})
+
+export const deleteAPIKeyMutationOptions = mutationOptions({
+  mutationKey: ['organization', 'delete'],
+  mutationFn: async (input: { keyId: string }) => {
+    try {
+      const { data, error } = await authClient.apiKey.delete({
+        keyId: input.keyId,
+      })
+
+      if (error) {
+        console.log('Failed to delete API key', error)
+        throw error
+      }
+
+      return data
+    } catch (error: any) {
+      console.log('Error deleting api key', error)
+      throw error
+    }
+  },
+})
+
+export const saveWebhookUrlMutationOptions = mutationOptions({
+  mutationKey: ['organization', 'webhookUrl'],
+  mutationFn: async (input: { url: string; keyId: string }) => {
+    try {
+      const { data, error } = await authClient.apiKey.update({
+        keyId: input.keyId,
+        metadata: { webhookUrl: input.url },
+      })
+
+      if (error) {
+        console.log('Failed to delete API key', error)
+        throw error
+      }
+
+      return data
+    } catch (error: any) {
+      console.log('Error deleting api key', error)
       throw error
     }
   },
