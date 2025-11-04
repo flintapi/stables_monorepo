@@ -7,6 +7,7 @@ export interface RampServiceJob {
   type: "off" | "on";
   organizationId: string;
   transactionId: string;
+  amountReceived?: number;
   prevProviders?: PaymentProvider[];
 }
 
@@ -26,6 +27,7 @@ export interface EventServiceJob {
     type: "off" | "on";
     organizationId: string;
     transactionId: string;
+    amountReceived?: number;
   };
 }
 

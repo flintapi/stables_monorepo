@@ -3,28 +3,30 @@ import type { BetterFetch } from "@better-fetch/fetch";
 import { createFetch } from "@better-fetch/fetch";
 // import env from "@/env";
 
-type CreateVirtualAccountDto = ({
-  type: "individual";
-  firstname: string;
-  lastname: string;
-  phoneNumber: string;
-  address: string;
-  bvn: string;
-  gender: string;
-  dateOfBirth: string;
-  metadata?: Record<string, any>;
-} | {
-  type: "corporate";
-  rcNumber: string;
-  businessName: string;
-  emailAddress: string;
-  phoneNumber: string;
-  address?: string;
-  bvn: string;
-  incorporationDate: string;
-  dateOfBirth: string;
-  metadata?: string;
-});
+type CreateVirtualAccountDto =
+  | {
+      type: "individual";
+      firstname: string;
+      lastname: string;
+      phoneNumber: string;
+      address: string;
+      bvn: string;
+      gender: string;
+      dateOfBirth: string;
+      metadata?: Record<string, any>;
+    }
+  | {
+      type: "corporate";
+      rcNumber: string;
+      businessName: string;
+      emailAddress: string;
+      phoneNumber: string;
+      address?: string;
+      bvn: string;
+      incorporationDate: string;
+      dateOfBirth: string;
+      metadata?: string;
+    };
 
 interface CorporateVirtualAccountResponse {
   success: boolean;
@@ -116,9 +118,9 @@ export default class {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "consumerKey": process.env.BELLBANK_CK!,
-          "consumerSecret": process.env.BELLBANK_CS!,
-          "validityTime": "30",
+          consumerKey: process.env.BELLBANK_CK!,
+          consumerSecret: process.env.BELLBANK_CS!,
+          validityTime: "30",
         },
       });
 
@@ -136,26 +138,30 @@ export default class {
   async createVirtualAccount(dto: CreateVirtualAccountDto) {
     const token = await this.getToken();
 
-    const { type } = dto;
+    const { type, phoneNumber, address, bvn, dateOfBirth, metadata } = dto;
 
     switch (type) {
       case "individual": {
-        const { data, error } = await this.fetch<IndividualVirtualAccountResponse>(`/v1/account/clients/individual`, {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-          body: {
-            firstname: dto.firstname,
-            lastname: dto.lastname,
-            phoneNumber: dto.phoneNumber,
-            address: dto.address,
-            bvn: dto.bvn,
-            gender: dto.gender, // male | female
-            dateOfBirth: dto.dateOfBirth, // 1993/12/29
-            metadata: dto.metadata,
-          },
-        });
+        const { data, error } =
+          await this.fetch<IndividualVirtualAccountResponse>(
+            `/v1/account/clients/individual`,
+            {
+              method: "POST",
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+              body: {
+                firstname: dto.firstname,
+                lastname: dto.lastname,
+                phoneNumber: dto.phoneNumber,
+                address: dto.address,
+                bvn: dto.bvn,
+                gender: dto.gender, // male | female
+                dateOfBirth: dto.dateOfBirth, // 1993/12/29
+                metadata: dto.metadata,
+              },
+            },
+          );
 
         if (error) {
           console.log("Error creating a virtual account", error);
@@ -163,25 +169,29 @@ export default class {
         }
 
         return data.data;
-      };
+      }
       case "corporate": {
-        const { data, error } = await this.fetch<CorporateVirtualAccountResponse>(`/v1/account/clients/corporate`, {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-          body: {
-            rcNumber: dto.rcNumber,
-            businessName: dto.businessName,
-            emailAddress: dto.emailAddress,
-            phoneNumber: dto.phoneNumber,
-            address: dto.address,
-            bvn: dto.bvn,
-            incorporationDate: dto.incorporationDate,
-            dateOfBirth: dto.dateOfBirth,
-            metadata: dto.metadata,
-          },
-        });
+        const { data, error } =
+          await this.fetch<CorporateVirtualAccountResponse>(
+            `/v1/account/clients/corporate`,
+            {
+              method: "POST",
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+              body: {
+                rcNumber: dto.rcNumber,
+                businessName: dto.businessName,
+                emailAddress: dto.emailAddress,
+                phoneNumber: dto.phoneNumber,
+                address: dto.address,
+                bvn: dto.bvn,
+                incorporationDate: dto.incorporationDate,
+                dateOfBirth: dto.dateOfBirth,
+                metadata: dto.metadata,
+              },
+            },
+          );
 
         if (error) {
           console.log("Error creating a virtual account", error);
@@ -189,7 +199,7 @@ export default class {
         }
 
         return data.data;
-      };
+      }
       default: {
         throw new Error("Invalid account type");
       }
@@ -229,7 +239,7 @@ export default class {
     }>(`/v1/transfer`, {
       method: "POST",
       headers: {
-        "authorization": `Bearer ${token}`,
+        authorization: `Bearer ${token}`,
         "content-type": "application/json",
       },
       body: JSON.stringify({
@@ -292,7 +302,11 @@ export default class {
     const { data, error } = await this.fetch<{
       success: boolean;
       message: string;
-      data: Array<{ institutionCode: string; institutionName: string; category: string }>;
+      data: Array<{
+        institutionCode: string;
+        institutionName: string;
+        category: string;
+      }>;
     }>(`/v1/transfer/banks`, {
       method: "GET",
       headers: {
