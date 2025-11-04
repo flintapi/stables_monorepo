@@ -28,9 +28,11 @@ const EnvSchema = z
       "silent",
     ]),
 
-    DATABASE_URL: z.string().url().optional(),
+    DATABASE_URL: z.string().url(),
     DATABASE_AUTH_TOKEN: z.string().optional(),
+    ORG_DATABASE_AUTH_TOKEN: z.string(),
     TURSO_API_TOKEN: z.string(),
+    TURSO_ORGANIZATION: z.string(),
     TURSO_API_URL: z.string().url().optional(),
     // Console
     CONSOLE_URL: z.url().optional(),
@@ -39,8 +41,13 @@ const EnvSchema = z
     HSM_PIN: z.string().min(1),
     HSM_TOKEN_SLOT: z.coerce.number().default(1099048314),
 
-    TREASURY_KEY_LABEL: z.string().min(18).max(1024),
-    PALMPAY_URL: z.string().optional(),
+    TREASURY_KEY_LABEL: z.string().min(6).max(1024),
+    PALMPAY_API_URL: z.string().optional(),
+    PALMPAY_APP_ID: z.string(),
+    PALMPAY_PK: z.string(),
+    PALMPAY_MERCHANT_ID: z.string(),
+    PALMPAY_MERCHANT_PK: z.string(),
+    PALMPAY_MERCHANT_SK: z.string(),
 
     // Better stack
     BETTER_STACK_TOKEN_ID: z.string().optional(),

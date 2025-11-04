@@ -6,6 +6,7 @@ import { rampLogger } from "@flintapi/shared/Logger";
 import { bullMqBase, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import {
   networkToChainidMap,
+  orgSchema,
   TOKEN_ADDRESSES,
   type TransactionMetadata,
 } from "@flintapi/shared/Utils";
@@ -14,6 +15,7 @@ import { encodeFunctionData, parseAbi, parseUnits } from "viem";
 
 import db, { orgDb } from "@/db";
 import env from "@/env";
+import { eq } from "drizzle-orm";
 
 const walletQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const walletQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -54,7 +56,7 @@ class Ramp {
         narration: transaction?.narration || "Default narration",
       });
     } else {
-      const { transactionId, organizationId } = data;
+      const { transactionId, organizationId, amountReceived } = data;
       const organization = await db.query.organization.findFirst({
         where(fields, ops) {
           return ops.eq(fields.id, organizationId);
@@ -72,8 +74,8 @@ class Ramp {
         throw new Error("Transaction not found");
       }
 
-      const { accountNumber, bankCode } =
-        transaction.metadata as TransactionMetadata;
+      const accountNumber = transaction.metadata?.accountNumber;
+      const bankCode = transaction.metadata?.bankCode;
 
       return await fiatPaymentContext.transfer({
         accountNumber: accountNumber!,
@@ -88,7 +90,7 @@ class Ramp {
   static async processOnRampJob(data: RampServiceJob, attemptsMade: number) {
     rampLogger.info(`processOnRampJob`, data, attemptsMade);
 
-    const { transactionId, organizationId, type } = data;
+    const { transactionId, organizationId, type, amountReceived } = data;
 
     if (type !== "on") {
       throw new Error("Ramp is not of type on");
@@ -104,7 +106,7 @@ class Ramp {
       throw new Error("Organization not found");
     }
 
-    const orgDatabase = orgDb({ dbUrl: organization.metadata.dbUrl });
+    const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl! });
 
     const transaction = await orgDatabase.query.transactions.findFirst({
       where(fields, ops) {
@@ -116,6 +118,10 @@ class Ramp {
       throw new Error("Transaction not found");
     }
 
+    const toAddress = transaction.metadata?.address;
+    if (!toAddress) {
+      throw new Error("No receiving address added to this transaction");
+    }
     const chainId = networkToChainidMap[transaction.network];
     const token = TOKEN_ADDRESSES[chainId].cngn;
 
@@ -131,7 +137,7 @@ class Ramp {
           functionName: "transfer",
           args: [
             transaction.metadata!.address! as Address,
-            parseUnits("0", token.decimal),
+            parseUnits(amountReceived?.toString() || "0", token.decimal),
           ],
         }),
         contractAddress: token.address as Address,
@@ -142,7 +148,21 @@ class Ramp {
     const result = (await job.waitUntilFinished(walletQueueEvents)) as {
       hash: Hex;
     };
-    return result;
+
+    const [updateTransaction] = await orgDatabase
+      .update(orgSchema.transactions)
+      .set({
+        status: "completed",
+        metadata: {
+          ...transaction.metadata,
+          transactionHash: result.hash,
+        } as any,
+      })
+      .where(eq(orgSchema.transactions.id, transactionId))
+      .returning();
+    rampLogger.info("Transaction updated", updateTransaction);
+
+    return { status: updateTransaction.status };
   }
 }
 

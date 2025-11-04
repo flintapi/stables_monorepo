@@ -3,7 +3,11 @@ import type { RampServiceJob } from "@flintapi/shared/Queue";
 import { PaymentProvider } from "@flintapi/shared/Adapters";
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { rampLogger } from "@flintapi/shared/Logger";
-import { ensureQueueEventHandlers, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
+import {
+  ensureQueueEventHandlers,
+  QueueInstances,
+  QueueNames,
+} from "@flintapi/shared/Queue";
 import { Worker } from "bullmq";
 
 import Ramp from "@/services/ramp.service";
@@ -25,12 +29,17 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
       case "off-ramp": {
         try {
           return await Ramp.processOffRampJob(job.data, job.attemptsMade);
-        }
-        catch (offRampError: any) {
+        } catch (offRampError: any) {
           // TODO: Log error attempt and retry with updated job
           rampLogger.error(`Off-ramp failed`, offRampError);
 
-          const updatedData = { ...job.data, prevProviders: [...(job.data.prevProviders ? job.data?.prevProviders : []), PaymentProvider.BELLBANK] };
+          const updatedData = {
+            ...job.data,
+            prevProviders: [
+              ...(job.data.prevProviders ? job.data?.prevProviders : []),
+              PaymentProvider.BELLBANK,
+            ],
+          };
 
           await job.updateData(updatedData);
 
@@ -40,9 +49,9 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
       case "on-ramp": {
         try {
           return await Ramp.processOnRampJob(job.data, job.attemptsMade);
-        }
-        catch (onRampError: any) {
+        } catch (onRampError: any) {
           rampLogger.error(`On-ramp failed`, onRampError);
+          throw onRampError;
         }
         break;
       }
@@ -72,8 +81,7 @@ const events = ensureQueueEventHandlers(name, (events) => {
         data: job?.data,
         retryCount: job?.attemptsMade,
       });
-    }
-    catch (error: any) {
+    } catch (error: any) {
       rampLogger.error("Failed to get job", error);
     }
   });
@@ -89,8 +97,7 @@ const events = ensureQueueEventHandlers(name, (events) => {
         retryCount: job?.attemptsMade,
       });
       rampLogger.info("Job name", job?.name);
-    }
-    catch (error: any) {
+    } catch (error: any) {
       rampLogger.error("Failed to get job", error);
     }
   });
