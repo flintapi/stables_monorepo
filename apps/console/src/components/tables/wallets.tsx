@@ -36,7 +36,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   DataTable,
   DragHandle,
-  TableCellViewer,
   WalletTableCellViewer,
 } from '@/components/data-table'
 import {

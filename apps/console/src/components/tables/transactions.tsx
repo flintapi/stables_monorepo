@@ -34,7 +34,11 @@ import type {
 } from '@tanstack/react-table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
-import { DataTable, DragHandle, TableCellViewer } from '@/components/data-table'
+import {
+  DataTable,
+  DragHandle,
+  TransactionTableCellViewer,
+} from '@/components/data-table'
 import {
   Select,
   SelectContent,
@@ -98,7 +102,7 @@ const columns: Array<ColumnDef<OrganizationTransaction>> = [
     accessorKey: 'reference',
     header: 'Reference',
     cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
+      return <TransactionTableCellViewer item={row.original} />
     },
     enableHiding: false,
   },
@@ -131,24 +135,20 @@ const columns: Array<ColumnDef<OrganizationTransaction>> = [
   },
   {
     accessorKey: 'network',
-    header: () => <div className="w-full text-right">Network</div>,
+    header: () => 'Network',
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.network}
-        </Badge>
-      </div>
+      <Badge variant="outline" className="text-muted-foreground px-1.5">
+        {row.original.network}
+      </Badge>
     ),
   },
   {
     accessorKey: 'amount',
-    header: () => <div className="w-full text-right">Amount</div>,
+    header: () => 'Amount',
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.amount}
-        </Badge>
-      </div>
+      <Badge variant="outline" className="text-muted-foreground px-1.5">
+        {row.original.amount}
+      </Badge>
     ),
   },
   {
@@ -166,11 +166,9 @@ const columns: Array<ColumnDef<OrganizationTransaction>> = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Repeat</DropdownMenuItem>
+          {/*<DropdownMenuItem>Repeat</DropdownMenuItem>*/}
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">
-            Report transaction
-          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive">Report</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
@@ -181,6 +179,8 @@ export const TransactionsTable: FC = () => {
   const { data: activityData } = useSuspenseQuery(
     getOrganizationTransactionsQueryOptions,
   )
+
+  console.log(activityData, 'Transaction data')
 
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})

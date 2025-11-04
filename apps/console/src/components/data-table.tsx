@@ -73,7 +73,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { OrganizationWallet } from '@/lib/api-client'
+import { OrganizationTransaction, OrganizationWallet } from '@/lib/api-client'
 import { Badge } from './ui/badge'
 import { List, ListItem } from './ui/list'
 import { Copy } from 'lucide-react'
@@ -231,10 +231,10 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function TableCellViewer<DataSchema extends z.ZodTypeAny>({
+export function TransactionTableCellViewer({
   item,
 }: {
-  item: z.infer<DataSchema>
+  item: OrganizationTransaction
 }) {
   const isMobile = useIsMobile()
 
@@ -242,12 +242,12 @@ export function TableCellViewer<DataSchema extends z.ZodTypeAny>({
     <Drawer direction={isMobile ? 'bottom' : 'right'}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.header}
+          {item.reference}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.header}</DrawerTitle>
+          <DrawerTitle>Transaction details</DrawerTitle>
           <DrawerDescription>
             Showing total visitors for the last 6 months
           </DrawerDescription>
@@ -438,12 +438,8 @@ export function WalletTableCellViewer<DataSchema extends OrganizationWallet>({
     <Drawer direction={isMobile ? 'bottom' : 'right'}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          <div className="w-32">
-            <Badge variant="outline" className="text-muted-foreground px-1.5">
-              {item.id.slice(0, 10)}...
-              {item.id.slice(-10)}
-            </Badge>
-          </div>
+          {item.id.slice(0, 10)}...
+          {item.id.slice(-10)}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
