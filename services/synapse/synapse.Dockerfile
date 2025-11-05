@@ -8,6 +8,7 @@ RUN npm install -g pnpm
 
 COPY ./packages/shared ./
 COPY ./services/synapse ./
+COPY ./pnpm-lock.yaml ./
 COPY ./pnpm-workspace.yaml ./
 COPY ./turbo.json ./
 
