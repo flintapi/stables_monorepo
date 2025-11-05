@@ -8,11 +8,10 @@ RUN npm install -g pnpm
 
 COPY ./packages/shared ./
 COPY ./services/synapse ./
-COPY ./pnpm-lock.yaml ./
 COPY ./pnpm-workspace.yaml ./
 COPY ./turbo.json ./
 
-RUN pnpm install
+RUN pnpm install -w --no-frozen-lockfile
 
 RUN pnpm run build:services:synapse
 
@@ -23,6 +22,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/turbo.json ./turbo.json
 
