@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "author": {
-    "name": "Miracle Friday<miraclef60@gmail.com>"
+    "name": "Miracle Friday"
   },
   "description": "FlintAPI blockchain indexer service",
   "scripts": {
