@@ -11,7 +11,7 @@ COPY ./packages/shared ./packages/shared
 COPY ./services/synapse ./services/synapse
 COPY ./turbo.json ./
 
-RUN pnpm install -w
+RUN pnpm install
 
 RUN pnpm run build:services:synapse
 

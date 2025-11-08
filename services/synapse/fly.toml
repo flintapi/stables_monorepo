@@ -7,7 +7,7 @@ app = 'synapse-service'
 primary_region = 'lhr'
 
 [build]
-  dockerfile = './synapse.Dockerfile'
+  dockerfile = '../../synapse.Dockerfile'
 
 [env]
   PORT = '9999'
