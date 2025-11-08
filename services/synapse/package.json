@@ -3,6 +3,9 @@
   "type": "module",
   "version": "1.0.0",
   "license": "MIT",
+  "author": {
+    "name": "Miracle Friday<miraclef60@gmail.com>"
+  },
   "description": "FlintAPI blockchain indexer service",
   "scripts": {
     "dev": "pnpm with-env tsx watch ./src/worker.ts",
