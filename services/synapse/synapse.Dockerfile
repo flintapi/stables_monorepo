@@ -2,14 +2,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY pnpm-lock.yaml package*.json ./
-COPY ./pnpm-workspace.yaml ./
+COPY ../../pnpm-lock.yaml ../../package*.json ./
+COPY ../../pnpm-workspace.yaml ./
 
 RUN npm install -g pnpm
 
-COPY ./packages/shared ./packages/shared
-COPY ./services/synapse ./services/synapse
-COPY ./turbo.json ./
+COPY ../../packages/shared ./packages/shared
+COPY ../../services/synapse ./services/synapse
+COPY ../../turbo.json ./
 
 RUN pnpm install
 
