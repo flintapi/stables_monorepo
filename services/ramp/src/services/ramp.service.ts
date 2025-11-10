@@ -27,7 +27,7 @@ class Ramp {
     if (attemptsMade > 0) {
       fiatPaymentContext.setStrategy(PaymentProvider.CENTIIV);
       // TODO: check last provider used in updated job data
-      const { transactionId, organizationId } = data;
+      const { transactionId, organizationId, amountReceived } = data;
       const organization = await db.query.organization.findFirst({
         where(fields, ops) {
           return ops.eq(fields.id, organizationId);
@@ -52,11 +52,12 @@ class Ramp {
         accountNumber: accountNumber!,
         bankCode: bankCode!,
         reference: transaction.reference,
-        amount: transaction.amount,
+        amount: Math.min(transaction.amount, amountReceived!),
         narration: transaction?.narration || "Default narration",
-      });
+      }).then((responses) => rampLogger.info("Transfer made and completed...", responses));
     } else {
-      const { transactionId, organizationId, amountReceived } = data;
+      const { transactionId, organizationId, amountReceived, prevProviders } = data;
+      rampLogger.info("Retry with new provider", prevProviders, amountReceived);
       const organization = await db.query.organization.findFirst({
         where(fields, ops) {
           return ops.eq(fields.id, organizationId);
@@ -163,6 +164,10 @@ class Ramp {
     rampLogger.info("Transaction updated", updateTransaction);
 
     return { status: updateTransaction.status };
+  }
+
+  private async sweepAsset(amount: number, ) {
+
   }
 }
 
