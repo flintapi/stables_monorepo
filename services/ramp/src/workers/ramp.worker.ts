@@ -28,6 +28,7 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
     switch (job.name) {
       case "off-ramp": {
         try {
+          // TODO: add scheduled job to fetch transaction status every 15seconds without max retry and timeout
           return await Ramp.processOffRampJob(job.data, job.attemptsMade);
         } catch (offRampError: any) {
           // TODO: Log error attempt and retry with updated job

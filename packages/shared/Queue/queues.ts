@@ -22,7 +22,7 @@ export enum QueueNames {
   SWAP_QUEUE = "swap-queue",
   EVENT_QUEUE = "event-queue",
   MISC_QUEUE = "misc-queue",
-  RAMP_RETRY_QUEUE = "ramp-retry-queue",
+  RECOVERY_QUEUE = "recovery-queue",
   WALLET_QUEUE = "wallet-queue",
 }
 
@@ -46,11 +46,11 @@ const miscQueue = new Queue<MiscJob, any, "webhook" | "repeat-schedule">(
   bullMqBase,
 );
 // TODO: Implement new queue for payment failed re-retry with different provider
-const rampServiceRetryQueue = new Queue<
-  RampServiceJob,
+const recoveryQueue = new Queue<
   any,
-  "off-ramp-retry" | "on-ramp-retry"
->(QueueNames.RAMP_RETRY_QUEUE, bullMqBase);
+  any,
+  "retry" | "schedule"
+>(QueueNames.RECOVERY_QUEUE, bullMqBase);
 
 // TODO: Implement queue for wallet service
 const walletServiceQueue = new Queue<
@@ -67,6 +67,6 @@ export const QueueInstances = {
   [QueueNames.SWAP_QUEUE]: swapServiceQueue,
   [QueueNames.EVENT_QUEUE]: eventServiceQueue,
   [QueueNames.MISC_QUEUE]: miscQueue,
-  [QueueNames.RAMP_RETRY_QUEUE]: rampServiceRetryQueue,
+  [QueueNames.RECOVERY_QUEUE]: recoveryQueue,
   [QueueNames.WALLET_QUEUE]: walletServiceQueue,
 };

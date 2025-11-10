@@ -3,13 +3,23 @@ import type { RampServiceJob } from "@flintapi/shared/Queue";
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { rampLogger } from "@flintapi/shared/Logger";
 import { ensureQueueEventHandlers, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
+import { BellbankAdapter } from "@flintapi/shared/Adapters"
 import { Worker } from "bullmq";
 
-const name = QueueNames.RAMP_RETRY_QUEUE;
-const worker = new Worker<RampServiceJob, any, "off-ramp-retry" | "on-ramp-retry">(
+const name = QueueNames.RECOVERY_QUEUE;
+const worker = new Worker<any, any, "retry" | "schedule">(
   name,
   async (job) => {
-    rampLogger.info("Executing job", job.name, "with data", job.data);
+    if(job.name === "schedule") {
+      const reference = job.data?.reference;
+      const adapter = new BellbankAdapter()
+      const queryResult = await adapter.queryTransaction({
+        reference,
+      })
+
+      rampLogger.info("Found transaction", queryResult?.data);
+      rampLogger.info("Transaction status", queryResult?.data?.status);
+    }
   },
   {
     connection: CacheFacade.redisCache,
