@@ -12,9 +12,9 @@ function App() {
       <section className="relative p-6 h-[75vh] overflow-hidden rounded-3xl mx-4 my-auto">
         <div className="grid h-full grid-cols-3">
           <div className="grid items-center col-span-3 lg:col-span-2">
-            <div className="space-y-6 z-30">
+            <div className="space-y-6 z-30 px-8">
               <h2 className="text-2xl text-center lg:text-left lg:text-5xl text-balance font-semibold font-sans">
-                API-first Infrastructure for
+                API-First Infrastructure for
                 <br /> Stablecoins
               </h2>
               <div className="space-x-2 lg:space-x-5">
@@ -36,7 +36,7 @@ function App() {
               // data-nimg="1"
               className="absolute z-20 text-transparent top-[460px] left-[20%] max-w-[1200px] rounded-xl border-2 lg:top-[400px] animate-in fade-in duration-400"
               // style="color:transparent"
-              src="/hero-preview.webp"
+              src="/hero-preview.png"
             />
           </div>
         </div>
