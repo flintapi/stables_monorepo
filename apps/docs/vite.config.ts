@@ -5,6 +5,7 @@ import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import mdx from 'fumadocs-mdx/vite';
+import {nitro} from "nitro/vite"
 
 const config = defineConfig({
   plugins: [
@@ -19,6 +20,9 @@ const config = defineConfig({
       sitemap: {
         enabled: false
       },
+    }),
+    nitro({
+      preset: "vercel"
     }),
     viteReact({
       babel: {
