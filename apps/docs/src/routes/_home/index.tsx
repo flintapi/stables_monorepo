@@ -1,118 +1,110 @@
-import { createFileRoute } from '@tanstack/react-router'
-import {
-  Route as RouteIcon,
-  Server,
-  Shield,
-  Sparkles,
-  Waves,
-  Zap,
-} from 'lucide-react'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { FlickeringGrid } from '@/components/ui/flickering-grid-hero'
+import { Button } from '@/components/ui/button'
+import { useIsMobile } from '@/hooks/use-mobile'
+// import { Features } from '@/components/blocks/features-9'
 
 export const Route = createFileRoute('/_home/')({ component: App })
 
 function App() {
-  const features = [
-    {
-      icon: <Zap className="w-12 h-12 text-cyan-400" />,
-      title: 'Powerful Server Functions',
-      description:
-        'Write server-side code that seamlessly integrates with your client components. Type-safe, secure, and simple.',
-    },
-    {
-      icon: <Server className="w-12 h-12 text-cyan-400" />,
-      title: 'Flexible Server Side Rendering',
-      description:
-        'Full-document SSR, streaming, and progressive enhancement out of the box. Control exactly what renders where.',
-    },
-    {
-      icon: <RouteIcon className="w-12 h-12 text-cyan-400" />,
-      title: 'API Routes',
-      description:
-        'Build type-safe API endpoints alongside your application. No separate backend needed.',
-    },
-    {
-      icon: <Shield className="w-12 h-12 text-cyan-400" />,
-      title: 'Strongly Typed Everything',
-      description:
-        'End-to-end type safety from server to client. Catch errors before they reach production.',
-    },
-    {
-      icon: <Waves className="w-12 h-12 text-cyan-400" />,
-      title: 'Full Streaming Support',
-      description:
-        'Stream data from server to client progressively. Perfect for AI applications and real-time updates.',
-    },
-    {
-      icon: <Sparkles className="w-12 h-12 text-cyan-400" />,
-      title: 'Next Generation Ready',
-      description:
-        'Built from the ground up for modern web applications. Deploy anywhere JavaScript runs.',
-    },
-  ]
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <section className="relative py-20 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10"></div>
-        <div className="relative max-w-5xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-6">
-            <img
-              src="/tanstack-circle-logo.png"
-              alt="TanStack Logo"
-              className="w-24 h-24 md:w-32 md:h-32"
-            />
-            <h1 className="text-6xl md:text-7xl font-black text-white [letter-spacing:-0.08em]">
-              <span className="text-gray-300">TANSTACK</span>{' '}
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                START
-              </span>
-            </h1>
+    <div className="min-h-screen dark:bg-black bg-slate-50">
+      <section className="relative p-6 h-[75vh] overflow-hidden rounded-3xl mx-4 my-auto">
+        <div className="grid h-full grid-cols-3">
+          <div className="grid items-center col-span-3 lg:col-span-2">
+            <div className="space-y-6 z-30">
+              <h2 className="text-2xl text-center lg:text-left lg:text-5xl text-balance font-semibold font-sans">
+                API-first Infrastructure for
+                <br /> Stablecoins
+              </h2>
+              <div className="space-x-2 lg:space-x-5">
+                <Button size="lg" variant="default" asChild>
+                  <Link to="/docs">Getting started</Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <a href="https://console.flintapi.io">Create account</a>
+                </Button>
+              </div>
+            </div>
           </div>
-          <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
-            The framework for next generation AI applications
-          </p>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
-            Full-stack framework powered by TanStack Router for React and Solid.
-            Build modern applications with server functions, streaming, and type
-            safety.
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <a
-              href="https://tanstack.com/start"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
-            >
-              Documentation
-            </a>
-            <p className="text-gray-400 text-sm mt-2">
-              Begin your TanStack Start journey by editing{' '}
-              <code className="px-2 py-1 bg-slate-700 rounded text-cyan-400">
-                /src/routes/index.tsx
-              </code>
-            </p>
+          <div className="col-span-3">
+            <img
+              alt="hero-image"
+              width="1628"
+              height="1044"
+              decoding="async"
+              // data-nimg="1"
+              className="absolute z-20 text-transparent top-[460px] left-[20%] max-w-[1200px] rounded-xl border-2 lg:top-[400px] animate-in fade-in duration-400"
+              // style="color:transparent"
+              src="/hero-preview.webp"
+            />
           </div>
         </div>
+        <FlickeringGridDemo />
       </section>
 
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
-            >
-              <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-white mb-3">
-                {feature.title}
-              </h3>
-              <p className="text-gray-400 leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/*<section className="py-16 px-6 max-w-7xl mx-auto">
+        <Features />
+      </section>*/}
+    </div>
+  )
+}
+
+// Base64 encoded SVG
+const FLINT_LOGO_BASE64 = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1NSIgaGVpZ2h0PSI1MiIgZmlsbD0ibm9uZSI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTU1IDExQTExIDExIDAgMCAwIDQ0IDBIMjl2MzJhMjAgMjAgMCAwIDAgMjAgMjAgNiA2IDAgMCAwIDYtNnoiLz48cGF0aCBmaWxsPSJ1cmwoI2EpIiBkPSJNMjYgMzlhMTMgMTMgMCAwIDEtMjYgMFYyMEEyMCAyMCAwIDAgMSAyMCAwaDZ6Ii8+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMTMiIHgyPSIxMyIgeTE9IjAiIHkyPSI1Ni41IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iI0VFNDc1MSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0VERjEyOCIgc3RvcC1vcGFjaXR5PSIuOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==`
+
+// maskstyles
+const maskStyle = {
+  WebkitMaskImage: `url('${FLINT_LOGO_BASE64}')`,
+  WebkitMaskSize: '30vw',
+  WebkitMaskPosition: 'center',
+  WebkitMaskRepeat: 'no-repeat',
+  maskImage: `url('${FLINT_LOGO_BASE64}')`,
+  maskSize: '30vw',
+  maskPosition: 'center',
+  maskRepeat: 'no-repeat',
+} as const
+
+// grid configuration for background and logo
+const GRID_CONFIG = {
+  background: {
+    color: '#EE4751',
+    maxOpacity: 0.15,
+    flickerChance: 0.12,
+    squareSize: 4,
+    gridGap: 4,
+  },
+  logo: {
+    color: '#EDF128',
+    maxOpacity: 0.65,
+    flickerChance: 0.18,
+    squareSize: 3,
+    gridGap: 6,
+  },
+} as const
+
+const FlickeringGridDemo = () => {
+  const isMobile = useIsMobile()
+  return (
+    <div className="flex w-full h-full">
+      <FlickeringGrid
+        className={`absolute inset-0 z-0 [mask-image:radial-gradient(1000px_circle_at_center,white,transparent)] motion-safe:animate-pulse`}
+        {...GRID_CONFIG.background}
+      />
+      <FlickeringGrid
+        className={`absolute inset-0 z-0 -translate-x-[30vw] [mask-image:radial-gradient(1000px_circle_at_center,white,transparent)] motion-safe:animate-pulse`}
+        {...GRID_CONFIG.background}
+      />
+      <div
+        className="absolute inset-0 z-0 -translate-x-[15vw] translate-y-[15vh] lg:-translate-y-[4vh] lg:translate-x-[30vw] motion-safe:animate-fade-in border-1 border-gray-200"
+        style={{
+          ...maskStyle,
+          ...(isMobile && { maskSize: '30vh', WebkitMaskSize: '30vw' }),
+          animation: 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        }}
+      >
+        <FlickeringGrid {...GRID_CONFIG.logo} />
+      </div>
     </div>
   )
 }

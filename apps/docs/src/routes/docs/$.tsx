@@ -18,6 +18,9 @@ import { baseOptions } from '@/lib/layout.shared'
 
 export const Route = createFileRoute('/docs/$')({
   component: Page,
+  head: () => ({
+    meta: [{ title: 'Stables Stack Guide' }],
+  }),
   loader: async ({ params }) => {
     const slugs = params._splat?.split('/') ?? []
     const data = await loader({ data: slugs })

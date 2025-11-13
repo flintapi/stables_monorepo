@@ -13,7 +13,9 @@ Authorize all requests with the `x-api-key` header. Your API key can be found in
 
 ## Sample request with authorization
 
-```ts
+Authorize a request to the stables stack API using the `x-api-key` header. Alternatively you can use the `flint-api-key` header.
+
+```ts tab="x-api-key"
 async function getTransactions() {
   const request = await fetch(
     `${process.env.FLINT_API_BASE_URL}/v1/transactions`,
@@ -26,5 +28,47 @@ async function getTransactions() {
 
   const response = await request.json()
   return response
+}
+```
+
+```ts tab="flint-api-key"
+async function getTransactions() {
+  const request = await fetch(
+    `${process.env.FLINT_API_BASE_URL}/v1/transactions`,
+    {
+      headers: {
+        'flint-api-key': `${process.env.FLINT_API_KEY}`,
+      },
+    },
+  )
+
+  const response = await request.json()
+  return response
+}
+```
+
+That is it! That is all that is required to hit the stables stack API, and get access on/off ramp, manage wallets, and subscribe to blockchain events.
+
+<Callout type="info" title="20 RPS Rate limit">
+  API keys are rate limited to prevent abuse, and to manage the load on our
+  server from a single client
+</Callout>
+
+## Webhook signature verification
+
+```ts
+import crypto from 'node:crypto'
+
+export function isWebhookSignatureValid(
+  body: any,
+  signature: string,
+  webhookSecretKey: string,
+): boolean {
+  const hash = crypto
+    .createHmac('sha512', webhookSecretKey)
+    .update(JSON.stringify(body))
+    .digest('hex')
+
+  return signature === hash
 }
 ```

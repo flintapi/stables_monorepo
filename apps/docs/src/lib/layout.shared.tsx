@@ -33,16 +33,16 @@ export function baseOptions(): BaseLayoutProps {
         //   </NavbarMenu>
         // ),
       },
-      {
-        text: 'Blog',
-        url: '/blog',
-        active: 'nested-url',
-      },
-      {
-        text: 'Showcase',
-        url: '/showcase',
-        active: 'nested-url',
-      },
+      // {
+      //   text: 'Blog',
+      //   url: '/blog',
+      //   active: 'nested-url',
+      // },
+      // {
+      //   text: 'Showcase',
+      //   url: '/showcase',
+      //   active: 'nested-url',
+      // },
     ],
   }
 }
