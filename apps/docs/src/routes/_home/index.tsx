@@ -20,7 +20,7 @@ function App() {
                 API-First Infrastructure for
                 <br /> Stablecoins
               </h2>
-              <div className="space-x-2 lg:space-x-5">
+              <div className="flex gap-2 items-center justify-center lg:justify-start lg:gap-5">
                 <Button size="lg" variant="default" asChild>
                   <Link to="/docs">Getting started</Link>
                 </Button>
@@ -79,8 +79,8 @@ function App() {
               href: 'https://stables.flintapi.io/reference',
               label: 'API Reference',
             },
-            { href: '/blog', label: 'Blog' },
-            { href: '/contact', label: 'Contact' },
+            // { href: '/blog', label: 'Blog' },
+            { href: 'mailto:support@flintapi.io', label: 'Contact' },
           ]}
           legalLinks={[
             { href: '/privacy', label: 'Privacy' },
