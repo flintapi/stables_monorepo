@@ -1,7 +1,10 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { Image } from '@unpic/react'
+import { Github, Twitter } from 'lucide-react'
 import { FlickeringGrid } from '@/components/ui/flickering-grid-hero'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { Footer } from '@/components/ui/footer'
 // import { Features } from '@/components/blocks/features-9'
 
 export const Route = createFileRoute('/_home/')({ component: App })
@@ -9,10 +12,10 @@ export const Route = createFileRoute('/_home/')({ component: App })
 function App() {
   return (
     <div className="min-h-screen dark:bg-black bg-slate-50">
-      <section className="relative p-6 h-[75vh] overflow-hidden rounded-3xl mx-4 my-auto">
+      <section className="container relative p-6 h-[75vh] overflow-hidden rounded-3xl mx-auto">
         <div className="grid h-full grid-cols-3">
           <div className="grid items-center col-span-3 lg:col-span-2">
-            <div className="space-y-6 z-30 px-8">
+            <div className="space-y-6 z-30">
               <h2 className="text-2xl text-center lg:text-left lg:text-5xl text-balance font-semibold font-sans">
                 API-First Infrastructure for
                 <br /> Stablecoins
@@ -28,13 +31,13 @@ function App() {
             </div>
           </div>
           <div className="col-span-3">
-            <img
+            <Image
               alt="hero-image"
-              width="1628"
-              height="1044"
+              width={1628}
+              height={1044}
               decoding="async"
               // data-nimg="1"
-              className="absolute z-20 text-transparent top-[460px] left-[20%] max-w-[1200px] rounded-xl border-2 lg:top-[400px] animate-in fade-in duration-400"
+              className="absolute z-20 text-transparent top-[460px] left-[20%] max-w-[1200px] rounded-xl border-2 lg:top-[400px] max-xl:top-[500px] animate-in fade-in duration-400"
               // style="color:transparent"
               src="/hero-preview.png"
             />
@@ -46,6 +49,49 @@ function App() {
       {/*<section className="py-16 px-6 max-w-7xl mx-auto">
         <Features />
       </section>*/}
+      <div className="w-full mt-[65px]">
+        <Footer
+          logo={
+            <Image
+              src="/icon.png"
+              layout="constrained"
+              width={30}
+              height={30}
+              className="h-10 w-10"
+            />
+          }
+          brandName="FlintAPI Tech Ltd."
+          socialLinks={[
+            {
+              icon: <Twitter className="h-5 w-5" />,
+              href: 'https://twitter.com',
+              label: 'Twitter',
+            },
+            {
+              icon: <Github className="h-5 w-5" />,
+              href: 'https://github.com',
+              label: 'GitHub',
+            },
+          ]}
+          mainLinks={[
+            { href: '/docs', label: 'Documentation' },
+            {
+              href: 'https://stables.flintapi.io/reference',
+              label: 'API Reference',
+            },
+            { href: '/blog', label: 'Blog' },
+            { href: '/contact', label: 'Contact' },
+          ]}
+          legalLinks={[
+            { href: '/privacy', label: 'Privacy' },
+            { href: '/terms', label: 'Terms' },
+          ]}
+          copyright={{
+            text: '© 2025 FlintAPI Tech Ltd.',
+            license: 'All rights reserved',
+          }}
+        />
+      </div>
     </div>
   )
 }
@@ -96,7 +142,7 @@ const FlickeringGridDemo = () => {
         {...GRID_CONFIG.background}
       />
       <div
-        className="absolute inset-0 z-0 -translate-x-[15vw] translate-y-[15vh] lg:-translate-y-[4vh] lg:translate-x-[30vw] motion-safe:animate-fade-in border-1 border-gray-200"
+        className="absolute inset-0 z-0 -translate-x-[15vw] translate-y-[15vh] lg:-translate-y-[4vh] lg:translate-x-[16vw] motion-safe:animate-fade-in border-1 border-gray-200"
         style={{
           ...maskStyle,
           ...(isMobile && { maskSize: '30vh', WebkitMaskSize: '30vw' }),

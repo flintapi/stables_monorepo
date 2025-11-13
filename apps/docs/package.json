@@ -29,6 +29,7 @@
     "@tanstack/react-store": "^0.7.0",
     "@tanstack/router-plugin": "^1.132.0",
     "@tanstack/store": "^0.7.0",
+    "@unpic/react": "^1.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotted-map": "^2.2.3",
