@@ -1,5 +1,6 @@
 import BellbankAdapter from "./bellbank/bellbank.adapter";
 import CentiivAdapter from "./centiiv/centiiv.adapter";
+import PalmpayAdapter from "./palmpay/palmpay.adapter";
 
 export interface TransferRequest {
   accountNumber: string;
@@ -87,9 +88,39 @@ export class CentiivPaymentStrategy implements FiatPaymentStrategy {
   }
 }
 
+export class PalmpayPaymentStrategy implements FiatPaymentStrategy {
+  private adapter: PalmpayAdapter;
+
+  constructor() {
+    this.adapter = new PalmpayAdapter();
+  }
+
+  async transfer(request: TransferRequest): Promise<any> {
+    return this.adapter.transfer(request);
+  }
+
+  async nameEnquiry(request: NameEnquiryRequest): Promise<any> {
+    return this.adapter.nameEnquiry(request);
+  }
+
+  async listBanks(): Promise<{ institutionCode: string; institutionName: string }[]> {
+    const banks = await this.adapter.listBanks();
+
+    return banks.map(bank => ({
+      institutionCode: bank.bankCode,
+      institutionName: bank.bankName,
+    }));
+  }
+
+  async queryTransaction(reference: string): Promise<any> {
+    return this.adapter.getTransaction(reference);
+  }
+}
+
 export enum PaymentProvider {
   BELLBANK = "bellbank",
   CENTIIV = "centiiv",
+  PALMPAY = "palmpay"
 }
 
 export class FiatPaymentContext {
@@ -103,6 +134,9 @@ export class FiatPaymentContext {
       case PaymentProvider.CENTIIV:
         this.strategy = new CentiivPaymentStrategy();
         break;
+      case PaymentProvider.PALMPAY:
+        this.strategy = new PalmpayPaymentStrategy();
+        break;
       default:
         throw new Error(`Unsupported payment provider: ${provider}`);
     }
@@ -115,6 +149,9 @@ export class FiatPaymentContext {
         break;
       case PaymentProvider.CENTIIV:
         this.strategy = new CentiivPaymentStrategy();
+        break;
+      case PaymentProvider.PALMPAY:
+        this.strategy = new PalmpayPaymentStrategy();
         break;
       default:
         throw new Error(`Unsupported payment provider: ${provider}`);

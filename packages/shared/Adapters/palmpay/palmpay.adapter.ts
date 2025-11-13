@@ -18,8 +18,54 @@ export default class {
   }
 
   async transfer(dto: any) {
+    const body = {
+      ...this.getDefaultBody(),
+    }
+
     const { signatureBase64, sortedJson, md5UpperHex } =
       this.generateAuthSignature(dto, process.env.PALMPAY_SK!);
+  }
+
+  async listBanks() {
+    const body = {
+      ...this.getDefaultBody(),
+      businessType: '0'
+    }
+
+    const { signatureBase64, sortedJson, md5UpperHex } =
+      this.generateAuthSignature(body, process.env.PALMPAY_SK!);
+
+    const { data: bankList, error } = await this.fetch<{
+      respCode: string;
+      respMsg: string;
+      data: Array<{
+        bankCode: string;
+        bankName: string;
+        bankUrl: string;
+        bgUrl: string;
+      }>
+    }>('/general/merchant/queryBankList', {
+      method: "POST",
+      body: sortedJson,
+      headers: {
+        Signature: signatureBase64,
+      }
+    });
+
+    if(error) {
+      console.log("Error fetching bank list:", error)
+      throw new Error("Failed to fetch bank list")
+    }
+
+    return bankList.data
+  }
+
+  async nameEnquiry(request: any): Promise<any> {
+    throw new Error("Not implemented")
+  }
+
+  async getTransaction(reference: string) {
+    throw new Error("Not implemented")
   }
 
   private getDefaultBody() {
@@ -125,6 +171,12 @@ export default class {
       privateKeyPem,
       options?.algorithm ?? "RSA-SHA256",
     );
+
+    console.log(`Generated palmpay auth strings`, JSON.stringify({
+      sortedJson,
+      md5UpperHex,
+      signatureBase64,
+    }, null, 3))
 
     return { sortedJson, md5UpperHex, signatureBase64 };
   }
