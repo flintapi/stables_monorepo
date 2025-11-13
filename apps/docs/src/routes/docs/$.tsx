@@ -76,8 +76,22 @@ function Page() {
   return (
     <DocsLayout
       {...baseOptions()}
-      links={[]}
+      links={[
+        {
+          type: 'main',
+          text: 'Token Faucet',
+          url: 'https://faucet.flintapi.io',
+          external: true,
+        },
+        {
+          type: 'main',
+          text: 'Merchant Console',
+          url: 'https://console.flintapi.io',
+          external: true,
+        },
+      ]}
       tree={tree}
+      themeSwitch={{ enabled: false }}
       sidebar={{
         banner: (
           <div

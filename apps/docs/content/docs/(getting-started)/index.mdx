@@ -1,0 +1,66 @@
+---
+title: Introduction
+description: Welcome to the FlintAPI Stables Stack documentation.
+---
+
+The stables stack is a suite of tools(API first) that enables developers easily and efficiently integrate stable coin payments into their application.
+
+<Callout type="info">
+  SDKs, Frontend components, plugins, and more will be available in the near
+  future. Always check back to see what new feature has been added.
+</Callout>
+
+## Features
+
+The current stack includes API resources with the following features:
+
+<Cards>
+  <Card title="Ramp" href="/docs/features/ramp">
+    On and off ramp on behalf of your users. Send to any destination (address,
+    or bank account) of your choice.
+  </Card>
+  <Card title="Transactions" href="/docs/features/transactions">
+    Query transaction list or view a specific transaction status.
+  </Card>
+  <Card title="Wallets" href="/docs/features/wallets">
+    Intuitively create and configure dedicated custodial wallets on supported
+    networks for your users.
+  </Card>
+  <Card title="Events" href="/docs/features/events">
+    Subscribe external addresses to specific networks, and listen for tokens
+    sent from or received to the address.
+  </Card>
+</Cards>
+
+## Getting started
+
+### Merchant console
+
+To begin consuming the API resources in your application you must first create a merchant account in the [Merchant Console.](https://console.flintapi.io)
+
+This gives you access to the API keys and other credentials required to interact with the API. The dashboard can also be used to view your transaction history, create and manage wallets, subscribe to events that occur with an address, and so much more.
+
+### API Keys
+
+Your keys authorize your access to the API resources and enable you to interact with the API endpoints. They must be kept secure and not shared with unauthorized parties.
+
+<Callout type="info">
+  Very easily and quickly delete compromised keys, and create new ones, in your
+  merchant console
+</Callout>
+<Callout type="info">
+  API Keys are only visible the first session they're created, copy your key
+  immediately and keep it secure.
+</Callout>
+
+#### Permissions
+
+API Keys are by default given permission to access all resources. You have fine grained control over what resource a key is allowed to access. All this can be managed for each key in the merchant console.
+
+### Webhooks
+
+Webhooks enable you track transaction lifecycle events, and receive real-time notifications when transactions complete or fail. Webhooks can also be used to react to wallet creation, update and deletion events along with wallet operations and more.
+
+#### Signature Verification
+
+Webhooks are signed using your webhook secret key that is unique to your merchant account. This ensures that the webhook is coming from the stables stack API and not a malicious actor. You can find your webhook secret in the [merchant console.](https://console.flintapi.io)

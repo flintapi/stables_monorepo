@@ -1,0 +1,30 @@
+---
+title: Authorization
+description: All API requests are required to be authorized.
+---
+
+Authorize all requests with the `x-api-key` header. Your API key can be found in the Flint [dashboard](https://console.flintapi.io).
+
+<Callout type="warn" title="API Key Security">
+  Your API key is a secret and should not be shared with anyone, or left in your
+  codebase as plaintext. If you suspect your API key has been compromised,
+  kindly log into your merchant console and delete said key.
+</Callout>
+
+## Sample request with authorization
+
+```ts
+async function getTransactions() {
+  const request = await fetch(
+    `${process.env.FLINT_API_BASE_URL}/v1/transactions`,
+    {
+      headers: {
+        'x-api-key': `${process.env.FLINT_API_KEY}`,
+      },
+    },
+  )
+
+  const response = await request.json()
+  return response
+}
+```

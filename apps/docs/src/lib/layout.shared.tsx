@@ -1,4 +1,3 @@
-import { Book, List } from 'lucide-react'
 import {
   NavbarMenu,
   NavbarMenuContent,
@@ -10,27 +9,38 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared'
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: 'FlintAPI',
+      title: (
+        <>
+          <img src={`/icon.png`} alt="Logo" className="object-cover size-8" />
+          <h2 className="font-bold font-sans text-sm">Flint API</h2>
+        </>
+      ),
+      transparentMode: 'top',
     },
     links: [
       {
-        type: 'custom',
-        secondary: false,
+        text: 'Documentation',
+        url: '/docs',
+        active: 'nested-url',
         // only displayed on navbar, not mobile menu
-        on: 'nav',
-        children: (
-          <NavbarMenu>
-            <NavbarMenuTrigger>Documentation</NavbarMenuTrigger>
-            <NavbarMenuContent>
-              <NavbarMenuLink href="/docs">Get started</NavbarMenuLink>
-            </NavbarMenuContent>
-          </NavbarMenu>
-        ),
+        // on: 'nav',
+        // children: (
+        //   <NavbarMenu>
+        //     <NavbarMenuTrigger>Documentation</NavbarMenuTrigger>
+        //     <NavbarMenuContent>
+        //       <NavbarMenuLink href="/docs">Get started</NavbarMenuLink>
+        //     </NavbarMenuContent>
+        //   </NavbarMenu>
+        // ),
       },
       {
         text: 'Blog',
-        icon: <Book />,
         url: '/blog',
+        active: 'nested-url',
+      },
+      {
+        text: 'Showcase',
+        url: '/showcase',
         active: 'nested-url',
       },
     ],

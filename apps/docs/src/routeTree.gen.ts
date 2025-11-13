@@ -9,12 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as HomeRouteRouteImport } from './routes/_home/route'
+import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoStorybookRouteImport } from './routes/demo/storybook'
 import { Route as DemoStoreRouteImport } from './routes/demo/store'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
+import { Route as HomeShowcaseIndexRouteImport } from './routes/_home/showcase.index'
+import { Route as HomeBlogIndexRouteImport } from './routes/_home/blog.index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiTqTodosRouteImport } from './routes/demo/api.tq-todos'
@@ -24,10 +27,14 @@ import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 
-const IndexRoute = IndexRouteImport.update({
+const HomeRouteRoute = HomeRouteRouteImport.update({
+  id: '/_home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeIndexRoute = HomeIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 const DocsSplatRoute = DocsSplatRouteImport.update({
   id: '/docs/$',
@@ -53,6 +60,16 @@ const ApiSearchRoute = ApiSearchRouteImport.update({
   id: '/api/search',
   path: '/api/search',
   getParentRoute: () => rootRouteImport,
+} as any)
+const HomeShowcaseIndexRoute = HomeShowcaseIndexRouteImport.update({
+  id: '/showcase/',
+  path: '/showcase/',
+  getParentRoute: () => HomeRouteRoute,
+} as any)
+const HomeBlogIndexRoute = HomeBlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
   id: '/demo/start/server-funcs',
@@ -96,32 +113,36 @@ const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/api/search': typeof ApiSearchRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/storybook': typeof DemoStorybookRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/docs/$': typeof DocsSplatRoute
+  '/': typeof HomeIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/blog': typeof HomeBlogIndexRoute
+  '/showcase': typeof HomeShowcaseIndexRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/api/search': typeof ApiSearchRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/storybook': typeof DemoStorybookRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/docs/$': typeof DocsSplatRoute
+  '/': typeof HomeIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/blog': typeof HomeBlogIndexRoute
+  '/showcase': typeof HomeShowcaseIndexRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -129,16 +150,19 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_home': typeof HomeRouteRouteWithChildren
   '/api/search': typeof ApiSearchRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/storybook': typeof DemoStorybookRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/docs/$': typeof DocsSplatRoute
+  '/_home/': typeof HomeIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/_home/blog/': typeof HomeBlogIndexRoute
+  '/_home/showcase/': typeof HomeShowcaseIndexRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -147,48 +171,55 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/api/search'
     | '/demo/store'
     | '/demo/storybook'
     | '/demo/tanstack-query'
     | '/docs/$'
+    | '/'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/blog'
+    | '/showcase'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
     | '/demo/start/ssr'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/api/search'
     | '/demo/store'
     | '/demo/storybook'
     | '/demo/tanstack-query'
     | '/docs/$'
+    | '/'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/blog'
+    | '/showcase'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
     | '/demo/start/ssr'
   id:
     | '__root__'
-    | '/'
+    | '/_home'
     | '/api/search'
     | '/demo/store'
     | '/demo/storybook'
     | '/demo/tanstack-query'
     | '/docs/$'
+    | '/_home/'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/_home/blog/'
+    | '/_home/showcase/'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
@@ -196,7 +227,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  HomeRouteRoute: typeof HomeRouteRouteWithChildren
   ApiSearchRoute: typeof ApiSearchRoute
   DemoStoreRoute: typeof DemoStoreRoute
   DemoStorybookRoute: typeof DemoStorybookRoute
@@ -214,12 +245,19 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_home': {
+      id: '/_home'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof HomeRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_home/': {
+      id: '/_home/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof HomeRouteRoute
     }
     '/docs/$': {
       id: '/docs/$'
@@ -255,6 +293,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/search'
       preLoaderRoute: typeof ApiSearchRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_home/showcase/': {
+      id: '/_home/showcase/'
+      path: '/showcase'
+      fullPath: '/showcase'
+      preLoaderRoute: typeof HomeShowcaseIndexRouteImport
+      parentRoute: typeof HomeRouteRoute
+    }
+    '/_home/blog/': {
+      id: '/_home/blog/'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof HomeBlogIndexRouteImport
+      parentRoute: typeof HomeRouteRoute
     }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
@@ -315,8 +367,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface HomeRouteRouteChildren {
+  HomeIndexRoute: typeof HomeIndexRoute
+  HomeBlogIndexRoute: typeof HomeBlogIndexRoute
+  HomeShowcaseIndexRoute: typeof HomeShowcaseIndexRoute
+}
+
+const HomeRouteRouteChildren: HomeRouteRouteChildren = {
+  HomeIndexRoute: HomeIndexRoute,
+  HomeBlogIndexRoute: HomeBlogIndexRoute,
+  HomeShowcaseIndexRoute: HomeShowcaseIndexRoute,
+}
+
+const HomeRouteRouteWithChildren = HomeRouteRoute._addFileChildren(
+  HomeRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  HomeRouteRoute: HomeRouteRouteWithChildren,
   ApiSearchRoute: ApiSearchRoute,
   DemoStoreRoute: DemoStoreRoute,
   DemoStorybookRoute: DemoStorybookRoute,
