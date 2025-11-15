@@ -16,11 +16,12 @@ import { encodeFunctionData, parseAbi, parseUnits } from "viem";
 import db, { orgDb } from "@/db";
 import env from "@/env";
 import { eq } from "drizzle-orm";
+import { account } from "node_modules/@flintapi/shared/dist/Utils/db/app-schema";
 
 const walletQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const walletQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
 
-const fiatPaymentContext = new FiatPaymentContext(PaymentProvider.BELLBANK);
+const fiatPaymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
 
 class Ramp {
   static async processOffRampJob(data: RampServiceJob, attemptsMade: number) {
@@ -78,12 +79,18 @@ class Ramp {
       const accountNumber = transaction.metadata?.accountNumber;
       const bankCode = transaction.metadata?.bankCode;
 
+      if(!accountNumber || !bankCode) {
+        throw new Error("Account number or bank code not found");
+      }
+
       return await fiatPaymentContext.transfer({
-        accountNumber: accountNumber!,
-        bankCode: bankCode!,
+        accountNumber: accountNumber,
+        bankCode: bankCode,
         reference: transaction.reference,
         amount: transaction.amount,
         narration: transaction?.narration || "Default narration",
+        transactionId: transaction.id,
+        organizationId: organization?.id,
       });
     }
   }
@@ -162,6 +169,8 @@ class Ramp {
       .where(eq(orgSchema.transactions.id, transactionId))
       .returning();
     rampLogger.info("Transaction updated", updateTransaction);
+
+    // TODO: Trigger webhook utils function
 
     return { status: updateTransaction.status };
   }

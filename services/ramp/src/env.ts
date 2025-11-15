@@ -37,10 +37,6 @@ const EnvSchema = z
     // Console
     CONSOLE_URL: z.url().optional(),
 
-    // HSM
-    HSM_PIN: z.string().min(1),
-    HSM_TOKEN_SLOT: z.coerce.number().default(1099048314),
-
     TREASURY_KEY_LABEL: z.string().min(6).max(1024),
     PALMPAY_API_URL: z.string().optional(),
     PALMPAY_APP_ID: z.string(),

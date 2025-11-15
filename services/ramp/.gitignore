@@ -1,2 +1,6 @@
 .env
 .env*
+dist
+.turbo
+node_modules
+dev.db

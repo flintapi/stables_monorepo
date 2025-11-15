@@ -1,6 +1,6 @@
 import BellbankAdapter from "./bellbank/bellbank.adapter";
 import CentiivAdapter from "./centiiv/centiiv.adapter";
-import PalmpayAdapter from "./palmpay/palmpay.adapter";
+import PalmpayAdapter, { PalmpayTransferRequest } from "./palmpay/palmpay.adapter";
 
 export interface TransferRequest {
   accountNumber: string;
@@ -17,12 +17,14 @@ export interface NameEnquiryRequest {
   bankCode: string;
 }
 
-export interface FiatPaymentStrategy {
-  transfer: (request: TransferRequest) => Promise<any>;
+export interface FiatPaymentStrategy<ExtendTRequest extends TransferRequest = TransferRequest> {
+  transfer(request: ExtendTRequest): Promise<any>;
   nameEnquiry: (request: NameEnquiryRequest) => Promise<any>;
   listBanks: () => Promise<{ institutionCode: string; institutionName: string }[]>;
   queryTransaction: (reference: string) => Promise<any>;
 }
+
+
 
 export class BellbankPaymentStrategy implements FiatPaymentStrategy {
   private adapter: BellbankAdapter;
@@ -88,28 +90,45 @@ export class CentiivPaymentStrategy implements FiatPaymentStrategy {
   }
 }
 
-export class PalmpayPaymentStrategy implements FiatPaymentStrategy {
+export class PalmpayPaymentStrategy implements FiatPaymentStrategy<PalmpayTransferRequest> {
   private adapter: PalmpayAdapter;
 
   constructor() {
     this.adapter = new PalmpayAdapter();
   }
 
-  async transfer(request: TransferRequest): Promise<any> {
-    return this.adapter.transfer(request);
+  async transfer(request: PalmpayTransferRequest): Promise<any> {
+    return this.adapter.transfer({
+      amount: request.amount,
+      payeeBankAccNo: request.accountNumber,
+      payeeBankCode: request.bankCode,
+      payeeName: request.accountName,
+      remark: request.narration,
+      orderId: request.reference,
+      notifyUrl: 'organizationId' in request && 'transactionId' in request
+        ? `${process.env.API_GATEWAY_URL}/webhooks/palmpay/payment/${request.organizationId}/${request.transactionId}`
+        : `${process.env.API_GATEWAY_URL}/webhooks/palmpay/payment`
+    });
   }
 
-  async nameEnquiry(request: NameEnquiryRequest): Promise<any> {
-    return this.adapter.nameEnquiry(request);
+  async nameEnquiry(request: NameEnquiryRequest): Promise<string> {
+    const response = await this.adapter.nameEnquiry(request);
+    return response.accountName;
   }
 
   async listBanks(): Promise<{ institutionCode: string; institutionName: string }[]> {
-    const banks = await this.adapter.listBanks();
+    try {
+      const banks = await this.adapter.listBanks();
 
-    return banks.map(bank => ({
-      institutionCode: bank.bankCode,
-      institutionName: bank.bankName,
-    }));
+      return banks.map(bank => ({
+        institutionCode: bank.bankCode,
+        institutionName: bank.bankName,
+      }));
+    }
+    catch(error: any) {
+      console.log("Failed to get palmpay bank list", error);
+      throw error;
+    }
   }
 
   async queryTransaction(reference: string): Promise<any> {
@@ -158,7 +177,7 @@ export class FiatPaymentContext {
     }
   }
 
-  async transfer(request: TransferRequest): Promise<any> {
+  async transfer(request: TransferRequest | PalmpayTransferRequest): Promise<any> {
     return this.strategy.transfer(request);
   }
 
