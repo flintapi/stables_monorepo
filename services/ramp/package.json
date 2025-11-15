@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "author": {
+    "email": "miraclef60@gmail.com",
+    "name": "Miracle Friday"
+  },
   "scripts": {
     "dev": "pnpm with-env tsx watch ./src/index.ts",
     "start": "node ./dist/src/index.js",
