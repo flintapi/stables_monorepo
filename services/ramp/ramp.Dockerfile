@@ -29,7 +29,7 @@ COPY --from=builder /app/turbo.json ./turbo.json
 # Copy over service folder and files
 COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/services/ramp/dist ./services/ramp/dist
-COPY --from=builder /app/services/ramp/src/db/migrations ./services/ramp/dist/src/db/migrations
+# COPY --from=builder /app/services/ramp/src/db/migrations ./services/ramp/dist/src/db/migrations
 COPY --from=builder /app/services/ramp/package.json ./services/ramp/package.json
 
 # Make an entry point script that has access to the env to run db migrations
