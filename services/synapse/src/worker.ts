@@ -12,6 +12,7 @@ import { eventLogger } from "@flintapi/shared/Logger";
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { createPublicClient, http, extractChain } from "viem";
 import { RPC_URLS } from "./lib/constants";
+import { createListenerCache } from "./lib/cache.listener";
 
 const name = QueueNames.EVENT_QUEUE;
 const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
@@ -81,6 +82,11 @@ const events = ensureQueueEventHandlers(name, (events) => {
   });
 });
 
+async function restoreListeners() {
+  const cache = await createListenerCache()
+  await cache.restoreListeners();
+}
+
 function reportMemoryUsage() {
   const memoryUsage = process.memoryUsage();
   console.log("Worker Memory Usage:");
@@ -111,3 +117,6 @@ const shutdown = async () => {
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
+
+restoreListeners()
+  .catch(console.log)

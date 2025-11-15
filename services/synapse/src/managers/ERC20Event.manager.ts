@@ -12,6 +12,7 @@ import {
   parseEventLogs,
   PublicClient,
 } from "viem";
+import { createListenerCache } from "@/lib/cache.listener";
 
 /**
  * EventStream → EventProcessor → (optional: database writer, logger, etc.)
@@ -103,7 +104,7 @@ export default class EventListenerManager {
       onLogs: async (logs: Log[]) => {
         for (const log of logs) {
           try {
-            const decodedLogs = parseEventLogs({
+            const [decodedLogs] = parseEventLogs({
               abi: parseAbi([
                 "event Transfer(address indexed from, address indexed to, uint256 value)",
                 "event Approval(address indexed owner, address indexed sender, uint256 value)",
@@ -111,7 +112,7 @@ export default class EventListenerManager {
               logs: [log],
               eventName: config.filter.eventName,
             });
-            const success = eventStream.addEvent(decodedLogs[0]);
+            const success = eventStream.addEvent(decodedLogs);
             if (!success && !eventStream.isPaused()) {
               console.warn(
                 `Buffer full for listener ${config.id}, dropping event`,
@@ -174,7 +175,8 @@ export default class EventListenerManager {
 
     // Remove from persistent store if not persistent
     if (!listener.config.persistent) {
-      this.persistentStore.delete(id);
+      const cache = await createListenerCache();
+      await cache.deleteListener(id);
     }
   }
 

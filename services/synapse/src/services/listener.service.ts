@@ -6,8 +6,10 @@ import { EventServiceJob } from "@flintapi/shared/Queue";
 import { ListenerConfig } from "../lib/types";
 import EventListenerManager from "../managers/ERC20Event.manager";
 import Factory from "../listener.factory";
-import { QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import { type BetterFetch, createFetch } from "@better-fetch/fetch";
+import { formatUnits, Log, parseAbi, ParseEventLogsReturnType } from "viem";
+import { ChainId, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
+import { createListenerCache } from "@/lib/cache.listener";
 
 interface ListenerService {
   CreateOfframpListener(request: EventServiceJob): Promise<any>;
@@ -45,6 +47,7 @@ export default class EventListenerService implements ListenerService {
   // REST endpoint handler
   async CreateOfframpListener(
     data: EventServiceJob,
+    restoreId?: string,
   ): Promise<{ listenerId: string }> {
     const {
       eventName,
@@ -69,6 +72,7 @@ export default class EventListenerService implements ListenerService {
           ? this.getDefaultTransferEventHandler(
               callbackUrl,
               rampData?.type,
+              chainId as ChainId,
               rampData?.organizationId,
               rampData?.transactionId,
             )
@@ -81,7 +85,7 @@ export default class EventListenerService implements ListenerService {
       );
       const listenerId = await this.manager.createListener(
         {
-          id: this.generateEventId(eventName),
+          id: restoreId ?? this.generateEventId(eventName),
           ...newListenerConfig,
           onStart: async () => {
             console.log("Listener starting...");
@@ -90,6 +94,8 @@ export default class EventListenerService implements ListenerService {
         rampData?.organizationId,
         rampData?.transactionId,
       );
+      const cache = await createListenerCache();
+      await cache.storeListener(listenerId, {...data, rampData: JSON.stringify(rampData)})
       return { listenerId };
     }
 
@@ -98,6 +104,7 @@ export default class EventListenerService implements ListenerService {
 
   async CreateOnRampListener(
     data: EventServiceJob,
+    restoreId?: string,
   ): Promise<{ listenerId: string }> {
     const {
       eventName,
@@ -122,6 +129,7 @@ export default class EventListenerService implements ListenerService {
           ? this.getDefaultTransferEventHandler(
               callbackUrl,
               rampData?.type,
+              chainId as ChainId,
               rampData?.organizationId,
               rampData?.transactionId,
             )
@@ -133,12 +141,14 @@ export default class EventListenerService implements ListenerService {
             },
       );
       const listenerId = await this.manager.createListener({
-        id: this.generateEventId(eventName),
+        id: restoreId ?? this.generateEventId(eventName),
         ...newListenerConfig,
         onStart: async () => {
           console.log("Listener starting...");
         },
       });
+      const cache = await createListenerCache();
+      await cache.storeListener(listenerId, {...data, rampData: JSON.stringify(rampData)})
       return { listenerId };
     }
 
@@ -163,10 +173,11 @@ export default class EventListenerService implements ListenerService {
   private getDefaultTransferEventHandler(
     callbackUrl: string,
     type: "off" | "on",
+    chainId: ChainId,
     organizationId?: string,
     transactionId?: string,
   ) {
-    return async (event: any) => {
+    return async (event: ParseEventLogsReturnType<ReturnType<typeof parseAbi>, ["Transfer"]>[0]) => {
       console.log("Event received:", event);
 
       // TODO: call webhook queue with organizationData as job data
@@ -179,13 +190,14 @@ export default class EventListenerService implements ListenerService {
             typeof v === "bigint" ? v.toString() : v,
           ),
           type,
+          amountReceived: formatUnits((event.args as {value: bigint})?.value, TOKEN_ADDRESSES[chainId].cngn.decimal)
         },
       });
 
       if (error) {
-        console.log("Callback error", error);
+        console.log("Callback error", JSON.stringify(error, null, 3));
       }
-      console.log("Callback response data", data);
+      console.log("Callback response data", JSON.stringify(data, null, 3));
     };
   }
 }
