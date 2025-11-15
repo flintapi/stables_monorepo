@@ -1,6 +1,6 @@
 .env
 .env*
-dist
+dist/
 .turbo
-node_modules
+node_modules/
 dev.db

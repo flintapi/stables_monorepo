@@ -18,6 +18,7 @@
     "dev:services:ramp": "turbo dev --filter=@flintapi/ramp",
     "dev:services:synapse": "turbo dev --filter=@flintapi/synapse",
     "build:services:synapse": "turbo build --filter=@flintapi/synapse",
+    "build:services:ramp": "turbo build --filter=@flintapi/ramp",
     "db": "pnpm run --filter @flintapi/payout db:generate && pnpm run --filter @flintapi/payout db:migrate",
     "build:services:payout": "pnpm run --filter @flintapi/payout build",
     "start:services:payout": "pnpm run --filter @flintapi/payout start",
