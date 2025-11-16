@@ -33,7 +33,7 @@ COPY --from=builder /app/packages/api/dist ./packages/api/dist
 COPY --from=builder /app/packages/api/package.json ./packages/api/package.json
 
 # Copy Database migration script
-COPY app-db-migrations.sh /usr/local/bin/app-db-migrations.sh
+COPY ./app-db-migrations.sh /usr/local/bin/app-db-migrations.sh
 
 # Make an entry point script that has access to the env to run db migrations
 ENV NODE_ENV="production"
