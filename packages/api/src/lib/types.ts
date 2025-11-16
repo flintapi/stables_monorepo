@@ -1,5 +1,5 @@
 import { orgDb } from "@/db";
-import { appSchema } from "@/db/schema";
+import { appSchema } from "@flintapi/shared/Utils";
 import type { OpenAPIHono, RouteConfig, RouteHandler } from "@hono/zod-openapi";
 import type { Schema } from "hono";
 import type { PinoLogger } from "hono-pino";

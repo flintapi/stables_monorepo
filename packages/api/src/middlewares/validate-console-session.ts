@@ -36,7 +36,7 @@ export const validateConsoleSession = () =>
 
       // const orgMetadata = organization.metadata as OrgMetadata;
 
-      const orgDatabase = orgDb({ dbUrl: organization.metadata.dbUrl });
+      const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl! });
 
       c.set("organization", organization as Organization);
       c.set("orgDatabase", orgDatabase);
