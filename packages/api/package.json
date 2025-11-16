@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm with-env tsx watch src/index.ts",
     "start": "node ./dist/src/index.js",
-    "db:migrate": "npx drizzle-kit migrate --config ./drizzle.config.ts",
+    "db:migrate": "npx drizzle-kit migrate --config ./drizzle.config.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "npm run lint --fix",
