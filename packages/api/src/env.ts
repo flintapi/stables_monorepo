@@ -73,6 +73,11 @@ const EnvSchema = z
     // Better stack
     BETTER_STACK_TOKEN_ID: z.string().optional(),
     BETTER_STACK_INGESTION_HOST: z.string().optional(),
+
+    // MQ Board
+    JWT_SECRET: z.string(),
+    BOARD_EMAIL: z.string(),
+    BOARD_PHASH: z.string(),
   })
   .superRefine((input, ctx) => {
     if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {

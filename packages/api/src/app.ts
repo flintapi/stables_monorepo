@@ -13,6 +13,7 @@ import ramp from "@/routes/ramp/ramp.index";
 import wallet from "@/routes/wallet/wallet.index";
 import webhook from "@/routes/webhooks/webhooks.index";
 import console from "@/routes/console/console.index";
+import { authorizeBullBoard } from "./middlewares/authorize-bull-board";
 
 const app = createApp();
 
@@ -31,7 +32,8 @@ createBullBoard({
 
 const bullMQBasePath = "/mq-board";
 serverAdapter.setBasePath(bullMQBasePath);
-app.route(bullMQBasePath, serverAdapter.registerPlugin());
+app.use(authorizeBullBoard())
+  .route(bullMQBasePath, serverAdapter.registerPlugin());
 
 const routes = [index, webhook] as const;
 routes.forEach((route) => {
