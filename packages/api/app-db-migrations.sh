@@ -5,7 +5,7 @@ echo "Migrating database..."
 
 ls -al
 
-pnpm run db:migrate
+pnpm run --filter @flintapi/api db:migrate
 
 # Execute the command passed to the container
 exec "$@"
