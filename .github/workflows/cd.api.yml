@@ -17,11 +17,14 @@ env:
   NODE_ENV: production
   PORT: 9999
 
+concurrency:
+  group: deploy-group
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploys api gateway
     runs-on: ubuntu-latest
-    concurrency: deploy-group
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
