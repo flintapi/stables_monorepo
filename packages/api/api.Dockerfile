@@ -29,7 +29,8 @@ COPY --from=builder /app/turbo.json ./turbo.json
 # Copy over service folder and files
 COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
-# COPY --from=builder /app/services/ramp/src/db/migrations ./services/ramp/dist/src/db/migrations
+COPY --from=builder /app/packages/api/src/db/migrations ./packages/api/dist/src/db/migrations
+COPY --from=builder /app/packages/api/src/db/org-migrations ./packages/api/dist/src/db/org-migrations
 COPY --from=builder /app/packages/api/package.json ./packages/api/package.json
 COPY --from=builder /app/packages/api/app-db-migrations.sh ./packages/api/app-db-migrations.sh
 RUN chmod +x /app/packages/api/app-db-migrations.sh
@@ -43,7 +44,7 @@ RUN pnpm install
 
 EXPOSE 9990
 
-RUN ls -al /app/packages/api
+RUN ls -al /app/packages/api/dist/src/db/
 RUN apk add --no-cache bash
 
 # Initialize HSM on startup
