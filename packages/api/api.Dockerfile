@@ -43,9 +43,6 @@ ENV NODE_ENV="production"
 RUN npm install -g pnpm
 RUN pnpm install
 
-# Run migrations for app-schema
-RUN npx drizzle-kit migrate --config ./packages/api/drizzle.config.ts
-
 EXPOSE 9990
 
 # Initialize HSM on startup
