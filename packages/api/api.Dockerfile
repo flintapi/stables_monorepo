@@ -43,6 +43,10 @@ RUN pnpm install
 
 EXPOSE 9990
 
+RUN ls -a ./packages/api/
+RUN ls -a
+RUN ls -a /app/
+
 # Initialize HSM on startup
 ENTRYPOINT ["./packages/api/app-db-migrations.sh"]
 
