@@ -43,7 +43,7 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 # Run migrations for app-schema
-RUN npx drizzle-kit migrate
+RUN npx drizzle-kit migrate --config ./packages/api/drizzle.config.ts
 
 EXPOSE 9990
 
