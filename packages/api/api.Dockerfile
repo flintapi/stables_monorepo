@@ -31,7 +31,8 @@ COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
 # COPY --from=builder /app/services/ramp/src/db/migrations ./services/ramp/dist/src/db/migrations
 COPY --from=builder /app/packages/api/package.json ./packages/api/package.json
-COPY --from=builder /app/packages/api/drizzle.config.ts ./packages/api/drizzle.config.ts
+COPY --from=builder /app/packages/api/app-db-migrations.sh /usr/local/bin/app-db-migrations.sh
+RUN chmod +x /usr/local/bin/app-db-migrations.sh
 
 
 # Make an entry point script that has access to the env to run db migrations
@@ -43,6 +44,6 @@ RUN pnpm install
 EXPOSE 9990
 
 # Initialize HSM on startup
-# ENTRYPOINT ["/usr/local/bin/app-db-migrations.sh"]
+ENTRYPOINT ["/usr/local/bin/app-db-migrations.sh"]
 
 CMD ["pnpm", "start:packages:api"]

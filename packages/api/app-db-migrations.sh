@@ -3,7 +3,9 @@ set -euo pipefail
 
 echo "Migrating database..."
 
-npx drizzle-kit migrate --config ./drizzle.config.ts
+ls -al
+
+cd packages/api && pnpm run db:migrate
 
 # Execute the command passed to the container
 exec "$@"

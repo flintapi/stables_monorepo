@@ -25,7 +25,7 @@
     "start:services:payout": "pnpm run --filter @flintapi/payout start",
     "start:services:synapse": "pnpm run --filter @flintapi/synapse start",
     "start:services:ramp": "pnpm run --filter @flintapi/ramp start",
-    "start:packages:api": "pnpm run --filter @flintapi/api db:migrate && pnpm run --filter @flintapi/api start",
+    "start:packages:api": "pnpm run --filter @flintapi/api start",
     "deploy": "flyctl deploy --config ./services/payout/fly.toml --dockerfile ./Dockerfile --build-arg DATABASE_URL='postgresql://neondb_owner:npg_Vi8RSIKLkj0N@ep-holy-base-abke7cgz-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'",
     "deploy:softhsm": "flyctl deploy --config ./services/softhsm/fly.toml --dockerfile ./services/softhsm/Dockerfile",
     "deploy:synapse": "flyctl deploy --config ./services/synapse/fly.toml",
