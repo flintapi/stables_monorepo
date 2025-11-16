@@ -3,7 +3,8 @@ set -euo pipefail
 
 echo "Migrating database..."
 
-ls -al
+ls -al ./packages/api/dist/src/db/migrations/
+ls -al ./packages/api/dist/src/db/
 
 pnpm run --filter @flintapi/api db:migrate
 
