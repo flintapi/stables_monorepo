@@ -50,10 +50,10 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
   },
   {
     connection: CacheFacade.redisCache,
-    concurrency: 10,
+    concurrency: 2,
     lockDuration: 120_000,
     maxStalledCount: 2,
-    removeOnComplete: {
+    removeOnFail: {
       age: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
   },

@@ -62,10 +62,10 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
   },
   {
     connection: CacheFacade.redisCache,
-    concurrency: 10,
+    concurrency: 2,
     lockDuration: 120_000,
     maxStalledCount: 2,
-    removeOnComplete: {
+    removeOnFail: {
       age: 1000 * 60 * 60 * 24 * 1, // 1 day
     },
   },
