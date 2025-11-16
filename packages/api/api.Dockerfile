@@ -42,9 +42,12 @@ ENV NODE_ENV="production"
 RUN npm install -g pnpm
 RUN pnpm install
 
+# Run migrations for app-schema
+RUN npx drizzle-kit migrate
+
 EXPOSE 9990
 
 # Initialize HSM on startup
-ENTRYPOINT ["/usr/local/bin/app-db-migrations.sh"]
+# ENTRYPOINT ["/usr/local/bin/app-db-migrations.sh"]
 
 CMD ["pnpm", "start:packages:api"]
