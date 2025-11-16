@@ -1,11 +1,10 @@
 import { createClient } from "@tursodatabase/api";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
-import fs from "node:fs/promises";
 
 import env from "@/env";
 
-import { orgSchema, appSchema} from "@flintapi/shared/Utils"
+import { orgSchema, appSchema } from "@flintapi/shared/Utils";
 
 const db = drizzle({
   connection: {
@@ -13,39 +12,17 @@ const db = drizzle({
     authToken: env.DATABASE_AUTH_TOKEN,
   },
   casing: "snake_case",
-  schema: {...appSchema},
+  schema: { ...appSchema },
 });
 
 export default db;
 
 // @ts-ignore
 export function tursoApi() {
-  if (env.NODE_ENV === "development") {
-    return {
-      organizations: {
-
-      },
-      databases: {
-        create: async (dbName: string): Promise<string> => {
-          try {
-            const dbFileName = `.local_dbs/${dbName.toLowerCase()}.db`;
-            await fs.writeFile(dbFileName, "", { encoding: "utf-8" });
-
-            return `file:${dbFileName}`;
-          }
-          catch (error: any) {
-            console.error("Failed to created db", error);
-            throw error;
-          }
-        },
-      },
-    };
-  } else {
-    return createClient({
-      org: "flintapi",
-      token: env.TURSO_API_TOKEN!,
-    });
-  }
+  return createClient({
+    org: env.TURSO_ORGANIZATION || "afullsnack",
+    token: env.TURSO_API_TOKEN!,
+  });
 }
 
 interface OrgDatabaseProps {
@@ -55,7 +32,7 @@ export function orgDb({ dbUrl }: OrgDatabaseProps) {
   return drizzle({
     connection: {
       url: dbUrl,
-      authToken: env.DATABASE_AUTH_TOKEN!,
+      authToken: env.ORG_DATABASE_AUTH_TOKEN!,
     },
     casing: "snake_case",
     schema: orgSchema,

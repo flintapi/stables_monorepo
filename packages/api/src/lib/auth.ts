@@ -12,7 +12,8 @@ import {
 } from "better-auth/plugins";
 
 import db, { migrateDatabase, orgDb, tursoApi } from "@/db";
-import { appSchema } from "@/db/schema";
+// import * as appSchema from "@/db/schema";
+import { appSchema } from "@flintapi/shared/Utils";
 import env from "@/env";
 
 import { sendEmail } from "./email";
@@ -34,7 +35,7 @@ const walletQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
 const authOptions = {
   database: drizzleAdapter(db, {
     provider: "sqlite",
-    schema: { ...appSchema },
+    schema: { ...appSchema, apikey: appSchema.apikey },
   }),
   databaseHooks: {
     session: {
@@ -73,7 +74,9 @@ const authOptions = {
       enabled: true,
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
-      redirectURI: "http://localhost:9999/api/auth/callback/github",
+      redirectURI: env.NODE_ENV !== "development"
+        ? `${env.API_GATEWAY_URL}/api/auth/callback/github`
+        : "http://localhost:9999/api/auth/callback/github",
     },
     google: {
       enabled: false,
@@ -124,8 +127,19 @@ const authOptions = {
       },
       organizationHooks: {
         beforeCreateOrganization: async ({ organization, user }) => {
-          // TODO: track organization slug already exists and throw APIError
           console.log("beforeCreateOrganization", organization, user);
+          // TODO: track organization slug already exists and throw APIError
+          const slugExists = await db.query.organization.findFirst({
+            where(fields, ops) {
+              return ops.eq(fields.slug, organization.slug!)
+            }
+          })
+
+          if(slugExists) {
+            throw new APIError("BAD_REQUEST", {
+              message: "Organization slug already exists",
+            });
+          }
 
           return {
             data: {
@@ -211,7 +225,7 @@ const authOptions = {
                 primaryAddress: result.address,
                 keyLabel,
                 network: "evm",
-                hasVirtualAccount: true,
+                hasVirtualAccount: false,
                 autoSwap: false,
                 autoSweep: false,
                 isActive: true,
@@ -334,6 +348,12 @@ const authOptions = {
   },
 } as BetterAuthOptions;
 
+export const defaultPermissions = {
+  ramp: ["on"],
+  wallets: ["on"],
+  events: ["on"],
+};
+
 export const auth = betterAuth({
   ...authOptions,
   plugins: [
@@ -345,11 +365,7 @@ export const auth = betterAuth({
         maxRequests: 20, // Allow 20 requests in a second
       },
       permissions: {
-        defaultPermissions: {
-          ramp: ["on"],
-          wallets: ["on"],
-          events: ["on"],
-        },
+        defaultPermissions,
       },
       enableMetadata: true,
       disableSessionForAPIKeys: true,

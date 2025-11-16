@@ -3,6 +3,11 @@ import { sql } from "drizzle-orm";
 import { transaction } from "./ramp.schema";
 import type { Transaction } from "./ramp.schema";
 import { CacheFacade } from "@flintapi/shared/Cache";
+import { QueueInstances, QueueNames } from "@flintapi/shared/Queue";
+import { QueueEvents } from "bullmq";
+import env from "@/env";
+import { ChainId, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
+import { Address, encodeFunctionData, Hex, parseAbi, parseUnits } from "viem";
 
 export async function queryTransactionByVirtualAccount(
   db: ReturnType<typeof orgDb>,
@@ -20,6 +25,19 @@ export async function queryTransactionByVirtualAccount(
 
   result;
 }
+
+export const getDefaultVirtualAccountArgs = {
+  type: "corporate" as "corporate",
+  rcNumber: "1234567890",
+  businessName: "FlintAPI Ltd",
+  emailAddress: "contact@flintapi.io",
+  phoneNumber: "1852282",
+  bvn: "00011100011",
+  dateOfBirth: "1998-06-29",
+  incorporationDate: "20-10-2021",
+};
+
+export const defaultBankCode = "090672";
 
 export async function cacheVirtualAccount(
   accountNumber: string,
@@ -52,4 +70,46 @@ export async function fetchVirtualAccount(accountNumber: string) {
     console.log("Failed to fetch virtual account", error);
     throw new Error("Failed to fetch virtual account");
   }
+}
+
+
+interface ISweepFundsProps {
+  amount: number;
+  destinationAddress: string;
+  queue: typeof QueueInstances[QueueNames.WALLET_QUEUE];
+  queueEvents: QueueEvents;
+  chainId: ChainId;
+  index: number;
+  transactionId: string;
+}
+export async function sweepFunds(keyLabel: string, params: ISweepFundsProps) {
+  const {queue, queueEvents, amount, destinationAddress, chainId, index, transactionId} = params
+
+  const token = TOKEN_ADDRESSES[chainId].cngn;
+  const job = await queue.add(
+    "sign-transaction",
+    {
+      chainId,
+      keyLabel: keyLabel, // will be the signer if index for smart account is not provided
+      data: encodeFunctionData({
+        abi: parseAbi([
+          "function transfer(address to, uint256 amount) external returns (bool)",
+        ]),
+        functionName: "transfer",
+        args: [
+          destinationAddress! as Address,
+          parseUnits(amount?.toString() || "0", token.decimal),
+        ],
+      }),
+      contractAddress: token.address as Address,
+      index,
+    },
+    { jobId: `kms-sweep-${chainId}-cngn-${transactionId}`, attempts: 1 },
+  );
+
+  const result = (await job.waitUntilFinished(queueEvents)) as {
+    hash: Hex;
+  }
+
+  return result;
 }

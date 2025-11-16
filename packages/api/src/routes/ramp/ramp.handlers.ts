@@ -17,7 +17,11 @@ import { QueueInstances, QueueNames, bullMqBase } from "@flintapi/shared/Queue";
 import { ResponseStatus } from "@/lib/types";
 import { QueueEvents } from "bullmq";
 import { Address } from "viem";
-import { cacheVirtualAccount } from "./ramp.utils";
+import {
+  cacheVirtualAccount,
+  getDefaultVirtualAccountArgs,
+} from "./ramp.utils";
+import { apiLogger } from "@flintapi/shared/Logger";
 
 const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -52,6 +56,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
         kmsQueueEvents,
       )) as { address: Address; index: number };
 
+      apiLogger.info("Deposit address created", result);
       // TODO: Create transaction data
       // TODO: Add to transaction db, with transaction metadata
       const [newTransaction] = await orgDatabase
@@ -66,9 +71,9 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             isDestinationExternal: true,
             bankCode: destination.bankCode,
             accountNumber: destination.accountNumber,
-            index: result.index, // update from kms service get-address
             depositAddress: result.address,
-          },
+            index: result.index, // update from kms service get-address
+          } as any,
         })
         .returning();
 
@@ -83,7 +88,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           address: result.address,
           tokenAddress,
           persist: false,
-          callbackUrl: `${env.API_URL}/webhook/ramp/offramp`, // callback when event received
+          callbackUrl: `${env.API_URL}/webhooks/synapse/offramp`, // callback when event received
           rampData: {
             type: "off",
             organizationId: organization.id,
@@ -114,17 +119,13 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
       const bankAdapter = new BellbankAdapter();
 
-      const { accountNumber, bankCode, bankName, accountName } =
-        await bankAdapter.createVirtualAccount({
-          type: "corporate",
-          rcNumber: "1234567890",
-          businessName: "Flint API Services",
-          emailAddress: "contact@flintapi.io",
-          phoneNumber: "",
-          bvn: "",
-          dateOfBirth: "",
-          incorporationDate: "",
-        });
+      const { accountNumber, accountName } =
+        await bankAdapter.createVirtualAccount(getDefaultVirtualAccountArgs);
+
+      console.log("On ramp bank details:", {
+        accountNumber,
+        accountName,
+      });
 
       // TODO: Create transaction data
       // TODO: Add to transaction db, with transaction metadata
@@ -139,8 +140,9 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           metadata: {
             isDestinationExternal: true,
             address: destination.address,
-            collectionBankCode: bankCode,
+            collectionBankCode: "090672",
             collectionAccountNumber: accountNumber,
+            collectionBankName: "Bellbank MFB",
           },
         })
         .returning();
@@ -161,8 +163,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             depositAccount: {
               accountNumber: accountNumber as string,
               accountName,
-              bankCode: bankCode as string,
-              bankName,
+              bankCode: "090672" as string,
+              bankName: "Bellbank MFB",
             },
           },
         },
@@ -174,7 +176,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
 export const banks: AppRouteHandler<BankListRequest> = async (c) => {
   try {
-    const provider = PaymentProvider.CENTIIV;
+    const provider = PaymentProvider.PALMPAY;
 
     const paymentContext = new FiatPaymentContext(provider);
 
@@ -211,31 +213,45 @@ export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
     const query = c.req.valid("query");
     const orgDatabase = c.get("orgDatabase");
 
-    const transaction = await orgDatabase.query.transactions.findFirst({
-      where(fields, ops) {
-        return ops.or(
-          ops.eq(fields.id, query.id),
-          ops.eq(fields.reference, query.reference),
-        );
-      },
-    });
+    console.log("Query", query);
 
-    if (!transaction) {
+    if (query.id || query.reference) {
+      const transaction = await orgDatabase.query.transactions.findFirst({
+        where(fields, ops) {
+          return ops.or(
+            ops.eq(fields.id, query.id),
+            ops.eq(fields.reference, query.reference),
+          );
+        },
+      });
+
+      if (!transaction) {
+        return c.json(
+          {
+            status: "failed" as ResponseStatus,
+            message: "Transaction not found",
+            data: null,
+          },
+          HttpStatusCodes.NOT_FOUND,
+        );
+      }
+
       return c.json(
         {
-          status: "failed" as ResponseStatus,
-          message: "Transaction not found",
-          data: null,
+          status: "success" as ResponseStatus,
+          message: "Transaction details",
+          data: transaction,
         },
-        HttpStatusCodes.NOT_FOUND,
+        HttpStatusCodes.OK,
       );
     }
 
+    const transactions = await orgDatabase.query.transactions.findMany();
     return c.json(
       {
         status: "success" as ResponseStatus,
         message: "Transaction details",
-        data: transaction,
+        data: transactions,
       },
       HttpStatusCodes.OK,
     );

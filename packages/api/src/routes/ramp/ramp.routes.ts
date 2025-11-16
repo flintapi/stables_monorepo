@@ -83,10 +83,7 @@ export const banks = createRoute({
   tags,
   path: "/ramp/banks",
   method: "get",
-  middleware: [
-    // validateRequest()
-  ],
-  // hide: true,
+  middleware: [validateRequest()],
   description: "Get a list of supported banks",
   responses: {
     [HttpStatusCodes.OK]: jsonContent(

@@ -9,7 +9,7 @@ import { APIError } from "better-auth";
 
 export const getOrganization = () =>
   createMiddleware<AppBindings>(async (c, next) => {
-    const organizationId =
+    let organizationId =
       c.req.header("X-Flint-Organization-Id") ||
       c.req.header("x-flint-organization-id");
 
@@ -40,7 +40,7 @@ export const getOrganization = () =>
 
     // const orgMetadata = organization.metadata as OrgMetadata;
 
-    const orgDatabase = orgDb({ dbUrl: organization.metadata.dbUrl });
+    const orgDatabase = orgDb({ dbUrl: organization?.metadata!.dbUrl });
 
     c.set("organization", organization as Organization);
     c.set("orgDatabase", orgDatabase);

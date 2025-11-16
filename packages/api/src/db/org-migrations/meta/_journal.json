@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1762066669536,
+      "tag": "0000_far_lorna_dane",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1762066739623,
+      "tag": "0001_safe_landau",
+      "breakpoints": true
+    }
+  ]
+}

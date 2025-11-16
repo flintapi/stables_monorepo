@@ -28,6 +28,7 @@ const EnvSchema = z
       "silent",
     ]),
     API_URL: z.url(),
+    API_GATEWAY_URL: z.url(),
     DATABASE_URL: z.url(),
     DATABASE_AUTH_TOKEN: z.string().optional(),
     ORG_DATABASE_AUTH_TOKEN: z.string(),
@@ -53,9 +54,15 @@ const EnvSchema = z
     HSM_PIN: z.string().min(1),
     HSM_TOKEN_SLOT: z.coerce.number().default(1099048314),
 
-    TREASURY_KEY_LABEL: z.string().min(18).max(1024),
+    TREASURY_KEY_LABEL: z.string().min(1).max(1024),
+    TREASURY_EVM_ADDRESS: z.string().startsWith('0x'),
 
-    PALMPAY_URL: z.string().optional(),
+    PALMPAY_API_URL: z.string().url(),
+    PALMPAY_APP_ID: z.string(),
+    PALMPAY_PK: z.string(),
+    PALMPAY_MERCHANT_ID: z.string(),
+    PALMPAY_MERCHANT_PK: z.string(),
+    PALMPAY_MERCHANT_SK: z.string(),
 
     // Centiiv
     CENTIIV_API_KEY: z.string().min(1).optional(),

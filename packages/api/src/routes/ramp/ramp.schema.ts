@@ -12,7 +12,7 @@ const offRampSchema = z.object({
   type: z.literal("off"),
   reference: z.string().min(10),
   network: z.enum(["base", "bsc"]),
-  amount: z.number().min(500),
+  amount: z.number().min(5).max(2_000_000),
   destination: z.object({
     bankCode: z.string().min(3),
     accountNumber: z.string().min(10),
@@ -29,7 +29,7 @@ const onRampSchema = z.object({
   type: z.literal("on"),
   reference: z.string().min(10),
   network: z.enum(["base", "bsc"]),
-  amount: z.number().min(500),
+  amount: z.number().min(5).max(2_000_000),
   destination: z.object({
     address: z.string().min(12).startsWith("0x"),
   }),

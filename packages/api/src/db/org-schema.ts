@@ -1,3 +1,14 @@
 import { orgSchema } from "@flintapi/shared/Utils";
 
-export {orgSchema};
+export const {
+  wallet,
+  transactions,
+  walletRelations,
+  insertWalletSchema,
+  selectWalletSchema,
+  updateWalletSchema,
+  transactionRelations,
+  patchTransactionSchema,
+  insertTransactionSchema,
+  selectTransactionSchema,
+} = orgSchema;

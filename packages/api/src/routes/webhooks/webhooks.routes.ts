@@ -27,6 +27,13 @@ export const bellbank = createRoute({
       }),
       "Bad request",
     ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+      }),
+      "Internal server error",
+    ),
   },
 });
 
@@ -58,17 +65,18 @@ export const centiiv = createRoute({
 
 export const offramp = createRoute({
   tags,
-  path: "/webhooks/ramp/offramp",
+  path: "/webhooks/synapse/offramp",
   hide: true,
   method: "post",
-  middleware: [getOrganization()],
+  middleware: [],
   request: {
     body: jsonContent(
       z.object({
         organizationId: z.string(),
         transactionId: z.string(),
         event: z.any(),
-        type: z.enum(["off", "on"]),
+        amountReceived: z.coerce.number(),
+        type: z.enum(['on', 'off']),
       }),
       "Event payload",
     ),
@@ -105,6 +113,59 @@ export const offramp = createRoute({
   },
 });
 
+
+export const palmpayPaymentNotify = createRoute({
+  tags,
+  path: "/webhooks/palmpay/payment/{organizationId}/{transactionId}",
+  method: "post",
+  hide: true,
+  middleware: [],
+  request: {
+    params: z.object({
+      organizationId: z.string(),
+      transactionId: z.string(),
+    }),
+    body: jsonContent(
+      z.object({
+        orderId: z.string(),
+        orderNo: z.string(),
+        appId: z.string(),
+        currency: z.string(),
+        amount: z.number(),
+        orderStatus: z.coerce.number(),
+        sign: z.string(),
+        sessionId: z.string().optional(),
+        completeTime: z.coerce.string().optional(),
+        errorMsg: z.string().optional(),
+      }),
+      "NOtification payload",
+    ),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('success').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Palmpay payment notification response"
+    },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('failed').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Palmpay payment notification error response"
+    }
+  },
+})
+
 export type BellbankRoute = typeof bellbank;
 export type CentiivRoute = typeof centiiv;
 export type OffRampRoute = typeof offramp;
+export type PalmpayRoute = typeof palmpayPaymentNotify;
