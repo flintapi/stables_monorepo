@@ -31,6 +31,7 @@ COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
 # COPY --from=builder /app/services/ramp/src/db/migrations ./services/ramp/dist/src/db/migrations
 COPY --from=builder /app/packages/api/package.json ./packages/api/package.json
+COPY --from=builder /app/packages/api/drizzle.config.ts ./packages/api/drizzle.config.ts
 
 # Copy Database migration script
 COPY --from=builder /app/packages/api/app-db-migrations.sh /usr/local/bin/app-db-migrations.sh
