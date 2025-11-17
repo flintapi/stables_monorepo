@@ -32,8 +32,8 @@ ENV NODE_ENV="production"
 RUN pnpm install
 RUN pnpm run build:services:kms
 
-# Create softhsm user and group
-RUN groupadd -r softhsm1 && useradd -r -g softhsm1 softhsm1
+# Create softhsm user and group with home directory
+RUN groupadd -r softhsm1 && useradd -r -g softhsm1 -m -d /home/softhsm1 softhsm1
 
 # Create necessary directories
 RUN mkdir -p /var/lib/softhsm/tokens && \
