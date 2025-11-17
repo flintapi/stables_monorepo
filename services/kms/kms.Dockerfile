@@ -54,8 +54,9 @@ ENV NODE_ENV="development"
 RUN pnpm install --frozen-lockfile --verbose
 
 # Explicitly rebuild native modules to ensure they're compiled correctly
-RUN pnpm rebuild pkcs11js || (echo "pkcs11js rebuild failed" && exit 1)
-RUN pnpm rebuild graphene-pk11 || (echo "graphene-pk11 rebuild failed" && exit 1)
+# RUN pnpm rebuild pkcs11js || (echo "pkcs11js rebuild failed" && exit 1)
+# RUN pnpm rebuild graphene-pk11 || (echo "graphene-pk11 rebuild failed" && exit 1)
+RUN cd ./node_modules/graphene-pk11 && pnpm run build && ls -al && cd ../../
 
 # Verify native modules exist
 RUN find /app/node_modules -name "pkcs11.node" -ls
