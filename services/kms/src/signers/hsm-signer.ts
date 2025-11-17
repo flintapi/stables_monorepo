@@ -16,6 +16,7 @@ import * as graphene from "graphene-pk11";
 import keccak256 from "keccak";
 import { toAccount } from "viem/accounts";
 import { hashAuthorization } from "viem/utils";
+import env from "@/env";
 
 class HSMSigner {
   private session: Session;
@@ -25,7 +26,7 @@ class HSMSigner {
   constructor(
     private libPath: string = "/opt/homebrew/opt/softhsm/lib/softhsm/libsofthsm2.so", // local path
     private slotIndex: number = 0,
-    private pin: string = process.env.HSM_PIN!,
+    private pin: string = env.HSM_PIN,
     private keyLabel?: string, // keyLabel {orgId}:{walletId}
   ) {
     this.hsmModule = graphene.Module.load(libPath, "SoftHSM2");
