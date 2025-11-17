@@ -57,9 +57,6 @@ RUN pnpm install --verbose
 RUN pnpm rebuild graphene-pk11 --verbose
 RUN pnpm rebuild pkcs11js --verbose
 
-# CD into graphene-pk11 and build
-RUN cd ./node_modules/graphene-pk11 && pnpm run build
-
 # Verify native modules exist
 RUN find /app/node_modules -name "pkcs11.node" -ls
 
