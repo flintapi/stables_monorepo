@@ -5,3 +5,5 @@
 **/_fly.toml
 **/.env*
 **/entrypoint.sh
+fly.toml
+**/.turbo
