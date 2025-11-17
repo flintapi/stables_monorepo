@@ -15,6 +15,9 @@ RUN apt-get update && apt-get install -y \
   p11-kit \
   curl \
   gnupg \
+  libtool \
+  autoconf \
+  automake \
   && rm -rf /var/lib/apt/lists/*
 
 # Verify build tools are installed
