@@ -29,10 +29,10 @@ RUN mkdir -p /var/lib/softhsm/tokens && \
 RUN ls -ld /var/lib/softhsm/tokens
 
 # Copy configuration
-COPY softhsm2.conf /var/lib/softhsm/softhsm2.conf
+COPY ./softhsm2.conf /var/lib/softhsm/softhsm2.conf
 
 # Copy initialization script
-COPY init-hsm.sh /usr/local/bin/init-hsm.sh
+COPY ./init-hsm.sh /usr/local/bin/init-hsm.sh
 RUN chmod +x /usr/local/bin/init-hsm.sh
 
 # Switch to softhsm user
