@@ -48,7 +48,15 @@ COPY ../../services/kms ./services/kms
 COPY ../../turbo.json ./
 
 ENV NODE_ENV="production"
-RUN pnpm install
+RUN pnpm install --verbose
+
+# Explicitly rebuild native modules to ensure they're compiled correctly
+RUN pnpm rebuild graphene-pk11 --verbose || true
+RUN pnpm rebuild pkcs11js --verbose || true
+
+# Verify native modules exist
+RUN find /app/node_modules -name "pkcs11.node" -ls && \
+  find /app/node_modules -name "*.node" -ls
 
 RUN pnpm run build:services:kms
 
