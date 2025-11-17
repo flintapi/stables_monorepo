@@ -3,6 +3,11 @@ FROM debian:bookworm-slim
 # Install SoftHSM2 and dependencies
 RUN apt-get update && apt-get install -y \
   softhsm2 \
+  build-essential \
+  python3 \
+  pkg-config \
+  libssl-dev \
+  libssl3 \
   opensc \
   p11-kit \
   curl \
