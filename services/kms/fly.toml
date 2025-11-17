@@ -38,6 +38,3 @@ primary_region = 'lhr'
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-
-[restart]
-  policy = "always"
