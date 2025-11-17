@@ -51,12 +51,11 @@ ENV NODE_ENV="production"
 RUN pnpm install --verbose
 
 # Explicitly rebuild native modules to ensure they're compiled correctly
-RUN pnpm rebuild graphene-pk11 --verbose || true
-RUN pnpm rebuild pkcs11js --verbose || true
+RUN pnpm rebuild graphene-pk11 --verbose
+RUN pnpm rebuild pkcs11js --verbose
 
 # Verify native modules exist
-RUN find /app/node_modules -name "pkcs11.node" -ls && \
-  find /app/node_modules -name "*.node" -ls
+RUN find /app/node_modules -name "pkcs11.node" -ls
 
 RUN pnpm run build:services:kms
 
