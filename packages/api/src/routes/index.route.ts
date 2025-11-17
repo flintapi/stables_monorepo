@@ -44,6 +44,7 @@ const router = createRouter().openapi(
       // TODO: Get deposit address
       const result = (await getAddressJob.waitUntilFinished(
         kmsQueueEvents,
+        1000*10
       )) as { address: Address; index?: number };
       apiLogger.info("Treasury address", result)
     }

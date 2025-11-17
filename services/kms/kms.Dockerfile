@@ -4,7 +4,10 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
   softhsm2 \
   build-essential \
+  g++ \
+  make \
   python3 \
+  python3-dev \
   pkg-config \
   libssl-dev \
   libssl3 \
@@ -13,6 +16,13 @@ RUN apt-get update && apt-get install -y \
   curl \
   gnupg \
   && rm -rf /var/lib/apt/lists/*
+
+# Verify build tools are installed
+RUN which gcc g++ make python3 && \
+  gcc --version && \
+  g++ --version && \
+  make --version && \
+  python3 --version
 
 # Add NodeSource repository and install Node.js (including npm)
 RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
@@ -23,7 +33,11 @@ RUN node -v
 RUN npm -v
 
 # Install pnpm globally as root
-RUN npm install -g pnpm
+RUN npm install -g pnpm node-gyp
+
+# Verify node-gyp can find Python
+RUN node-gyp --version && \
+  node-gyp list || true
 
 # Build kms-service worker
 WORKDIR /app
@@ -35,6 +49,7 @@ COPY ../../turbo.json ./
 
 ENV NODE_ENV="production"
 RUN pnpm install
+
 RUN pnpm run build:services:kms
 
 # Create softhsm user and group with home directory
