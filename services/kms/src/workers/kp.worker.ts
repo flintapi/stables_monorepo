@@ -37,15 +37,15 @@ const worker = new Worker<
 
             console.log("Job data", keyLabel, chainId, index);
 
-            const { address } = await kmsService.getCollectionAddress(
+            const { address, index: newIndex } = await kmsService.getCollectionAddress(
               keyLabel,
               chainId,
               typeof index !== "undefined" ? BigInt(index) : undefined,
             );
 
-            kmsLogger.info(address, index);
+            kmsLogger.info("Address and new index", {address, newIndex});
 
-            return { address, index };
+            return { address, index: Number(newIndex) };
           }
           case "eoa": {
             const { keyLabel, chainId } = jobData;
@@ -66,26 +66,33 @@ const worker = new Worker<
         const { keyLabel, chainId, index, data, contractAddress } =
           job.data as WalletSignTransactionJob;
 
-        const receipt = await kmsService.transfer(
-          keyLabel,
-          chainId,
-          contractAddress,
-          data,
-          typeof index !== "undefined" ? BigInt(index) : undefined,
-        );
+        try {
+          const receipt = await kmsService.transfer(
+            keyLabel,
+            chainId,
+            contractAddress,
+            data,
+            typeof index !== "undefined" ? BigInt(index) : undefined,
+          );
 
-        // console.log("Receipt", receipt);
+          // console.log("Receipt", receipt);
 
-        return { hash: receipt.transactionHash };
+          return { hash: receipt.transactionHash };
+        }
+        catch(error: any) {
+          kmsLogger.error("Failed to transfer", error)
+          throw error;
+        }
+
       }
     }
   },
   {
     connection: CacheFacade.redisCache,
-    concurrency: 10,
+    concurrency: 2,
     lockDuration: 120_000,
     maxStalledCount: 2,
-    removeOnComplete: {
+    removeOnFail: {
       age: 1000 * 60 * 60 * 24 * 1, // 1 day
     },
   },
@@ -93,6 +100,7 @@ const worker = new Worker<
 
 const event = ensureQueueEventHandlers(name, (events) => {
   events.on("failed", async ({ failedReason, jobId }) => {
+    // Send failed transactions to email or betterstack
     const job = await QueueInstances[name].getJob(jobId);
 
     console.log("Job failed", failedReason);

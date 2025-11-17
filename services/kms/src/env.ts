@@ -26,14 +26,7 @@ const EnvSchema = z
       "trace",
       "silent",
     ]),
-    DATABASE_URL: z.url(),
-    DATABASE_AUTH_TOKEN: z.string().optional(),
-    TURSO_API_TOKEN: z.string(),
-    TURSO_API_URL: z.string().url().optional(),
-
-    // Email provider
-    PLUNK_API_URL: z.url().optional(),
-    PLUNK_API_KEY: z.string().min(1).optional(),
+    REDIS_CONNECTION_URL: z.string(),
 
     // Console
     CONSOLE_URL: z.url().optional(),
@@ -41,20 +34,26 @@ const EnvSchema = z
     // HSM
     HSM_PIN: z.string().min(1),
     HSM_TOKEN_SLOT: z.coerce.number().default(1099048314),
+    SOFTHSM_SO_PIN: z.string(),
+    SOFTHSM_USER_PIN: z.string(),
 
     TREASURY_KEY_LABEL: z.string().min(18).max(1024),
 
     // Better stack
     BETTER_STACK_TOKEN_ID: z.string().optional(),
     BETTER_STACK_INGESTION_HOST: z.string().optional(),
+
+    // RPC and bundlers
+    ZERODEV_PROJECT_ID: z.string(),
+    PIMLICO_API_KEY: z.string(),
   })
   .superRefine((input, ctx) => {
-    if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
+    if (input.NODE_ENV === "production" && !input.REDIS_CONNECTION_URL) {
       ctx.addIssue({
         code: z.ZodIssueCode.invalid_type,
         expected: "string",
         received: "undefined",
-        path: ["DATABASE_AUTH_TOKEN"],
+        path: ["REDIS_CONNECTION_URL"],
         message: "Must be set when NODE_ENV is 'production'",
       });
     }

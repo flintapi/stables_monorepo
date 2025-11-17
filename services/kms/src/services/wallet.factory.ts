@@ -11,6 +11,7 @@ import {
   createKernelAccount,
   createKernelAccountClient,
   createZeroDevPaymasterClient,
+  getUserOperationGasPrice,
 } from "@zerodev/sdk";
 import {
   getEntryPoint,
@@ -166,7 +167,9 @@ class WalletFactory {
     });
     const signer = hsmSigner.toViemAccount(keyLabel);
 
-    const { client } = await this.getSmartAccount(
+    console.log("Index", index, typeof index)
+
+    const { client, account } = await this.getSmartAccount(
       signer,
       publicClient,
       typeof index !== "undefined"
@@ -176,11 +179,38 @@ class WalletFactory {
         : { eip7702Account: signer },
     );
 
+    console.log("Smart account address", account.address, "Owner address")
+
+    if(typeof index !== "undefined") {
+      const userOpHash = await client.sendUserOperation({
+        callData: await client.account.encodeCalls([{
+          to: contractAddress,
+          value: BigInt(0),
+          data,
+        }]),
+      })
+
+      console.log("UserOp hash:", userOpHash)
+       console.log("Waiting for UserOp to complete...")
+
+       const receipt = await client.waitForUserOperationReceipt({
+         hash: userOpHash,
+         timeout: 1000 * 15,
+       })
+
+       console.log("User op receipt", receipt)
+
+       return receipt.receipt
+    }
+
     const hash = await client.sendTransaction({
       chain,
       to: contractAddress,
       value: 0n,
       data,
+    }).catch((error) => {
+      console.log("Failed to send transaction", error);
+      throw error;
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -242,6 +272,11 @@ class WalletFactory {
           publicClient.chain!.id,
         ),
       ), // Pick first one by default
+      userOperation: {
+        estimateFeesPerGas: async ({ bundlerClient }) => {
+          return getUserOperationGasPrice(bundlerClient)
+        }
+      },
       ...kernelClientConfig,
     });
 

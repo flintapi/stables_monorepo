@@ -1,3 +1,4 @@
+import env from "@/env";
 import type {
   BundlerCollection,
   ChainId,
@@ -9,24 +10,24 @@ export const BUNDLER_URLS: BundlerCollection = new Map([
   [
     SupportedChains.baseSepolia,
     [
-      `https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/84532`,
+      `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/84532`,
     ],
   ],
   [
     SupportedChains.bscTestnet,
     [
-      `https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/97`,
-      `https://api.pimlico.io/v2/97/rpc?apikey=pim_ZkLxqjsRCe4FRVhkd5LQQG`,
+      `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/97`,
+      `https://api.pimlico.io/v2/97/rpc?apikey=${env.PIMLICO_API_KEY}`,
     ],
   ],
 ]);
 
 export const PAYMASTER_RPC = {
   [SupportedChains.baseSepolia]: {
-    url: `https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/84532`,
+    url: `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/84532`,
   },
   [SupportedChains.bscTestnet]: {
-    url: `https://api.pimlico.io/v2/97/rpc?apikey=pim_ZkLxqjsRCe4FRVhkd5LQQG`,
+    url: `https://api.pimlico.io/v2/97/rpc?apikey=${env.PIMLICO_API_KEY}`,
   },
 };
 
@@ -34,11 +35,12 @@ export function getBundlerUrl(chainId: ChainId, network: SupportedChains) {
   switch (network) {
     case SupportedChains.baseSepolia:
     case SupportedChains.bscTestnet:
-      return `https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/${chainId.toString()}?provider=PIMLICO`;
+      return `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/${chainId.toString()}?provider=PIMLICO`;
     // return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${process.env.PIMLICO_API_KEY || "pim_ZkLxqjsRCe4FRVhkd5LQQG"}`;
     case SupportedChains.bsc:
     case SupportedChains.base:
-      return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${process.env.PIMLICO_API_KEY || "pim_ZkLxqjsRCe4FRVhkd5LQQG"}`;
+      return `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/${chainId.toString()}?provider=PIMLICO`;
+      // return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${process.env.PIMLICO_API_KEY || "pim_ZkLxqjsRCe4FRVhkd5LQQG"}`;
     default:
       throw new Error(`Unsupported network: ${network}`);
   }
@@ -47,11 +49,11 @@ export function getBundlerUrl(chainId: ChainId, network: SupportedChains) {
 export function getPaymasterUrl(chainId: ChainId, network: SupportedChains) {
   switch (network) {
     case SupportedChains.bscTestnet:
-      return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${process.env.PIMLICO_API_KEY || "pim_ZkLxqjsRCe4FRVhkd5LQQG"}`;
+      return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${env.PIMLICO_API_KEY}}`;
     case SupportedChains.bsc:
     case SupportedChains.base:
     case SupportedChains.baseSepolia:
-      return `https://rpc.zerodev.app/api/v3/f8bb7207-a626-4675-97ac-bbff20688173/chain/${chainId.toString()}`;
+      return `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/${chainId.toString()}`;
     default:
       throw new Error(`Unsupported network: ${network}`);
   }
