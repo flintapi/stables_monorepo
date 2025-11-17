@@ -1,1 +1,0 @@
-ALTER TABLE "transactions" ADD COLUMN "tracking_id" uuid;
