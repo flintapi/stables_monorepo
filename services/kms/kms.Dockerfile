@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
   gnupg \
   && rm -rf /var/lib/apt/lists/*
 
-
 # Add NodeSource repository and install Node.js (including npm)
 RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
 RUN apt-get update && apt-get install -y nodejs
@@ -17,6 +16,21 @@ RUN apt-get update && apt-get install -y nodejs
 # Verify installation
 RUN node -v
 RUN npm -v
+
+# Install pnpm globally as root
+RUN npm install -g pnpm
+
+# Build kms-service worker
+WORKDIR /app
+COPY ../../pnpm-lock.yaml ../../package*.json ./
+COPY ../../pnpm-workspace.yaml ./
+COPY ../../packages/shared ./packages/shared
+COPY ../../services/kms ./services/kms
+COPY ../../turbo.json ./
+
+ENV NODE_ENV="production"
+RUN pnpm install
+RUN pnpm run build:services:kms
 
 # Create softhsm user and group
 RUN groupadd -r softhsm1 && useradd -r -g softhsm1 softhsm1
@@ -35,30 +49,15 @@ COPY ../../services/kms/softhsm2.conf /var/lib/softhsm/
 COPY ../../services/kms/init-hsm.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init-hsm.sh
 
+# Set ownership of application files to softhsm1 user
+RUN chown -R softhsm1:softhsm1 /app
+
 # Switch to softhsm user
 USER softhsm1
 
 # Set environment variables
 ENV SOFTHSM2_CONF=/var/lib/softhsm/softhsm2.conf
 ENV PKCS11_MODULE_PATH=/usr/lib/softhsm/libsofthsm2.so
-
-# Build kms-service worker
-WORKDIR /app
-
-COPY ../../pnpm-lock.yaml ../../package*.json ./
-COPY ../../pnpm-workspace.yaml ./
-
-RUN npm install -g pnpm
-
-COPY ../../packages/shared ./packages/shared
-COPY ../../services/kms ./services/kms
-COPY ../../turbo.json ./
-
-ENV NODE_ENV="production"
-
-RUN pnpm install
-
-RUN pnpm run build:services:kms
 
 # Initialize HSM on startup
 ENTRYPOINT ["/usr/local/bin/init-hsm.sh"]
