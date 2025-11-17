@@ -24,7 +24,7 @@ class HSMSigner {
   static instance: HSMSigner;
 
   constructor(
-    private libPath: string = "/opt/homebrew/opt/softhsm/lib/softhsm/libsofthsm2.so", // local path
+    private libPath: string = env.NODE_ENV === "development"? "/opt/homebrew/opt/softhsm/lib/softhsm/libsofthsm2.so" : `${process.env.PKCS11_MODULE_PATH ?? '/usr/lib/softhsm/libsofthsm2.so'}`, // local path
     private slotIndex: number = 0,
     private pin: string = env.HSM_PIN,
     private keyLabel?: string, // keyLabel {orgId}:{walletId}

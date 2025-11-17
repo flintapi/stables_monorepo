@@ -28,7 +28,7 @@ RUN which gcc g++ make python3 && \
   python3 --version
 
 # Add NodeSource repository and install Node.js (including npm)
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
 # Verify installation
@@ -50,16 +50,17 @@ COPY ../../packages/shared ./packages/shared
 COPY ../../services/kms ./services/kms
 COPY ../../turbo.json ./
 
-ENV NODE_ENV="production"
-RUN pnpm install --verbose
+ENV NODE_ENV="development"
+RUN pnpm install --frozen-lockfile --verbose
 
 # Explicitly rebuild native modules to ensure they're compiled correctly
-RUN pnpm rebuild graphene-pk11 --verbose
-RUN pnpm rebuild pkcs11js --verbose
+RUN pnpm rebuild pkcs11js || (echo "pkcs11js rebuild failed" && exit 1)
+RUN pnpm rebuild graphene-pk11 || (echo "graphene-pk11 rebuild failed" && exit 1)
 
 # Verify native modules exist
 RUN find /app/node_modules -name "pkcs11.node" -ls
 
+ENV NODE_ENV="production"
 RUN pnpm run build:services:kms
 
 # Create softhsm user and group with home directory

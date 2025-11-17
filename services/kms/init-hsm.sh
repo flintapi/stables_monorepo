@@ -34,8 +34,7 @@ mkdir -p /var/lib/softhsm/tokens
 # # Set the maximum number of slots
 # slots.max = 10
 
-ls -ld /var/lib/softhsm/tokens
-ls -l /var/lib/softhsm/tokens
+ls -al /usr/lib/softhsm/
 
 # Check if token already exists
 if softhsm2-util --show-slots | grep "hsm-token"; then
