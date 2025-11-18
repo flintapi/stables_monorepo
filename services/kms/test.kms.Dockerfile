@@ -38,10 +38,21 @@ COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
 # Install SoftHSM2 and dependencies
 RUN apt-get update && apt-get install -y \
   softhsm2 \
+  build-essential \
+  g++ \
+  make \
+  python3 \
+  python3-dev \
+  pkg-config \
+  libssl-dev \
+  libssl3 \
   opensc \
   p11-kit \
   curl \
   gnupg \
+  libtool \
+  autoconf \
+  automake \
   && rm -rf /var/lib/apt/lists/*
 
 
