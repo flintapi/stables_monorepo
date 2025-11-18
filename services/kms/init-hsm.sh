@@ -3,7 +3,7 @@ set -euo pipefail
 
 echo "Initializing SoftHSM..."
 
-ls /var/lib/softhsm -A
+# ls /var/lib/softhsm -A
 
 if [ ! -e "/var/lib/softhsm/softhsm2.conf" ]; then
   echo "Writing to softhsm configuration file"
@@ -34,7 +34,7 @@ mkdir -p /var/lib/softhsm/tokens
 # # Set the maximum number of slots
 # slots.max = 10
 
-ls -al /usr/lib/softhsm/
+# ls -al /usr/lib/softhsm/
 
 # Check if token already exists
 if softhsm2-util --show-slots | grep "hsm-token"; then
