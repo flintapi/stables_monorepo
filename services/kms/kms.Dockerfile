@@ -19,19 +19,18 @@ RUN pnpm install
 RUN pnpm run build:services:kms
 
 FROM node:20-bookworm-slim
-WORKDIR /app
+# WORKDIR /app
 
-COPY --from=builder /app ./
-# COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-# COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-# COPY --from=builder /app/package.json ./package.json
-# COPY --from=builder /app/turbo.json ./turbo.json
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/turbo.json ./turbo.json
 # COPY --from=builder /app/node_modules ./node_modules
 
 # Copy over service folder and files
-# COPY --from=builder /app/packages/shared ./packages/shared
-# COPY --from=builder /app/services/kms/dist ./services/kms/dist
-# COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
+COPY --from=builder /app/packages/shared ./packages/shared
+COPY --from=builder /app/services/kms/dist ./services/kms/dist
+COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
 
 # Install SoftHSM2 and dependencies
 RUN apt-get update && apt-get install -y \
@@ -55,9 +54,10 @@ RUN apt-get update && apt-get install -y \
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
-RUN pnpm install
-RUN pnpm rebuild pkcs11js --verbose
-RUN pnpm rebuild graphene-pk11 --verbose
+RUN npm install
+# RUN pnpm install
+# RUN pnpm rebuild pkcs11js --verbose
+# RUN pnpm rebuild graphene-pk11 --verbose
 
 # Create softhsm user and group with home directory
 RUN groupadd -r softhsm1 && useradd -r -g softhsm1 -m -d /home/softhsm1 softhsm1
@@ -77,7 +77,7 @@ COPY ../../services/kms/init-hsm.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init-hsm.sh
 
 # Set ownership of application files to softhsm1 user
-RUN chown -R softhsm1:softhsm1 /app
+# RUN chown -R softhsm1:softhsm1 /app
 
 # Switch to softhsm user
 USER softhsm1
