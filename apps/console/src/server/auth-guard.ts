@@ -1,13 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
 
-import { getWebRequest } from '@tanstack/react-start/server'
+import { getRequest } from '@tanstack/react-start/server'
 import { redirect } from '@tanstack/react-router'
 
 import { z } from 'zod'
 import { authClient } from '@/lib/auth-client'
 
 export const authGuard = createServerFn()
-  .validator(
+  .inputValidator(
     z
       .object({
         redirect: z.string().min(1).optional(),
@@ -15,7 +15,7 @@ export const authGuard = createServerFn()
       .optional(),
   )
   .handler(async ({ data }) => {
-    const request = getWebRequest()
+    const request = getRequest()
     const { data: session } = await authClient.getSession({
       fetchOptions: { headers: request.headers },
     })

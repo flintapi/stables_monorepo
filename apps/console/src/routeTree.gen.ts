@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createServerRootRoute } from '@tanstack/react-start/server'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteRouteImport } from './routes/_demo/route'
@@ -27,10 +25,6 @@ import { Route as DemoDemoStartServerFuncsRouteImport } from './routes/_demo/dem
 import { Route as DemoDemoStartApiRequestRouteImport } from './routes/_demo/demo.start.api-request'
 import { Route as DemoDemoFormSimpleRouteImport } from './routes/_demo/demo.form.simple'
 import { Route as DemoDemoFormAddressRouteImport } from './routes/_demo/demo.form.address'
-import { ServerRoute as DemoApiDemoTqTodosServerRouteImport } from './routes/_demo/api.demo-tq-todos'
-import { ServerRoute as DemoApiDemoNamesServerRouteImport } from './routes/_demo/api.demo-names'
-
-const rootServerRouteImport = createServerRootRoute()
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -110,17 +104,6 @@ const DemoDemoFormAddressRoute = DemoDemoFormAddressRouteImport.update({
   id: '/demo/form/address',
   path: '/demo/form/address',
   getParentRoute: () => DemoRouteRoute,
-} as any)
-const DemoApiDemoTqTodosServerRoute =
-  DemoApiDemoTqTodosServerRouteImport.update({
-    id: '/_demo/api/demo-tq-todos',
-    path: '/api/demo-tq-todos',
-    getParentRoute: () => rootServerRouteImport,
-  } as any)
-const DemoApiDemoNamesServerRoute = DemoApiDemoNamesServerRouteImport.update({
-  id: '/_demo/api/demo-names',
-  path: '/api/demo-names',
-  getParentRoute: () => rootServerRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -233,31 +216,6 @@ export interface RootRouteChildren {
   DemoRouteRoute: typeof DemoRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   InviteInviteIdRoute: typeof InviteInviteIdRoute
-}
-export interface FileServerRoutesByFullPath {
-  '/api/demo-names': typeof DemoApiDemoNamesServerRoute
-  '/api/demo-tq-todos': typeof DemoApiDemoTqTodosServerRoute
-}
-export interface FileServerRoutesByTo {
-  '/api/demo-names': typeof DemoApiDemoNamesServerRoute
-  '/api/demo-tq-todos': typeof DemoApiDemoTqTodosServerRoute
-}
-export interface FileServerRoutesById {
-  __root__: typeof rootServerRouteImport
-  '/_demo/api/demo-names': typeof DemoApiDemoNamesServerRoute
-  '/_demo/api/demo-tq-todos': typeof DemoApiDemoTqTodosServerRoute
-}
-export interface FileServerRouteTypes {
-  fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/demo-names' | '/api/demo-tq-todos'
-  fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/demo-names' | '/api/demo-tq-todos'
-  id: '__root__' | '/_demo/api/demo-names' | '/_demo/api/demo-tq-todos'
-  fileServerRoutesById: FileServerRoutesById
-}
-export interface RootServerRouteChildren {
-  DemoApiDemoNamesServerRoute: typeof DemoApiDemoNamesServerRoute
-  DemoApiDemoTqTodosServerRoute: typeof DemoApiDemoTqTodosServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -376,24 +334,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-declare module '@tanstack/react-start/server' {
-  interface ServerFileRoutesByPath {
-    '/_demo/api/demo-tq-todos': {
-      id: '/_demo/api/demo-tq-todos'
-      path: '/api/demo-tq-todos'
-      fullPath: '/api/demo-tq-todos'
-      preLoaderRoute: typeof DemoApiDemoTqTodosServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-    '/_demo/api/demo-names': {
-      id: '/_demo/api/demo-names'
-      path: '/api/demo-names'
-      fullPath: '/api/demo-names'
-      preLoaderRoute: typeof DemoApiDemoNamesServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-  }
-}
 
 interface AuthedRouteRouteChildren {
   AuthedEventsRoute: typeof AuthedEventsRoute
@@ -447,10 +387,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-const rootServerRouteChildren: RootServerRouteChildren = {
-  DemoApiDemoNamesServerRoute: DemoApiDemoNamesServerRoute,
-  DemoApiDemoTqTodosServerRoute: DemoApiDemoTqTodosServerRoute,
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
 }
-export const serverRouteTree = rootServerRouteImport
-  ._addFileChildren(rootServerRouteChildren)
-  ._addFileTypes<FileServerRouteTypes>()

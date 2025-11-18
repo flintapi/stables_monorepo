@@ -5,7 +5,7 @@ import {
   createRootRouteWithContext,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanstackDevtools } from '@tanstack/react-devtools'
+import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import StoreDevtools from '../lib/demo-store-devtools'
 
@@ -63,7 +63,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <body>
           {children}
           <Toaster expand />
-          <TanstackDevtools
+          <TanStackDevtools
             config={{
               position: 'bottom-left',
             }}
