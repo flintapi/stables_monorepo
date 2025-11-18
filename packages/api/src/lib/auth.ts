@@ -68,16 +68,16 @@ const authOptions = {
     },
   },
   emailAndPassword: {
-    enabled: true,
+    enabled: false,
   },
   socialProviders: {
     github: {
       enabled: true,
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
-      redirectURI: env.NODE_ENV !== "development"
-        ? `${env.API_GATEWAY_URL}/api/auth/callback/github`
-        : "http://localhost:9999/api/auth/callback/github",
+      // redirectURI: env.NODE_ENV !== "development"
+      //   ? `${env.API_GATEWAY_URL}/api/auth/callback/github`
+      //   : "http://localhost:9999/api/auth/callback/github",
     },
     google: {
       enabled: false,
