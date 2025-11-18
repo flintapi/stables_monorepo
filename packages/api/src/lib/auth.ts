@@ -386,7 +386,7 @@ export const auth = betterAuth({
         defaultPermissions,
       },
       enableMetadata: true,
-      disableSessionForAPIKeys: true,
+      enableSessionForAPIKeys: false,
       apiKeyHeaders: ["x-api-key", "flint-api-key"],
     }),
     ...(authOptions.plugins as Array<BetterAuthPlugin>),
