@@ -18,19 +18,19 @@ RUN pnpm install
 
 RUN pnpm run build:services:kms
 
-FROM node:20-bookworm
-# WORKDIR /app
+# FROM node:20-bookworm
+# # WORKDIR /app
 
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/turbo.json ./turbo.json
-# COPY --from=builder /app/node_modules ./node_modules
+# COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+# COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+# COPY --from=builder /app/package.json ./package.json
+# COPY --from=builder /app/turbo.json ./turbo.json
+# # COPY --from=builder /app/node_modules ./node_modules
 
-# Copy over service folder and files
-COPY --from=builder /app/packages/shared ./packages/shared
-COPY --from=builder /app/services/kms/dist ./services/kms/dist
-COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
+# # Copy over service folder and files
+# COPY --from=builder /app/packages/shared ./packages/shared
+# COPY --from=builder /app/services/kms/dist ./services/kms/dist
+# COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
 
 # Install SoftHSM2 and dependencies
 RUN apt-get update && apt-get install -y \
@@ -47,14 +47,11 @@ RUN apt-get update && apt-get install -y \
   p11-kit \
   curl \
   gnupg \
-  libtool \
-  autoconf \
-  automake \
   && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm globally as root
-RUN npm install -g pnpm
-RUN pnpm install
+# RUN npm install -g pnpm
+# RUN pnpm install
 # RUN pnpm install
 # RUN pnpm rebuild pkcs11js --verbose
 # RUN pnpm rebuild graphene-pk11 --verbose
