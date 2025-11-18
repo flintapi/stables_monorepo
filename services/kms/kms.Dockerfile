@@ -14,7 +14,7 @@ COPY ../../turbo.json ./
 
 ENV NODE_ENV="development"
 
-RUN pnpm install
+RUN npm install
 
 RUN pnpm run build:services:kms
 

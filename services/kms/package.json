@@ -14,7 +14,7 @@
     "with-env": "dotenv -e .env --"
   },
   "dependencies": {
-    "@flintapi/shared": "*"
+    "@flintapi/shared": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^22.13.10"
