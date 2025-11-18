@@ -82,7 +82,7 @@ export function LoginForm({
                       callbackURL:
                         typeof query !== 'undefined'
                           ? query.redirect
-                          : `${env.VITE_APP_URL || env.APP_URL}/overview`,
+                          : `${env.VITE_APP_URL}/overview`,
                       // disableRedirect: true,
                     })
                     console.log('Github data', data.data?.url)
