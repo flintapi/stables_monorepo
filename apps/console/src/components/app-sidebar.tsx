@@ -190,7 +190,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           user={{
             name: session.user.name,
             email: session.user.email,
-            avatar: session.user.image as string,
+            avatar: session.user.image,
           }}
         />
       </SidebarFooter>
