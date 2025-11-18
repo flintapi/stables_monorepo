@@ -21,7 +21,7 @@ import {
 } from '@tabler/icons-react'
 
 import { List, Sparkle, Wallet } from 'lucide-react'
-import { useRouteContext } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { TeamSwitcher } from './team-switcher'
@@ -42,6 +42,8 @@ import {
 } from '@/components/ui/sidebar'
 import { getOrganizationsQueryOptions } from '@/lib/api-client'
 import { showCreateOrgModal } from '@/routes/_authed/-components/modals/CreateOrganization'
+import { authClient } from '@/lib/auth-client'
+import { env } from '@/env'
 // import { NavEvents } from '@/components/nav-events'
 
 const data = {
@@ -142,11 +144,36 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { session } = useRouteContext({ from: '/_authed' })
+  const router = useRouter()
+  const { data: session, error: sessionError } = authClient.useSession()
 
   console.log('Session', session)
 
   const { data: orgList, error } = useQuery(getOrganizationsQueryOptions)
+
+  if (sessionError) {
+    toast.error('Failed to load session', {
+      description: sessionError.message,
+      action: {
+        onClick: async () => {
+          await authClient.signOut({
+            fetchOptions: {
+              onSuccess: () => {
+                router.invalidate()
+                router.navigate({
+                  to: '/auth',
+                  replace: true,
+                  resetScroll: true,
+                  search: { redirect: `${env.VITE_APP_URL}/overview` },
+                })
+              },
+            },
+          })
+        },
+        label: 'Refresh',
+      },
+    })
+  }
 
   if (error) {
     toast.error('Failed to fetch organizations', {

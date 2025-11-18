@@ -20,6 +20,8 @@ export const authGuard = createServerFn()
       fetchOptions: { headers: request.headers },
     })
 
+    console.log("Session in server function", session)
+
     if (!session) {
       throw redirect({
         to: '/auth',

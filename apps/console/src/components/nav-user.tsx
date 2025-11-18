@@ -24,6 +24,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { authClient } from '@/lib/auth-client'
+import { env } from '@/env'
 
 export function NavUser({
   user,
@@ -106,6 +107,7 @@ export function NavUser({
                         to: '/auth',
                         replace: true,
                         resetScroll: true,
+                        search: { redirect: `${env.VITE_APP_URL}/overview` },
                       })
                     },
                   },
