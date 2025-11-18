@@ -97,4 +97,4 @@ ENTRYPOINT ["/usr/local/bin/init-hsm.sh"]
 
 # Keep container running and provide access to PKCS#11 library
 # CMD ["tail", "-f", "/dev/null"]
-CMD ["npm", "start:services:kms"]
+CMD ["pnpm", "start:services:kms"]
