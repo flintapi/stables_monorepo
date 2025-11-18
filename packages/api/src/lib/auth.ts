@@ -168,28 +168,39 @@ const authOptions = {
         afterCreateOrganization: async ({ organization, member, user }) => {
           console.log("afterCreateOrganization", organization, member, user);
           // TODO: Save organization dbUrl
-          const tursoClient = tursoApi();
+          const orgExists = await db.query.organization.findFirst({
+            where(fields, ops) {
+              return ops.eq(fields.id, organization.id)
+            }
+          })
 
-          const database = await tursoClient.databases.create(
-            `${organization.slug}-tenant-db`,
-            {
-              group: "flintapi-tenants",
-            },
-          );
-          apiLogger.info("New organization database", database);
+          if(!orgExists || !orgExists.metadata?.dbUrl) {
+            const tursoClient = tursoApi();
 
-          // TODO: Call migration function
-          await migrateDatabase(`libsql://${database.hostname}`);
-
-          const [updatedOrganization] = await db
-            .update(appSchema.organization)
-            .set({
-              metadata: {
-                dbUrl: `libsql://${database.hostname}`, // provissioned turso db url
+            const database = await tursoClient.databases.create(
+              `${organization.slug}-tenant-db`,
+              {
+                group: "flintapi-tenants",
               },
-            })
-            .where(eq(appSchema.organization.id, organization.id))
-            .returning();
+            );
+            apiLogger.info("New organization database", database);
+
+            // TODO: Call migration function
+            await migrateDatabase(`libsql://${database.hostname}`);
+
+            const [updatedOrganization] = await db
+              .update(appSchema.organization)
+              .set({
+                metadata: {
+                  dbUrl: `libsql://${database.hostname}`, // provissioned turso db url
+                },
+              })
+              .where(eq(appSchema.organization.id, organization.id))
+              .returning();
+
+            organization = updatedOrganization;
+          }
+
           // TODO: Send email
           // TODO: Create default master wallet for organization with organization virtual account
           const id = generateUniqueId("wal_");
@@ -229,7 +240,7 @@ const authOptions = {
 
             // Get org database
             const orgDatabase = orgDb({
-              dbUrl: updatedOrganization.metadata?.dbUrl!,
+              dbUrl: organization.metadata?.dbUrl!,
             });
 
             // Step 3 - Store result and return address

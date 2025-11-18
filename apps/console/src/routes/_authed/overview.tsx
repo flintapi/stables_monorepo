@@ -28,6 +28,7 @@ function RouteComponent() {
         <Container className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Link
             to="/wallets"
+            disabled
             params={{ chainId: 1112111 }}
             className="grid gap-4 items-start border border-gray-500/75 hover:border-gray-500 transition-all p-4 rounded-md"
           >
@@ -43,7 +44,7 @@ function RouteComponent() {
             </div>
           </Link>
           <BaseLink
-            href="https://stables.flintapi.io/docs"
+            href="https://flintapi.io/docs"
             className="grid gap-4 items-start border border-gray-500/75 hover:border-gray-500 transition-all p-4 rounded-md"
           >
             <div className="flex w-full items-center justify-between">

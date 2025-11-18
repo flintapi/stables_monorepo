@@ -44,7 +44,7 @@ export async function migrateDatabase(dbUrl: string) {
   const db = orgDb({ dbUrl });
 
   console.log("Starting migration...");
-  await migrate(db, { migrationsFolder: "./src/db/org-migrations" });
+  await migrate(db, { migrationsFolder: env.NODE_ENV !== "development"? "./dist/src/db/org-migrations" : "./src/db/org-migrations" });
   console.log("Migration finalised");
 
   db.$client.close();
