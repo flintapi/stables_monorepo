@@ -64,7 +64,7 @@ RUN apt-get update && apt-get install -y nodejs
 RUN node -v
 RUN npm -v
 
-RUN npm install -g pnpm
+# RUN npm install -g pnpm
 RUN npm install
 
 ENV NODE_ENV="production"

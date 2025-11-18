@@ -5,3 +5,4 @@ _fly.toml
 .env*
 entrypoint.sh
 kms.Dockerfile.01
+test.kms.Dockerfile

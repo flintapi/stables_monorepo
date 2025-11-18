@@ -1,4 +1,36 @@
+FROM node:20-alpine AS builder
+
+# Build kms-service worker
+WORKDIR /app
+
+COPY ../../pnpm-lock.yaml ../../package*.json ./
+COPY ../../pnpm-workspace.yaml ./
+
+RUN npm install -g pnpm
+
+COPY ../../packages/shared ./packages/shared
+COPY ../../services/kms ./services/kms
+COPY ../../turbo.json ./
+
+ENV NODE_ENV="development"
+
+RUN pnpm install
+
+RUN pnpm run build:services:kms
+
 FROM debian:bookworm-slim
+
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/turbo.json ./turbo.json
+# COPY --from=builder /app/node_modules ./node_modules
+
+# Copy over service folder and files
+COPY --from=builder /app/packages/shared ./packages/shared
+COPY --from=builder /app/services/kms/dist ./services/kms/dist
+# COPY --from=builder /app/services/ramp/src/db/migrations ./services/ramp/dist/src/db/migrations
+COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
 
 # Install SoftHSM2 and dependencies
 RUN apt-get update && apt-get install -y \
@@ -20,15 +52,8 @@ RUN apt-get update && apt-get install -y \
   automake \
   && rm -rf /var/lib/apt/lists/*
 
-# Verify build tools are installed
-RUN which gcc g++ make python3 && \
-  gcc --version && \
-  g++ --version && \
-  make --version && \
-  python3 --version
-
 # Add NodeSource repository and install Node.js (including npm)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
 # Verify installation
@@ -36,33 +61,7 @@ RUN node -v
 RUN npm -v
 
 # Install pnpm globally as root
-RUN npm install -g pnpm node-gyp
-
-# Verify node-gyp can find Python
-RUN node-gyp --version && \
-  node-gyp list || true
-
-# Build kms-service worker
-WORKDIR /app
-COPY ../../pnpm-lock.yaml ../../package*.json ./
-COPY ../../pnpm-workspace.yaml ./
-COPY ../../packages/shared ./packages/shared
-COPY ../../services/kms ./services/kms
-COPY ../../turbo.json ./
-
-ENV NODE_ENV="development"
-RUN pnpm install --frozen-lockfile --verbose
-
-# Explicitly rebuild native modules to ensure they're compiled correctly
-# RUN pnpm rebuild pkcs11js || (echo "pkcs11js rebuild failed" && exit 1)
-# RUN pnpm rebuild graphene-pk11 || (echo "graphene-pk11 rebuild failed" && exit 1)
-RUN cd ./node_modules/graphene-pk11 && pnpm run build && ls -al && cd ../../
-
-# Verify native modules exist
-RUN find /app/node_modules -name "pkcs11.node" -ls
-
-ENV NODE_ENV="production"
-RUN pnpm run build:services:kms
+RUN npm install
 
 # Create softhsm user and group with home directory
 RUN groupadd -r softhsm1 && useradd -r -g softhsm1 -m -d /home/softhsm1 softhsm1
