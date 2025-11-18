@@ -73,6 +73,8 @@ COPY ../../services/kms/softhsm2.conf /var/lib/softhsm/
 COPY ../../services/kms/init-hsm.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init-hsm.sh
 
+ENV NODE_ENV="production"
+
 # Set ownership of application files to softhsm1 user
 # RUN chown -R softhsm1:softhsm1 /app
 
