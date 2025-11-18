@@ -54,7 +54,7 @@ RUN node -v
 RUN npm -v
 
 RUN npm install -g pnpm
-RUN pnpm install
+RUN npm install
 
 ENV NODE_ENV="production"
 # Create softhsm user and group
@@ -86,4 +86,4 @@ ENTRYPOINT ["/usr/local/bin/init-hsm.sh"]
 
 # Keep container running and provide access to PKCS#11 library
 # CMD ["tail", "-f", "/dev/null"]
-CMD ["pnpm", "start:services:kms"]
+CMD ["npm", "run", "start:services:kms"]
