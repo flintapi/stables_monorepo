@@ -2,7 +2,7 @@
   "name": "@flintapi/kms",
   "version": "1.0.0",
   "type": "module",
-  "description": "KMS for managing secrets and keys for the wallet servicec",
+  "description": "KMS for managing secrets and keys for the wallet services",
   "keywords": [],
   "author": "miraclef60@gmail.com",
   "license": "ISC",
