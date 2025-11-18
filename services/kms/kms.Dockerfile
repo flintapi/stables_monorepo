@@ -18,7 +18,7 @@ RUN pnpm install
 
 RUN pnpm run build:services:kms
 
-FROM node:20-bookworm-slim
+FROM node:20-bookworm
 # WORKDIR /app
 
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
