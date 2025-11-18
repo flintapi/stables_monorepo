@@ -69,6 +69,14 @@ RUN node -v && \
 # RUN node -v
 # RUN npm -v
 
+ENV NODE_ENV="development"
+
+RUN npm install -g pnpm
+RUN pnpm install
+
+RUN pnpm rebuild pkcs11js --verbose
+RUN pnpm rebuild graphene-pk11 --verbose
+
 # Install pnpm using the official script
 # RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 # Set Python for node-gyp
@@ -110,13 +118,7 @@ ENV SOFTHSM2_CONF=/var/lib/softhsm/softhsm2.conf
 ENV PKCS11_MODULE_PATH=/usr/lib/softhsm/libsofthsm2.so
 ENV PNPM_HOME=/home/softhsm1/.local/share/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-ENV NODE_ENV="development"
 
-RUN npm install -g pnpm
-RUN pnpm install
-
-RUN pnpm rebuild pkcs11js --verbose
-RUN pnpm rebuild graphene-pk11 --verbose
 
 ENV NODE_ENV="production"
 # Initialize HSM on startup
