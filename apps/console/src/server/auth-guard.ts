@@ -17,7 +17,7 @@ export const authGuard = createServerFn()
   )
   .handler(async ({ data }) => {
     const request = getRequest()
-    console.log("Environemnt variable:", env)
+    console.log("Environemnt variable:", env, "process", process.env, "meta", import.meta.env)
     const { data: session } = await authClient.getSession({
       fetchOptions: { headers: request.headers },
     })
