@@ -19,7 +19,7 @@ RUN pnpm install
 RUN pnpm run build:services:kms
 
 FROM node:20-bookworm-slim
-# WORKDIR /app
+WORKDIR /app
 
 COPY --from=builder /app ./
 # COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
@@ -77,7 +77,7 @@ COPY ../../services/kms/init-hsm.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init-hsm.sh
 
 # Set ownership of application files to softhsm1 user
-RUN chown -R softhsm1:softhsm1 /
+RUN chown -R softhsm1:softhsm1 /app
 
 # Switch to softhsm user
 USER softhsm1
