@@ -6,6 +6,8 @@ WORKDIR /app
 COPY ../../pnpm-lock.yaml ../../package*.json ./
 COPY ../../pnpm-workspace.yaml ./
 
+RUN npm --version
+
 RUN npm install -g pnpm
 
 COPY ../../packages/shared ./packages/shared
