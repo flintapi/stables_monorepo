@@ -32,7 +32,7 @@ export function orgDb({ dbUrl }: OrgDatabaseProps) {
   return drizzle({
     connection: {
       url: dbUrl,
-      authToken: env.ORG_DATABASE_AUTH_TOKEN!,
+      authToken: env.ORG_DATABASE_AUTH_TOKEN,
     },
     casing: "snake_case",
     schema: orgSchema,
@@ -43,7 +43,8 @@ export function orgDb({ dbUrl }: OrgDatabaseProps) {
 export async function migrateDatabase(dbUrl: string) {
   const db = orgDb({ dbUrl });
 
-  console.log("Starting migration...");
+  console.log("DB URL", dbUrl);
+  console.log("Starting migration...", "Protocol:", db.$client.protocol);
   await migrate(db, { migrationsFolder: env.NODE_ENV !== "development"? "./dist/src/db/org-migrations" : "./src/db/org-migrations" });
   console.log("Migration finalised");
 
