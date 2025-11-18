@@ -7,7 +7,7 @@ app = 'kms-service'
 primary_region = 'lhr'
 
 [build]
-  dockerfile = './kms.Dockerfile'
+  dockerfile = './test2.kms.Dockerfile'
 
 [deploy]
   strategy = 'rolling'
