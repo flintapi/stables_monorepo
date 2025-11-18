@@ -24,7 +24,7 @@ export default function createApp() {
     .use(serveEmojiFavicon("📝"))
     .use(pinoLogger())
     .use(cors({
-      origin: ["*", "http://localhost:3000", "console.flintapi.io"], // expose to all origin for now
+      origin: ["*", "http://localhost:3000", "https://console.flintapi.io", "console.flintapi.io"], // expose to all origin for now
       credentials: true,
     }));
 

@@ -342,7 +342,7 @@ const authOptions = {
     multiSession(),
     twoFactor(),
   ],
-  trustedOrigins: ["*", "http://localhost:3000", "console.flintapi.io"], // TODO: update to fetch check IP and run allowed IPs
+  trustedOrigins: ["*", "http://localhost:3000", "https://console.flintapi.io", "console.flintapi.io"], // TODO: update to fetch check IP and run allowed IPs
   advanced: {
     cookiePrefix: `flint_sesh_`,
   },
