@@ -174,7 +174,7 @@ const authOptions = {
             }
           })
 
-          if(!orgExists || !orgExists.metadata?.dbUrl) {
+          if(!orgExists || !orgExists.metadata) {
             const tursoClient = tursoApi();
 
             const database = await tursoClient.databases.create(
