@@ -40,6 +40,9 @@ RUN apk add --no-cache \
   opensc \
   p11-kit \
   python3 \
+  build-base \
+  libc6-compat \
+  gcompat \
   make \
   g++ \
   gcc \
@@ -64,15 +67,11 @@ RUN node -v && \
 # RUN node -v
 # RUN npm -v
 
-RUN npm install -g pnpm
+# Install pnpm using the official script
+RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 # Set Python for node-gyp
 ENV PYTHON=/usr/bin/python3
 ENV npm_config_python=/usr/bin/python3
-
-RUN pnpm install --force
-# RUN npm install
-
-ENV NODE_ENV="production"
 
 # Create softhsm user and group with home directory
 # Alpine uses addgroup/adduser instead of groupadd/useradd
@@ -109,8 +108,14 @@ ENV SOFTHSM2_CONF=/var/lib/softhsm/softhsm2.conf
 ENV PKCS11_MODULE_PATH=/usr/lib/softhsm/libsofthsm2.so
 ENV PNPM_HOME=/home/softhsm1/.local/share/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-ENV NODE_ENV="production"
+ENV NODE_ENV="development"
 
+RUN pnpm install
+
+RUN pnpm rebuild pkcs11js --verbose
+RUN pnpm rebuild graphene-pk11 --verbose
+
+ENV NODE_ENV="production"
 # Initialize HSM on startup
 ENTRYPOINT ["/usr/local/bin/init-hsm.sh"]
 
