@@ -5,6 +5,7 @@ import { env } from "@/env";
 
 export const authClient = createAuthClient({
   baseURL: env.VITE_API_URL,
+  basePath: "/api/auth",
   plugins: [
     multiSessionClient(),
     twoFactorClient(),
