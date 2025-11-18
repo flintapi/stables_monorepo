@@ -62,7 +62,8 @@ RUN node -v
 RUN npm -v
 
 # Install pnpm globally as root
-RUN npm install
+RUN npm install -g pnpm
+RUN pnpm install --force
 
 # Create softhsm user and group with home directory
 RUN groupadd -r softhsm1 && useradd -r -g softhsm1 -m -d /home/softhsm1 softhsm1
