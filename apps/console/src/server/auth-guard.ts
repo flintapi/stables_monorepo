@@ -5,6 +5,7 @@ import { redirect } from '@tanstack/react-router'
 
 import { z } from 'zod'
 import { authClient } from '@/lib/auth-client'
+import { env } from '@/env'
 
 export const authGuard = createServerFn()
   .inputValidator(
@@ -16,6 +17,7 @@ export const authGuard = createServerFn()
   )
   .handler(async ({ data }) => {
     const request = getRequest()
+    console.log("Environemnt variable:", env)
     const { data: session } = await authClient.getSession({
       fetchOptions: { headers: request.headers },
     })
