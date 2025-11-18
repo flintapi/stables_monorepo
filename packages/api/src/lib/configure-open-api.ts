@@ -9,7 +9,8 @@ export default function configureOpenAPI(app: AppOpenAPI) {
     openapi: "3.0.0",
     info: {
       version: packageJSON.version,
-      title: "Tasks API",
+      title: "Stablestack API",
+      description: "The stablecoin development stack you need! 🚀"
     },
   });
 
@@ -19,6 +20,8 @@ export default function configureOpenAPI(app: AppOpenAPI) {
       url: "/doc",
       theme: "kepler",
       layout: "classic",
+      title: "Stablestack API Reference",
+      pageTitle: "Stablestack API Reference",
       defaultHttpClient: {
         targetKey: "js",
         clientKey: "fetch",
