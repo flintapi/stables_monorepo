@@ -142,9 +142,26 @@ const authOptions = {
             });
           }
 
+          // TODO: Save organization dbUrl
+          const tursoClient = tursoApi();
+
+          const database = await tursoClient.databases.create(
+            `${organization.slug}-tenant-db`,
+            {
+              group: "flintapi-tenants",
+            },
+          );
+          apiLogger.info("New organization database", database);
+
+          // TODO: Call migration function
+          await migrateDatabase(`libsql://${database.hostname}`);
+
           return {
             data: {
               ...organization,
+              metadata: {
+                dbUrl: `libsql://${database.hostname}`, // provissioned turso db url
+              }
             },
           };
         },
