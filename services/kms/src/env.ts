@@ -37,7 +37,7 @@ const EnvSchema = z
     SOFTHSM_SO_PIN: z.string(),
     SOFTHSM_USER_PIN: z.string(),
 
-    TREASURY_KEY_LABEL: z.string().min(18).max(1024),
+    TREASURY_KEY_LABEL: z.string().min(6).max(1024),
 
     // Better stack
     BETTER_STACK_TOKEN_ID: z.string().optional(),
