@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Image } from '@unpic/react'
-import { Github, Twitter } from 'lucide-react'
+import { Github, Linkedin, Twitter } from 'lucide-react'
 import { FlickeringGrid } from '@/components/ui/flickering-grid-hero'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -64,12 +64,12 @@ function App() {
           socialLinks={[
             {
               icon: <Twitter className="h-5 w-5" />,
-              href: 'https://twitter.com',
+              href: 'https://x.com/flintApi',
               label: 'Twitter',
             },
             {
-              icon: <Github className="h-5 w-5" />,
-              href: 'https://github.com',
+              icon: <Linkedin className="h-5 w-5" />,
+              href: 'https://www.linkedin.com/company/flint-api/',
               label: 'GitHub',
             },
           ]}
