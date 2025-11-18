@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20-bookworm AS builder
 
 # Build kms-service worker
 WORKDIR /app
@@ -18,20 +18,20 @@ RUN pnpm install
 
 RUN pnpm run build:services:kms
 
-FROM debian:bookworm-slim
+FROM node:20-bookworm-slim
 WORKDIR /app
 
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/turbo.json ./turbo.json
+COPY --from=builder /app ./
+# COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+# COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+# COPY --from=builder /app/package.json ./package.json
+# COPY --from=builder /app/turbo.json ./turbo.json
 # COPY --from=builder /app/node_modules ./node_modules
 
 # Copy over service folder and files
-COPY --from=builder /app/packages/shared ./packages/shared
-COPY --from=builder /app/services/kms/dist ./services/kms/dist
-# COPY --from=builder /app/services/ramp/src/db/migrations ./services/ramp/dist/src/db/migrations
-COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
+# COPY --from=builder /app/packages/shared ./packages/shared
+# COPY --from=builder /app/services/kms/dist ./services/kms/dist
+# COPY --from=builder /app/services/kms/package.json ./services/kms/package.json
 
 # Install SoftHSM2 and dependencies
 RUN apt-get update && apt-get install -y \
@@ -53,17 +53,11 @@ RUN apt-get update && apt-get install -y \
   automake \
   && rm -rf /var/lib/apt/lists/*
 
-# Add NodeSource repository and install Node.js (including npm)
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
-RUN apt-get update && apt-get install -y nodejs
-
-# Verify installation
-RUN node -v
-RUN npm -v
-
 # Install pnpm globally as root
 RUN npm install -g pnpm
-RUN pnpm install --force
+RUN pnpm install
+RUN pnpm rebuild pkcs11js --verbose
+RUN pnpm rebuild graphene-pk11 --verbose
 
 # Create softhsm user and group with home directory
 RUN groupadd -r softhsm1 && useradd -r -g softhsm1 -m -d /home/softhsm1 softhsm1
