@@ -26,7 +26,7 @@ COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/turbo.json ./turbo.json
-COPY --from=builder /app/node_modules ./node_modules
+# COPY --from=builder /app/node_modules ./node_modules
 
 # Copy over service folder and files
 COPY --from=builder /app/packages/shared ./packages/shared
@@ -54,9 +54,9 @@ RUN node -v
 RUN npm -v
 
 RUN npm install -g pnpm
-ENV NODE_ENV="production"
-# RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
+ENV NODE_ENV="production"
 # Create softhsm user and group
 RUN groupadd -r softhsm1 && useradd -r -g softhsm1 softhsm1
 
