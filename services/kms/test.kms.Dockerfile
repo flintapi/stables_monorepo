@@ -18,6 +18,8 @@ RUN pnpm install
 
 RUN pnpm run build:services:kms
 
+RUN ls -al ./node_modules/graphene-pk11
+
 FROM debian:bookworm-slim
 
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
@@ -53,7 +55,7 @@ RUN npm -v
 
 RUN npm install -g pnpm
 ENV NODE_ENV="production"
-RUN pnpm install --frozen-lockfile
+# RUN pnpm install --frozen-lockfile
 
 # Create softhsm user and group
 RUN groupadd -r softhsm1 && useradd -r -g softhsm1 softhsm1
