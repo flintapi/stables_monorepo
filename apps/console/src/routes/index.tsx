@@ -2,6 +2,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import logo from '../../public/icon.png?url'
 import { authClient } from '@/lib/auth-client'
+import { env } from '@/env'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -16,7 +17,11 @@ function App() {
     const initAuth = async () => {
       await new Promise((resolve) => setTimeout(resolve, 2000))
       if (!session) {
-        router.navigate({ to: '/auth', replace: true })
+        router.navigate({
+          to: '/auth',
+          replace: true,
+          search: { redirect: `${env.VITE_APP_URL}/overview` },
+        })
       } else {
         router.navigate({ to: '/overview', replace: true })
       }

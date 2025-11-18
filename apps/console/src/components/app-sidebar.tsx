@@ -144,6 +144,8 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { session } = useRouteContext({ from: '/_authed' })
 
+  console.log('Session', session)
+
   const { data: orgList, error } = useQuery(getOrganizationsQueryOptions)
 
   if (error) {

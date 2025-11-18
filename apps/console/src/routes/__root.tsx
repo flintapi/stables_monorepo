@@ -64,7 +64,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <body>
           {children}
           <Toaster expand />
-          {env.NODE_ENV === 'development' && (
+          {env.VITE_ENV === 'development' && (
             <TanStackDevtools
               config={{
                 position: 'bottom-left',
