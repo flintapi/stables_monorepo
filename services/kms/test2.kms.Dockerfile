@@ -20,6 +20,8 @@ RUN pnpm run build:services:kms
 
 FROM node:20-alpine AS runner
 
+WORKDIR /app
+
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/package.json ./package.json
@@ -68,7 +70,7 @@ RUN node -v && \
 # RUN npm -v
 
 # Install pnpm using the official script
-RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
+# RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 # Set Python for node-gyp
 ENV PYTHON=/usr/bin/python3
 ENV npm_config_python=/usr/bin/python3
@@ -110,6 +112,7 @@ ENV PNPM_HOME=/home/softhsm1/.local/share/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 ENV NODE_ENV="development"
 
+RUN npm install -g pnpm
 RUN pnpm install
 
 RUN pnpm rebuild pkcs11js --verbose
