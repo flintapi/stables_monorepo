@@ -19,3 +19,4 @@ This service acts as a central entry point for all incoming requests to the Flin
 - Request caching and queuing
 
 TODO: move this over the `README.md` file
+TODO: Implement notification for amounts over 2M
