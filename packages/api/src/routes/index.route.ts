@@ -27,31 +27,6 @@ const router = createRouter().openapi(
     },
   }),
   async (c) => {
-    try {
-      const chainId = networkToChainidMap['base'];
-      const getAddressJob = await kmsQueue.add(
-        "get-address",
-        {
-          chainId,
-          type: "eoa",
-          keyLabel: env.TREASURY_KEY_LABEL,
-        },
-        {
-          jobId: `kms-get-address-${chainId}-${c.get("requestId")}`,
-        },
-      );
-
-      // TODO: Get deposit address
-      const result = (await getAddressJob.waitUntilFinished(
-        kmsQueueEvents,
-        1000*10
-      )) as { address: Address; index?: number };
-      apiLogger.info("Treasury address", result)
-    }
-    catch(error: any) {
-      apiLogger.error("Failed getting treasury address", error);
-    }
-
     return c.json(
       {
         message: "Ramp and wallet service API",
