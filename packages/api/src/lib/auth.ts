@@ -175,6 +175,7 @@ const authOptions = {
           })
 
           if(!orgExists || !orgExists.metadata) {
+            console.log("Metadata and database does not exist")
             const tursoClient = tursoApi();
 
             const database = await tursoClient.databases.create(
