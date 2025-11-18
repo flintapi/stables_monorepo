@@ -4,12 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "start": "node .output/server/index.mjs",
-    "build": "vite build",
+    "start": "pnpm with-env node .output/server/index.mjs",
+    "build": "pnpm with-env vite build",
     "serve": "vite preview",
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
+    "with-env": "dotenv -e .env --",
     "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
