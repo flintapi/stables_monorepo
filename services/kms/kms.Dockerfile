@@ -19,6 +19,7 @@ RUN pnpm install
 RUN pnpm run build:services:kms
 
 FROM debian:bookworm-slim
+WORKDIR /app
 
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
