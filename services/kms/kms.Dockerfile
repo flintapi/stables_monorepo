@@ -6,8 +6,6 @@ WORKDIR /app
 COPY ../../pnpm-lock.yaml ../../package*.json ./
 COPY ../../pnpm-workspace.yaml ./
 
-RUN npm --version
-
 RUN npm install -g pnpm
 
 COPY ../../packages/shared ./packages/shared
@@ -16,7 +14,7 @@ COPY ../../turbo.json ./
 
 ENV NODE_ENV="development"
 
-RUN npm install
+RUN pnpm install
 
 RUN pnpm run build:services:kms
 
@@ -56,7 +54,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
-RUN npm install
+RUN pnpm install
 # RUN pnpm install
 # RUN pnpm rebuild pkcs11js --verbose
 # RUN pnpm rebuild graphene-pk11 --verbose
