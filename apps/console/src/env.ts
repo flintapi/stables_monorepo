@@ -16,9 +16,11 @@ export const env = createEnv({
   client: {
     VITE_APP_TITLE: z.string().min(1).optional(),
     VITE_APP_URL: z.string().min(1),
-    VITE_API_URL: z.string().min(1)
+    VITE_API_URL: z.string().min(1),
   },
-
+  shared: {
+    NODE_ENV: z.string().default("development")
+  },
   /**
    * What object holds the environment variables at runtime. This is usually
    * `process.env` or `import.meta.env`.

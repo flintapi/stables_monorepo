@@ -16,6 +16,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 import { Layout } from '@/components/craft'
 import { Toaster } from '@/components/ui/sonner'
+import { env } from '@/env'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -63,19 +64,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <body>
           {children}
           <Toaster expand />
-          <TanStackDevtools
-            config={{
-              position: 'bottom-left',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-              StoreDevtools,
-              TanStackQueryDevtools,
-            ]}
-          />
+          {env.NODE_ENV === 'development' && (
+            <TanStackDevtools
+              config={{
+                position: 'bottom-left',
+              }}
+              plugins={[
+                {
+                  name: 'Tanstack Router',
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+                StoreDevtools,
+                TanStackQueryDevtools,
+              ]}
+            />
+          )}
           <Scripts />
         </body>
       </Layout>
