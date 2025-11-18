@@ -33,6 +33,7 @@ const walletQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const walletQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
 
 const authOptions = {
+  baseURL: env.API_GATEWAY_URL || env.API_URL,
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: { ...appSchema, apikey: appSchema.apikey },
