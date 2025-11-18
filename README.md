@@ -34,3 +34,13 @@ validations, Callback/Webhook URL call invocations, Handle triggered blockchain 
 - Carefully managed job processing configurations, queue management and concurrent/parallels.
 
 This unlocks another layer of interservice communication
+
+kms service work around for pkcs11js package to build
+
+```json
+{
+  "pnpm": {
+    "onlyBuiltDependencies": ["pkcs11js"]
+  }
+}
+```
