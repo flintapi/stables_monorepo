@@ -187,11 +187,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter className="justify-center">
         <NavUser
-          user={{
-            name: session.user.name,
-            email: session.user.email,
-            avatar: session.user.image as string | undefined,
-          }}
+          user={
+            session?.user
+              ? {
+                  name: session.user.name,
+                  email: session.user.email,
+                  avatar: (session.user as { image: string | undefined }).image,
+                }
+              : { name: 'Loading...', email: 'Loading...', avatar: undefined }
+          }
         />
       </SidebarFooter>
     </Sidebar>
