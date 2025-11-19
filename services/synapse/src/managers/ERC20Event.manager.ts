@@ -77,7 +77,7 @@ export default class EventListenerManager {
     // });
 
     eventProcessor.on("shutdown", (id: string) => {
-      // console.log(`Database writer ${id} is shutting down`);
+      console.log(`Shutdown event emitted: listener ID: ${id}`);
 
       this.stopListener(id);
     });
@@ -175,6 +175,7 @@ export default class EventListenerManager {
 
     // Remove from persistent store if not persistent
     if (!listener.config.persistent) {
+      console.log("Clearing cache....")
       const cache = await createListenerCache();
       await cache.deleteListener(id);
     }
