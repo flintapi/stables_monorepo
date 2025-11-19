@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as HttpStatusCodes from "stoker/http-status-codes";
-import { Webhook } from "svix";
+// import Webhook from "@/lib/webhook-trigger";
+import {Webhook as SvixWebhook} from "svix"
 
 import type { AppRouteHandler } from "@/lib/types";
 
@@ -34,7 +35,7 @@ export const centiiv: AppRouteHandler<CentiivRoute> = async (c) => {
 
   try {
     // TODO: consume webhook and update transaction in db
-    const wh = new Webhook(env.CENTIIV_WH_SECRET_KEY!);
+    const wh = new SvixWebhook(env.CENTIIV_WH_SECRET_KEY!);
     const msg = wh.verify(JSON.stringify(body), headers) as Record<string, any>;
     console.log("Event msg", msg);
 
@@ -77,6 +78,7 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
     try {
       const amount = body?.amountReceived;
       const result = await fetchVirtualAccount(body?.virtualAccount);
+      const nonce = crypto.randomUUID().substring(0, 6)
 
       if (!result.transactionId) {
         return c.json(
@@ -94,7 +96,7 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
           amountReceived: Number(amount),
         },
         {
-          jobId: `ramp-on-ramp-${result.transactionId}`,
+          jobId: `ramp-on-ramp-${result.transactionId}-${nonce}`,
           attempts: 3,
         },
       );
@@ -251,6 +253,7 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
     console.log("Still pending payout...", body)
   }
   // TODO: Call webhook utility function
+  // Webhook.trigger(transaction.metadata?.notifyUrl, )
 
   return c.text('success', HttpStatusCodes.OK);
 };
