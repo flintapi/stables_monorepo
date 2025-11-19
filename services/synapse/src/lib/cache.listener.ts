@@ -35,9 +35,11 @@ export async function createListenerCache() {
           transport: http(rpc),
         });
 
+        console.log("Restored config", config, "Typeof rampData: ", typeof config?.rampData);
+
         const listenerService = new EventListenerService(publicClient);
         const { listenerId: restoredListenerId } = await listenerService.CreateOfframpListener(
-          config as EventServiceJob,
+          {...config, rampData: JSON.parse(config?.rampData)} as EventServiceJob,
           listenerId
         );
         console.log("Restored listener id", restoredListenerId);
