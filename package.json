@@ -22,6 +22,7 @@
     "build:services:kms": "turbo build --filter=@flintapi/kms",
     "build:packages:api": "turbo build --filter=@flintapi/api",
     "db": "pnpm run --filter @flintapi/payout db:generate && pnpm run --filter @flintapi/payout db:migrate",
+    "db:migrate:services:synapse": "pnpm run --filter @flintapi/synapse db:migration",
     "build:services:payout": "pnpm run --filter @flintapi/payout build",
     "start:services:payout": "pnpm run --filter @flintapi/payout start",
     "start:services:synapse": "pnpm run --filter @flintapi/synapse start",
