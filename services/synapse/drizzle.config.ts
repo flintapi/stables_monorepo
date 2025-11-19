@@ -3,8 +3,8 @@ import { defineConfig } from "drizzle-kit";
 import env from "@/env";
 
 export default defineConfig({
-  schema: "./src/db/schema.ts",
-  out: "./src/db/migrations",
+  schema: env.NODE_ENV !== "development"? "./dist/src/db/schema.js" : "./src/db/schema.ts",
+  out: env.NODE_ENV !== "development"? "./dist/src/db/migrations" : "./src/db/migrations",
   dialect: env.NODE_ENV !== "development" ? "turso" : "sqlite",
   casing: "snake_case",
   dbCredentials: {

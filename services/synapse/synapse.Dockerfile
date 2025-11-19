@@ -38,6 +38,8 @@ ENV NODE_ENV="production"
 RUN npm install -g pnpm
 RUN pnpm install
 
+# MIgrate db
+
 EXPOSE 9990
 
 CMD ["pnpm", "start:services:synapse"]

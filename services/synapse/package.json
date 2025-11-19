@@ -11,6 +11,7 @@
     "dev": "pnpm with-env tsx watch ./src/worker.ts",
     "start": "node ./dist/src/worker.js",
     "build": "tsc && tsc-alias",
+    "db:migration": "npx drizzle-kit migrate --config ./dist/drizzle.config.js",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e .env --"
   },
