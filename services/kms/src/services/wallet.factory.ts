@@ -32,7 +32,7 @@ import {
 import { indexManager } from "@flintapi/shared/Utils";
 import { KERNEL_V3_VERSION_TYPE } from "@zerodev/sdk/types";
 import { kmsLogger } from "@flintapi/shared/Logger";
-import { GetPaymasterDataReturnType } from "viem/account-abstraction";
+import { GetPaymasterDataReturnType, GetPaymasterStubDataReturnType } from "viem/account-abstraction";
 
 // Types and interfaces
 export interface CollectionAddressParams {
@@ -275,6 +275,16 @@ class WalletFactory {
           catch(error: any) {
             kmsLogger.error("Failed to get paymaster data")
             return {} as GetPaymasterDataReturnType
+          }
+        },
+        getPaymasterStubData: async (userOperation) =>{
+          kmsLogger.info("Getting paymaster stub data...")
+          try {
+            return await paymasterClient.sponsorUserOperation({userOperation})
+          }
+          catch(error: any) {
+            kmsLogger.error("Failed to get paymaster stub data")
+            return {} as GetPaymasterStubDataReturnType
           }
         }
       }}),

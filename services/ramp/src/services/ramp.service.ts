@@ -16,7 +16,6 @@ import { encodeFunctionData, parseAbi, parseUnits } from "viem";
 import db, { orgDb } from "@/db";
 import env from "@/env";
 import { eq } from "drizzle-orm";
-import { account } from "node_modules/@flintapi/shared/dist/Utils/db/app-schema";
 
 const walletQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const walletQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -142,6 +141,7 @@ class Ramp {
     const chainId = networkToChainidMap[transaction.network];
     const token = TOKEN_ADDRESSES[chainId].cngn;
 
+    const nonce = crypto.randomUUID().substring(0, 6);
     const job = await walletQueue.add(
       "sign-transaction",
       {
@@ -159,7 +159,7 @@ class Ramp {
         }),
         contractAddress: token.address as Address,
       },
-      { jobId: `kms-payout-${chainId}-cngn-${transaction.id}`, attempts: 1 },
+      { jobId: `kms-payout-${chainId}-cngn-${transaction.id}-${nonce}`, attempts: 1 },
     );
 
     const result = (await job.waitUntilFinished(walletQueueEvents)) as {
