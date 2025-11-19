@@ -176,19 +176,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
 export const banks: AppRouteHandler<BankListRequest> = async (c) => {
   try {
-    apiLogger.info("Palmpay details", {
-      pUrl: env.PALMPAY_API_URL,
-      pAppId: env.PALMPAY_APP_ID,
-      pMerchId: env.PALMPAY_MERCHANT_ID,
-      pMerchPk: env.PALMPAY_MERCHANT_PK
-    })
-    console.log("Palmpay details", {
-      pUrl: env.PALMPAY_API_URL,
-      pAppId: env.PALMPAY_APP_ID,
-      pMerchId: env.PALMPAY_MERCHANT_ID,
-      pMerchPk: env.PALMPAY_MERCHANT_PK
-    })
-    const provider = PaymentProvider.PALMPAY;
+    const provider = PaymentProvider.BELLBANK;
 
     const paymentContext = new FiatPaymentContext(provider);
 
