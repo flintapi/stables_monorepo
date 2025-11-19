@@ -31,6 +31,8 @@ import {
 } from "./wallet.constants";
 import { indexManager } from "@flintapi/shared/Utils";
 import { KERNEL_V3_VERSION_TYPE } from "@zerodev/sdk/types";
+import { kmsLogger } from "@flintapi/shared/Logger";
+import { GetPaymasterDataReturnType } from "viem/account-abstraction";
 
 // Types and interfaces
 export interface CollectionAddressParams {
@@ -265,7 +267,17 @@ class WalletFactory {
       account,
       client: publicClient,
       chain: publicClient.chain,
-      paymaster: paymasterClient,
+      ...(publicClient.chain?.testnet && {paymaster: {
+        getPaymasterData: async (userOperation) =>{
+          try {
+            return await paymasterClient.sponsorUserOperation({userOperation})
+          }
+          catch(error: any) {
+            kmsLogger.error("Failed to get paymaster data")
+            return {} as GetPaymasterDataReturnType
+          }
+        }
+      }}),
       bundlerTransport: http(
         getBundlerUrl(
           publicClient.chain!.id as ChainId,
@@ -274,8 +286,14 @@ class WalletFactory {
       ), // Pick first one by default
       userOperation: {
         estimateFeesPerGas: async ({ bundlerClient }) => {
-          return getUserOperationGasPrice(bundlerClient)
-        }
+          if(publicClient.chain?.testnet) {
+            return getUserOperationGasPrice(bundlerClient)
+          }
+          return {
+            maxFeePerGas: BigInt(0),
+            maxPriorityFeePerGas: BigInt(0),
+          }
+        },
       },
       ...kernelClientConfig,
     });
