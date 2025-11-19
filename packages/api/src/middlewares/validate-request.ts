@@ -62,7 +62,8 @@ export const validateRequest = () =>
 
     // const orgMetadata = organization.metadata as OrgMetadata;
 
-    const orgDatabase = orgDb({ dbUrl: organization.metadata!.dbUrl });
+    const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+    const orgDatabase = orgDb({ dbUrl: metadata.dbUrl });
 
     c.set("organization", organization as Organization);
     c.set("orgDatabase", orgDatabase);
