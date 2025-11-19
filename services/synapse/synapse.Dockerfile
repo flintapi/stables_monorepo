@@ -31,6 +31,8 @@ COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/services/synapse/dist ./services/synapse/dist
 COPY --from=builder /app/services/synapse/src/db/migrations ./services/synapse/dist/src/db/migrations
 COPY --from=builder /app/services/synapse/package.json ./services/synapse/package.json
+COPY --from=builder /app/services/synapse/db-migration.sh ./services/synapse/db-migration.sh
+RUN chmod +x ./services/synapse/db-migration.sh
 
 # Make an entry point script that has access to the env to run db migrations
 ENV NODE_ENV="production"
@@ -38,10 +40,7 @@ ENV NODE_ENV="production"
 RUN npm install -g pnpm
 RUN pnpm install
 
-RUN pnpm db:migrate:services:synapse
-
 # MIgrate db
-
-EXPOSE 9990
+ENTRYPOINT ["./services/synapse/db-migration.sh"]
 
 CMD ["pnpm", "start:services:synapse"]
