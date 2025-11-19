@@ -34,8 +34,12 @@ class Ramp {
           return ops.eq(fields.id, organizationId);
         },
       });
+      if(!organization) {
+        throw new Error("Organization not found")
+      }
+      const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
       const transaction = await orgDb({
-        dbUrl: (organization?.metadata as { dbUrl: string })?.dbUrl,
+        dbUrl: (metadata as { dbUrl: string })?.dbUrl,
       }).query.transactions.findFirst({
         where(fields, ops) {
           return ops.eq(fields.id, transactionId);
@@ -64,8 +68,12 @@ class Ramp {
           return ops.eq(fields.id, organizationId);
         },
       });
+      if(!organization) {
+        throw new Error("Organization not found")
+      }
+      const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
       const transaction = await orgDb({
-        dbUrl: (organization?.metadata as { dbUrl: string })?.dbUrl,
+        dbUrl: metadata?.dbUrl
       }).query.transactions.findFirst({
         where(fields, ops) {
           return ops.eq(fields.id, transactionId);
@@ -114,7 +122,8 @@ class Ramp {
       throw new Error("Organization not found");
     }
 
-    const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl! });
+    const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+    const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
 
     const transaction = await orgDatabase.query.transactions.findFirst({
       where(fields, ops) {
