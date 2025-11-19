@@ -176,7 +176,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
 export const banks: AppRouteHandler<BankListRequest> = async (c) => {
   try {
-    const provider = PaymentProvider.BELLBANK;
+    const provider = PaymentProvider.PALMPAY;
 
     const paymentContext = new FiatPaymentContext(provider);
 
