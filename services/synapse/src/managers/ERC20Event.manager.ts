@@ -58,10 +58,10 @@ export default class EventListenerManager {
     const eventProcessor = new EventProcessor(config, config.id);
     // TODO: Bring in database processor
     // const metricsCollector = new MetricsCollector(config, config.id);
-    const databaseWriter = new DatabaseWriter(
-      { ...config, organizationId, transactionId },
-      config.id,
-    );
+    // const databaseWriter = new DatabaseWriter(
+    //   { ...config, organizationId, transactionId },
+    //   config.id,
+    // );
 
     // Handle stream events
     eventStream.on("pause-watcher", () => {
@@ -72,18 +72,18 @@ export default class EventListenerManager {
       console.log(`Resuming watcher for ${config.id}`);
     });
 
-    databaseWriter.once("error", (err) => {
-      console.log("Error in database writer", err);
-    });
+    // databaseWriter.once("error", (err) => {
+    //   console.log("Error in database writer", err);
+    // });
 
-    databaseWriter.on("shutdown", (id: string) => {
-      console.log(`Database writer ${id} is shutting down`);
+    eventProcessor.on("shutdown", (id: string) => {
+      // console.log(`Database writer ${id} is shutting down`);
 
       this.stopListener(id);
     });
 
     // Start processing pipeline
-    this.startEventPipeline(eventStream, eventProcessor, databaseWriter);
+    this.startEventPipeline(eventStream, eventProcessor);
 
     // Create viem watcher with backpressure awareness
     console.log(config.filter, ":::Filter for event");
@@ -147,10 +147,10 @@ export default class EventListenerManager {
   private async startEventPipeline(
     eventStream: EventStream,
     eventProcessor: EventProcessor,
-    metricsCollector: DatabaseWriter,
+    // metricsCollector?: DatabaseWriter,
   ) {
     try {
-      await pipeline(eventStream, eventProcessor, metricsCollector);
+      await pipeline(eventStream, eventProcessor);
     } catch (error) {
       console.error("Event processing pipeline error:", error);
     }
