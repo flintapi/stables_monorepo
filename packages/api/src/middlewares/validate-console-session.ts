@@ -25,18 +25,22 @@ export const validateConsoleSession = () =>
           return ops.eq(fields.id, organizationId);
         },
       });
+      console.log("Organization found...", organization)
 
       if (!organization) {
         return c.json({message: "No organization found with api key"}, HttpStatusCodes.NOT_FOUND)
       }
+      const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+      console.log("Metadata parsed...", metadata)
 
-      const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl! });
+      const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
+
+      const transaction = await orgDatabase.query.transactions.findMany()
 
       c.set("organization", organization as Organization);
       c.set("orgDatabase", orgDatabase);
-
-      console.log("Organization", organization);
     } else {
+      console.log("Active org not set...")
     }
 
     console.log("No organization ID");

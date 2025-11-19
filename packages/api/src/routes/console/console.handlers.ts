@@ -11,7 +11,7 @@ import type {
 export const transactionList: AppRouteHandler<TransactionListRoute> = async (
   c,
 ) => {
-  const organization = c.get("organization");
+  // const organization = c.get("organization");
   const orgDatabase = c.get("orgDatabase");
 
   const transactions = await orgDatabase.query.transactions.findMany();
@@ -19,7 +19,7 @@ export const transactionList: AppRouteHandler<TransactionListRoute> = async (
 };
 
 export const walletList: AppRouteHandler<WalletListRoute> = async (c) => {
-  const organization = c.get("organization");
+  // const organization = c.get("organization");
   const orgDatabase = c.get("orgDatabase");
 
   const wallets = await orgDatabase.query.wallet.findMany();
@@ -27,8 +27,8 @@ export const walletList: AppRouteHandler<WalletListRoute> = async (c) => {
 };
 
 export const eventList: AppRouteHandler<EventListRoute> = async (c) => {
-  const organization = c.get("organization");
-  const orgDatabase = c.get("orgDatabase");
+  // const organization = c.get("organization");
+  // const orgDatabase = c.get("orgDatabase");
 
   // TODO: Get event database and fetch and join with organization
   // const events = await orgDatabase.query.events.findMany();

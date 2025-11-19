@@ -1,16 +1,23 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowUpRight, BookIcon, GitGraph } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { AlertCircleIcon, ArrowUpRight, BookIcon, GitGraph } from 'lucide-react'
+import { QueryErrorResetBoundary, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { BaseLink } from './-components/ConsoleLink'
 import { Activities } from './-components/Activities'
 import { showCreateOrgModal } from './-components/modals/CreateOrganization'
 import { Container, Main, Section } from '@/components/craft'
 import { getOrganizationsQueryOptions } from '@/lib/api-client'
+import { ErrorBoundary } from 'react-error-boundary'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export const Route = createFileRoute('/_authed/overview')({
   component: RouteComponent,
+  errorComponent: ({ error }) => {
+    toast.error(error.name, {
+      description: error.message,
+    })
+  },
 })
 
 function RouteComponent() {
@@ -77,7 +84,39 @@ function RouteComponent() {
             </Button>
           </div>
         ) : (
-          <Activities />
+          <QueryErrorResetBoundary>
+            {({ reset }) => (
+              <ErrorBoundary
+                onReset={reset}
+                fallbackRender={({ resetErrorBoundary }) => (
+                  <Alert variant="destructive">
+                    <AlertCircleIcon />
+                    <AlertTitle>Unable to load data.</AlertTitle>
+                    <AlertDescription>
+                      <p>
+                        Please verify your internet connection, or make sure you
+                        have created an API key and carried out a transaction.
+                      </p>
+                      <ul className="list-inside list-disc text-sm">
+                        <li>Check your internet connection</li>
+                        <li>Ensure API Key is created</li>
+                        <li>Transaction has been created</li>
+                      </ul>
+                    </AlertDescription>
+                    <Button
+                      onClick={() => resetErrorBoundary()}
+                      variant="secondary"
+                      size="default"
+                    >
+                      Try again
+                    </Button>
+                  </Alert>
+                )}
+              >
+                <Activities />
+              </ErrorBoundary>
+            )}
+          </QueryErrorResetBoundary>
         )}
       </Section>
     </Main>

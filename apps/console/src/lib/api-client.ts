@@ -66,6 +66,7 @@ export type OrganizationTransaction = {
 }
 export const getOrganizationTransactionsQueryOptions = queryOptions({
   queryKey: ['organization', 'transactions'],
+  initialData: [],
   queryFn: async () => {
     try {
       const response = await fetch(
@@ -110,6 +111,7 @@ export type OrganizationWallet = {
 }
 export const getOrganizationWalletsQueryOptions = queryOptions({
   queryKey: ['organization', 'wallets'],
+  initialData: [],
   queryFn: async () => {
     try {
       const response = await fetch(`${env.VITE_API_URL}/v1/console/wallets`, {

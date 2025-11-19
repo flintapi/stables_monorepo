@@ -29,6 +29,7 @@ interface OrgDatabaseProps {
   dbUrl: string;
 }
 export function orgDb({ dbUrl }: OrgDatabaseProps) {
+  console.log("Getting database...", env.ORG_DATABASE_AUTH_TOKEN)
   return drizzle({
     connection: {
       url: dbUrl,

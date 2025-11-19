@@ -22,7 +22,12 @@ import {
 } from '@/components/ui/sidebar'
 import { showCreateOrgModal } from '@/routes/_authed/-components/modals/CreateOrganization'
 import { authClient } from '@/lib/auth-client'
-import * as queryOptions from '@/lib/api-client'
+import {
+  getOrganizationTransactionsQueryOptions,
+  getOrganizationWalletsQueryOptions,
+  getOrganizationApiKeysQueryOptions,
+  getOrganizationsQueryOptions,
+} from '@/lib/api-client'
 
 export function TeamSwitcher({
   teams,
@@ -91,8 +96,12 @@ export function TeamSwitcher({
                     })
                   }
 
-                  for (const option of Object.values(queryOptions)) {
-                    queryClient.invalidateQueries({
+                  for (const option of Object.values({
+                    getOrganizationTransactionsQueryOptions,
+                    getOrganizationWalletsQueryOptions,
+                    getOrganizationsQueryOptions,
+                  })) {
+                    await queryClient.resetQueries({
                       queryKey: option.queryKey,
                     })
                   }
