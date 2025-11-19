@@ -75,9 +75,14 @@ export const getOrganizationTransactionsQueryOptions = queryOptions({
           credentials: 'include',
         },
       )
-      const data = (await response.json()) as Array<OrganizationTransaction>
+      if(response.ok) {
+        const data = (await response.json()) as Array<OrganizationTransaction>
+        return data
+      }
 
-      return data
+      const failedResponse = await response.json() as {message: string};
+      throw new Error(failedResponse.message)
+
     } catch (error: any) {
       throw error
     }
@@ -111,10 +116,14 @@ export const getOrganizationWalletsQueryOptions = queryOptions({
         method: 'GET',
         credentials: 'include',
       })
+      if(response.ok) {
+        const data = (await response.json()) as Array<OrganizationWallet>
 
-      const data = (await response.json()) as Array<OrganizationWallet>
+        return data
+      }
 
-      return data
+      const failedResponse = await response.json() as {message: string};
+      throw new Error(failedResponse.message)
     } catch (error: any) {
       console.log('Error occured fetching wallets', error)
       throw error
