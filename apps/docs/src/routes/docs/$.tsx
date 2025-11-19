@@ -82,8 +82,8 @@ function Page() {
       links={[
         {
           type: 'main',
-          text: 'Token Faucet',
-          url: 'https://faucet.flintapi.io',
+          text: 'API Reference',
+          url: 'https://stables.flintapi.io/reference',
           external: true,
         },
         {
