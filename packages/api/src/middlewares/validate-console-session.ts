@@ -1,4 +1,5 @@
 import { createMiddleware } from "hono/factory";
+import * as HttpStatusCodes from "stoker/http-status-codes";
 
 import { auth } from "@/lib/auth";
 import db, { orgDb } from "@/db";
@@ -14,10 +15,7 @@ export const validateConsoleSession = () =>
     });
 
     if (!session) {
-      throw new APIError("BAD_REQUEST", {
-        message: "Invalid session, login to continue",
-        code: "BAD_REQUEST",
-      });
+      return c.json({message: "Invalid session, login to continue",}, HttpStatusCodes.BAD_REQUEST)
     }
 
     if ("activeOrganizationId" in session?.session) {
@@ -28,13 +26,9 @@ export const validateConsoleSession = () =>
         },
       });
 
-      if (!organization)
-        throw new APIError("NOT_FOUND", {
-          message: "No organization found with api key",
-          code: "ORG_NOT_FOUND",
-        });
-
-      // const orgMetadata = organization.metadata as OrgMetadata;
+      if (!organization) {
+        return c.json({message: "No organization found with api key"}, HttpStatusCodes.NOT_FOUND)
+      }
 
       const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl! });
 
