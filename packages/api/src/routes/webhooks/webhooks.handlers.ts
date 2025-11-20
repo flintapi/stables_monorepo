@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 // import Webhook from "@/lib/webhook-trigger";
-import {Webhook as SvixWebhook} from "svix"
+import { Webhook as SvixWebhook } from "svix"
 
 import type { AppRouteHandler } from "@/lib/types";
 
@@ -72,7 +72,6 @@ export const centiiv: AppRouteHandler<CentiivRoute> = async (c) => {
 
 export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
   const body = c.req.valid("json");
-  console.log("Event log", body);
 
   if (body?.event === "collection") {
     try {
@@ -81,6 +80,7 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
       const nonce = crypto.randomUUID().substring(0, 6)
 
       if (!result.transactionId) {
+        apiLogger.warn("No transaction found in bellbank on-ramp webhook:", body)
         return c.json(
           { success: false, message: "No transaction found" },
           HttpStatusCodes.BAD_REQUEST,
@@ -99,13 +99,13 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
           jobId: `ramp-on-ramp-${result.transactionId}-${nonce}`,
           attempts: 3,
         },
-      );
+      ).then((job) => apiLogger.info("On-Ramp Job sent...", job.data));
       return c.json(
         { success: true, message: "Transaction processed successfully" },
         HttpStatusCodes.OK,
       );
     } catch (error: any) {
-      apiLogger.error("Bellbank webhook failed", error);
+      apiLogger.error("Failed to add On-Ramp Job", error);
       return c.json(
         {
           success: false,
@@ -115,6 +115,7 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
       );
     }
   } else {
+    apiLogger.info("Invalid bellbank event, expected 'collection'", body)
     return c.json(
       {
         success: false,
@@ -127,17 +128,15 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
 
 export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
   const body = c.req.valid("json");
-  console.log("Event log", body);
-  console.log("Event headers", c.req.raw.headers);
 
   const transactionId = body.transactionId;
   const organizationId = body.organizationId;
   const amountReceived = body.amountReceived;
   const type = body?.type;
   const event = JSON.parse(body.event);
-  apiLogger.info("Event from synapse service", event);
+  apiLogger.info("Event from synapse service", {event, body});
 
-  if(type !== "off") {
+  if (type !== "off") {
     return c.json(
       {
         success: false,
@@ -148,7 +147,6 @@ export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
   }
 
   try {
-    // TODO: Add off-ramp job to ramp service queue
     await rampQueue.add(
       "off-ramp",
       {
@@ -161,7 +159,7 @@ export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
         jobId: `ramp-off-ramp-${transactionId}`,
         attempts: 2,
       },
-    );
+    ).then((jsb) => apiLogger.info("Off-Ramp Job sent...", jsb.data));
     return c.json(
       {
         success: true,
@@ -170,6 +168,7 @@ export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
       HttpStatusCodes.OK,
     );
   } catch (error: any) {
+    apiLogger.error("Failed to add Off-Ramp Job", error)
     return c.json(
       {
         success: false,
@@ -190,11 +189,11 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
     }
   })
 
-  if(!organization) {
+  if (!organization) {
     return c.text('failed', HttpStatusCodes.BAD_REQUEST);
   }
 
-  const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata);
+  const metadata = typeof organization.metadata !== 'string' ? organization.metadata : JSON.parse(organization.metadata);
   const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
   // TODO: validate transaction
   const transaction = await orgDatabase.query.transactions.findFirst({
@@ -202,13 +201,15 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
       return ops.eq(fields.id, params.transactionId)
     }
   })
-  if(!transaction) {
+  if (!transaction) {
     return c.text('failed', HttpStatusCodes.BAD_REQUEST);
+  } else if (transaction.status === "completed") {
+    return c.text('success', HttpStatusCodes.OK)
   }
 
   // TODO: Update transaction status
-  if(body.orderStatus === 3) {
-  // TODO: trigger refund or sweep to treasury if failed
+  if (body.orderStatus === 3) {
+    // TODO: trigger refund or sweep to treasury if failed
     const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
       .set({
         status: "failed",
@@ -217,15 +218,16 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
       .returning();
     console.log("Transaction update", updatedTransaction);
     // TODO: Optionally trigger refund
-  } else if(body.orderStatus === 2) {
+  } else if (body.orderStatus === 2) {
     const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
       .set({
         status: "completed",
       })
       .where(eq(orgSchema.transactions.id, transaction.id))
       .returning();
-    // TODO: Trigger sweep
-    const result = await sweepFunds(env.TREASURY_KEY_LABEL, {
+    apiLogger.info("Off-Ramp Transaction completed", updatedTransaction)
+
+    await sweepFunds(env.TREASURY_KEY_LABEL, {
       chainId: networkToChainidMap[transaction.network],
       amount: transaction.amount,
       destinationAddress: env.TREASURY_EVM_ADDRESS,
@@ -233,25 +235,27 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
       queueEvents: kmsQueueEvents,
       index: transaction.metadata?.index || 0,
       transactionId: transaction.id,
-    }).catch((error: any) => null);
+    }).catch((error: any) => {
+      apiLogger.error("Failed to sweep off-ramp funds", error);
+      return null;
+    })
+      .then(async (result) => {
+        if (result) {
+          const [sweepUpdatedTransaction] = await orgDatabase.update(orgSchema.transactions)
+            .set({
+              metadata: {
+                ...transaction.metadata!,
+                sweepHash: result.hash
+              },
+            })
+            .where(eq(orgSchema.transactions.id, transaction.id))
+            .returning();
+          apiLogger.info("Sweep update transaction", sweepUpdatedTransaction);
+        }
+      });
 
-    if(result) {
-      // TODO: Update sweepHash in metadata
-      const [sweepUpdatedTransaction] = await orgDatabase.update(orgSchema.transactions)
-        .set({
-          metadata: {
-            ...transaction.metadata!,
-            sweepHash: result.hash
-          },
-        })
-        .where(eq(orgSchema.transactions.id, transaction.id))
-        .returning();
-      console.log("Sweep update transaction", sweepUpdatedTransaction);
-    }
-    console.log("Sweep result", result);
-    console.log("Transaction update", updatedTransaction);
   } else {
-    console.log("Still pending payout...", body)
+    apiLogger.info("Still pending payout...", body)
   }
   // TODO: Call webhook utility function
   // Webhook.trigger(transaction.metadata?.notifyUrl, )
