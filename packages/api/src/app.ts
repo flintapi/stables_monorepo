@@ -1,9 +1,3 @@
-// BullMQ Adapter
-// import { createBullBoard } from "@bull-board/api";
-// import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
-// import { HonoAdapter } from "@bull-board/hono";
-// import { QueueInstances, QueueNames } from "@flintapi/shared/Queue";
-// import { serveStatic } from "@hono/node-server/serve-static";
 
 import { auth } from "@/lib/auth";
 import configureOpenAPI from "@/lib/configure-open-api";
@@ -13,32 +7,13 @@ import ramp from "@/routes/ramp/ramp.index";
 import wallet from "@/routes/wallet/wallet.index";
 import webhook from "@/routes/webhooks/webhooks.index";
 import console from "@/routes/console/console.index";
-// import { authorizeBullBoard } from "./middlewares/authorize-bull-board";
-// import env from "./env";
+import bullMqBoard from "@/routes/bullmq.board";
 
 const app = createApp();
 
 configureOpenAPI(app);
 
-// const serverAdapter = new HonoAdapter(serveStatic);
-// createBullBoard({
-//   queues: [
-//     new BullMQAdapter(QueueInstances["ramp-queue"]),
-//     new BullMQAdapter(QueueInstances["swap-queue"]),
-//     new BullMQAdapter(QueueInstances["event-queue"]),
-//     new BullMQAdapter(QueueInstances[QueueNames.WALLET_QUEUE]),
-//   ],
-//   serverAdapter,
-//   options: {
-//     uiConfig: {
-//       boardTitle: "Flint API MQ Board"
-//     }
-//   }
-// });
-
-// const bullMQBasePath = "/mq-board";
-// serverAdapter.setBasePath(bullMQBasePath);
-// app.route(bullMQBasePath, (env.NODE_ENV === "development")? serverAdapter.registerPlugin() : undefined);
+app.route("/", bullMqBoard);
 
 const routes = [index, webhook] as const;
 routes.forEach((route) => {

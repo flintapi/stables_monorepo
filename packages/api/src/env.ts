@@ -27,6 +27,8 @@ const EnvSchema = z
       "trace",
       "silent",
     ]),
+    MQ_ADMIN_USERNAME: z.string(),
+    MQ_ADMIN_PASSWORD: z.string(),
     API_URL: z.url(),
     API_GATEWAY_URL: z.url(),
     DATABASE_URL: z.url(),
