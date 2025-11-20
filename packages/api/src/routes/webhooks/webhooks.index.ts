@@ -5,6 +5,7 @@ import * as routes from "./webhooks.routes";
 
 const router = createRouter()
   .openapi(routes.bellbank, handlers.bellbank)
+  .openapi(routes.onbrails, handlers.onbrails)
   .openapi(routes.centiiv, handlers.centiiv)
   .openapi(routes.offramp, handlers.offramp)
   .openapi(routes.palmpayPaymentNotify, handlers.palmpayPaymentNotify);
