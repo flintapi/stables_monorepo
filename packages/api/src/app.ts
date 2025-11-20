@@ -13,8 +13,6 @@ const app = createApp();
 
 configureOpenAPI(app);
 
-app.route("/", bullMqBoard);
-
 const routes = [index, webhook] as const;
 routes.forEach((route) => {
   app.route("/", route);
@@ -32,6 +30,8 @@ app.on(
 protectedRoutes.forEach((route) => {
   app.route("/v1/", route);
 });
+
+app.route("/", bullMqBoard);
 
 export type AppType = (typeof routes)[number] &
   (typeof protectedRoutes)[number];
