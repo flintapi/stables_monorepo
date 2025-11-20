@@ -176,7 +176,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
     }
   }
   catch (error: any) {
-    apiLogger.error("Failed to initialize ramp transaction", error);
+    apiLogger.error("Failed to initialize ramp transaction", {error});
+    console.log("Failed to initialize ramp transaction:", error);
     return c.json({
       status: 'failed',
       message: "Failed to initialize ramp transaction",
