@@ -90,7 +90,8 @@ const worker = new Worker<
   {
     connection: CacheFacade.redisCache,
     concurrency: 2,
-    lockDuration: 120_000,
+    lockDuration: 300_000,
+    lockRenewTime: 150_000,
     maxStalledCount: 2,
     removeOnFail: {
       age: 1000 * 60 * 60 * 24 * 1, // 1 day

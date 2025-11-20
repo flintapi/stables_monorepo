@@ -194,7 +194,8 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
     return c.text('failed', HttpStatusCodes.BAD_REQUEST);
   }
 
-  const orgDatabase = orgDb({ dbUrl: organization.metadata?.dbUrl! });
+  const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata);
+  const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
   // TODO: validate transaction
   const transaction = await orgDatabase.query.transactions.findFirst({
     where(fields, ops) {
