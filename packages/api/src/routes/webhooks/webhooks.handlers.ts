@@ -133,6 +133,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
   const signature = c.req.header('x-brails-signature');
   const hash = crypto.createHmac('sha512', env.ONBRAILS_WHS).update(JSON.stringify(body)).digest('hex');
   if (hash !== signature) {
+    apiLogger.warn("[onbrails]: Invalid request signature", {body, signature});
     return c.json({
       success: false,
       message: "Invalid request signature"
