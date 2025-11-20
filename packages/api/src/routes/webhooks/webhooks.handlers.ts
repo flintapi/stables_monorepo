@@ -4,12 +4,14 @@ import * as HttpStatusCodes from "stoker/http-status-codes";
 import { Webhook as SvixWebhook } from "svix"
 
 import type { AppRouteHandler } from "@/lib/types";
+import crypto from "node:crypto"
 
 import db, { orgDb } from "@/db";
 import { networkToChainidMap, orgSchema } from "@flintapi/shared/Utils";
 
 import type {
   BellbankRoute,
+  OnbrailsRoute,
   CentiivRoute,
   OffRampRoute,
   PalmpayRoute
@@ -126,6 +128,71 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
   }
 };
 
+export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
+  const body = c.req.valid("json");
+  const signature = c.req.header('x-brails-signature');
+  const hash = crypto.createHmac('sha512', env.ONBRAILS_WHS).update(JSON.stringify(body)).digest('hex');
+  if (hash !== signature) {
+    return c.json({
+      success: false,
+      message: "Invalid request signature"
+    }, HttpStatusCodes.BAD_REQUEST)
+  }
+
+  if (body?.event === "transaction.deposit.success") {
+    try {
+      const amount = body.data.amount;
+      const result = await fetchVirtualAccount(body.data.bankAccountNumber);
+      const nonce = crypto.randomUUID().substring(0, 6)
+
+      if (!result.transactionId) {
+        apiLogger.warn("No transaction found in onbrails on-ramp webhook:", body)
+        return c.json(
+          { success: false, message: "No transaction found" },
+          HttpStatusCodes.BAD_REQUEST,
+        );
+      }
+
+      await rampQueue.add(
+        "on-ramp",
+        {
+          type: "on",
+          organizationId: result.organizationId,
+          transactionId: result.transactionId,
+          amountReceived: Number(amount),
+        },
+        {
+          jobId: `ramp-on-ramp-${result.transactionId}-${nonce}`,
+          attempts: 3,
+        },
+      ).then((job) => apiLogger.info("On-Ramp Job sent...", job.data));
+      return c.json(
+        { success: true, message: "Transaction processed successfully" },
+        HttpStatusCodes.OK,
+      );
+    } catch (error: any) {
+      apiLogger.error("Failed to add On-Ramp Job", error);
+      return c.json(
+        {
+          success: false,
+          message: "Something went wrong with transaction processing",
+        },
+        HttpStatusCodes.BAD_REQUEST,
+      );
+    }
+  } else {
+    apiLogger.info("Invalid bellbank event, expected 'collection'", body)
+    return c.json(
+      {
+        success: false,
+        message: "Invalid event type",
+      },
+      HttpStatusCodes.BAD_REQUEST,
+    );
+  }
+};
+
+
 export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
   const body = c.req.valid("json");
 
@@ -134,7 +201,7 @@ export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
   const amountReceived = body.amountReceived;
   const type = body?.type;
   const event = JSON.parse(body.event);
-  apiLogger.info("Event from synapse service", {event, body});
+  apiLogger.info("Event from synapse service", { event, body });
 
   if (type !== "off") {
     return c.json(

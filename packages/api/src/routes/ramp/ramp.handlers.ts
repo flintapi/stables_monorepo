@@ -6,6 +6,7 @@ import type {
 } from "./ramp.routes";
 import { transaction as transactionSchema } from "./ramp.schema";
 import {
+  OnbrailsAdapter,
   BellbankAdapter,
   FiatPaymentContext,
   PaymentProvider,
@@ -28,149 +29,159 @@ const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
 const eventQueue = QueueInstances[QueueNames.EVENT_QUEUE];
 
 export const ramp: AppRouteHandler<RampRequest> = async (c) => {
-  // TODO: add to db, queue and respond with deposit or virtual account depending on the ramp type
-  const body = c.req.valid("json");
-  const orgDatabase = c.get("orgDatabase");
-  const organization = c.get("organization");
+  try {
+    const body = c.req.valid("json");
+    const orgDatabase = c.get("orgDatabase");
+    const organization = c.get("organization");
 
-  switch (body.type) {
-    case "off": {
-      const { amount, reference, network, destination } = body;
+    switch (body.type) {
+      case "off": {
+        const { amount, reference, network, destination } = body;
 
-      const chainId = networkToChainidMap[network];
-      // TODO: Add job to queue
-      const getAddressJob = await kmsQueue.add(
-        "get-address",
-        {
-          chainId,
-          type: "smart",
-          keyLabel: env.TREASURY_KEY_LABEL,
-        },
-        {
-          jobId: `kms-get-address-${chainId}-${c.get("requestId")}`,
-        },
-      );
-
-      // TODO: Get deposit address
-      const result = (await getAddressJob.waitUntilFinished(
-        kmsQueueEvents,
-      )) as { address: Address; index: number };
-
-      apiLogger.info("Deposit address created", result);
-      // TODO: Create transaction data
-      // TODO: Add to transaction db, with transaction metadata
-      const [newTransaction] = await orgDatabase
-        .insert(transactionSchema)
-        .values({
-          type: "off-ramp",
-          status: "pending",
-          network,
-          reference,
-          amount,
-          metadata: {
-            isDestinationExternal: true,
-            bankCode: destination.bankCode,
-            accountNumber: destination.accountNumber,
-            depositAddress: result.address,
-            index: result.index, // update from kms service get-address
-          } as any,
-        })
-        .returning();
-
-      // Add job to event queue
-      const tokenAddress = TOKEN_ADDRESSES[chainId].cngn.address as Address;
-      await eventQueue.add(
-        "Transfer",
-        {
-          chainId,
-          eventName: "Transfer",
-          eventArgType: "to",
-          address: result.address,
-          tokenAddress,
-          persist: false,
-          callbackUrl: `${env.API_URL}/webhooks/synapse/offramp`, // callback when event received
-          rampData: {
-            type: "off",
-            organizationId: organization.id,
-            transactionId: newTransaction.id,
+        const chainId = networkToChainidMap[network];
+        // TODO: Add job to queue
+        const getAddressJob = await kmsQueue.add(
+          "get-address",
+          {
+            chainId,
+            type: "smart",
+            keyLabel: env.TREASURY_KEY_LABEL,
           },
-        },
-        {
-          jobId: `event-Transfer-${chainId}-cngn-${c.get("requestId")}`,
-          attempts: 2,
-        },
-      );
+          {
+            jobId: `kms-get-address-${chainId}-${c.get("requestId")}`,
+          },
+        );
 
-      return c.json(
-        {
-          status: "success",
-          message: "Off ramp transaction initiated",
-          data: {
+        // TODO: Get deposit address
+        const result = (await getAddressJob.waitUntilFinished(
+          kmsQueueEvents,
+        )) as { address: Address; index: number };
+
+        apiLogger.info("Deposit address created", result);
+        const [newTransaction] = await orgDatabase
+          .insert(transactionSchema)
+          .values({
             type: "off-ramp",
             status: "pending",
-            depositAddress: result.address,
-          },
-        },
-        HttpStatusCodes.OK,
-      );
-    }
-    case "on": {
-      const { amount, reference, network, destination } = body;
+            network,
+            reference,
+            amount,
+            metadata: {
+              isDestinationExternal: true,
+              bankCode: destination.bankCode,
+              accountNumber: destination.accountNumber,
+              depositAddress: result.address,
+              index: result.index, // update from kms service get-address
+            } as any,
+          })
+          .returning();
 
-      const bankAdapter = new BellbankAdapter();
-
-      const { accountNumber, accountName } =
-        await bankAdapter.createVirtualAccount(getDefaultVirtualAccountArgs);
-
-      console.log("On ramp bank details:", {
-        accountNumber,
-        accountName,
-      });
-
-      // TODO: Create transaction data
-      // TODO: Add to transaction db, with transaction metadata
-      const [newTransaction] = await orgDatabase
-        .insert(transactionSchema)
-        .values({
-          type: "on-ramp",
-          status: "pending",
-          network,
-          reference,
-          amount,
-          metadata: {
-            isDestinationExternal: true,
-            address: destination.address,
-            collectionBankCode: "090672",
-            collectionAccountNumber: accountNumber,
-            collectionBankName: "Bellbank MFB",
-          },
-        })
-        .returning();
-
-      // Cache virtual account to be recoverable from a deposit webhook
-      await cacheVirtualAccount(accountNumber, {
-        organizationId: organization.id,
-        transactionId: newTransaction.id,
-      });
-
-      return c.json(
-        {
-          status: "success",
-          message: "On ramp transaction initiated",
-          data: {
-            type: "on",
-            status: "pending",
-            depositAccount: {
-              accountNumber: accountNumber as string,
-              accountName,
-              bankCode: "090672" as string,
-              bankName: "Bellbank MFB",
+        // Add job to event queue
+        const tokenAddress = TOKEN_ADDRESSES[chainId].cngn.address as Address;
+        await eventQueue.add(
+          "Transfer",
+          {
+            chainId,
+            eventName: "Transfer",
+            eventArgType: "to",
+            address: result.address,
+            tokenAddress,
+            persist: false,
+            callbackUrl: `${env.API_URL}/webhooks/synapse/offramp`, // callback when event received
+            rampData: {
+              type: "off",
+              organizationId: organization.id,
+              transactionId: newTransaction.id,
             },
           },
-        },
-        HttpStatusCodes.OK,
-      );
+          {
+            jobId: `event-Transfer-${chainId}-cngn-${c.get("requestId")}`,
+            attempts: 2,
+          },
+        );
+
+        return c.json(
+          {
+            status: "success",
+            message: "Off ramp transaction initiated",
+            data: {
+              type: "off-ramp",
+              status: "pending",
+              depositAddress: result.address,
+            },
+          },
+          HttpStatusCodes.OK,
+        );
+      }
+      case "on": {
+        const { amount, reference, network, destination } = body;
+
+        const bankAdapter = new OnbrailsAdapter();
+
+        const bankCode = bankAdapter.bankCode;
+        const { accountNumber, accountName, bankName } =
+          await bankAdapter.createVirtualAccount();
+
+        apiLogger.info("On ramp bank details:", {
+          accountNumber,
+          accountName,
+          bankCode,
+          bankName
+        });
+
+        // TODO: Create transaction data
+        // TODO: Add to transaction db, with transaction metadata
+        const [newTransaction] = await orgDatabase
+          .insert(transactionSchema)
+          .values({
+            type: "on-ramp",
+            status: "pending",
+            network,
+            reference,
+            amount,
+            metadata: {
+              isDestinationExternal: true,
+              address: destination.address,
+              collectionBankCode: bankCode,
+              collectionAccountNumber: accountNumber,
+              collectionBankName: bankName ?? "Bellbank MFB",
+            },
+          })
+          .returning();
+
+        // Cache virtual account to be recoverable from a deposit webhook
+        await cacheVirtualAccount(accountNumber, {
+          organizationId: organization.id,
+          transactionId: newTransaction.id,
+        });
+
+        return c.json(
+          {
+            status: "success",
+            message: "On ramp transaction initiated",
+            data: {
+              type: "on",
+              status: "pending",
+              depositAccount: {
+                accountNumber,
+                accountName,
+                bankCode,
+                bankName,
+              },
+            },
+          },
+          HttpStatusCodes.OK,
+        );
+      }
     }
+  }
+  catch (error: any) {
+    apiLogger.error("Failed to initialize ramp transaction", error);
+    return c.json({
+      status: 'failed',
+      message: "Failed to initialize ramp transaction",
+      data: null
+    }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
 

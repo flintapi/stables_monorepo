@@ -37,6 +37,53 @@ export const bellbank = createRoute({
   },
 });
 
+export const onbrails = createRoute({
+  tags,
+  path: "/webhooks/onbrails",
+  hide: true,
+  method: 'post',
+  request: {
+    body: jsonContent(
+      z.object({
+        event: z.string().startsWith('transaction'),
+        data: z.object({
+          id: z.string(),
+          fees: z.string(),
+          amount: z.string(),
+          action: z.string(),
+          status: z.string(),
+          currency: z.string(),
+          reference: z.string(),
+          companyId: z.string(),
+          bankReference: z.string(),
+          sourceBankName: z.string(),
+          bankAccountName: z.string(),
+          bankAccountNumber: z.string(),
+          sourceBankAccountName: z.string(),
+          sourceBankAccountNumber: z.string()
+        }),
+      }),
+      "Onbrails transaction.deposit.success event payload"
+    )
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      z.object({
+        success: z.boolean(),
+        message: z.string()
+      }),
+      "Onbrails webhook response"
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(
+      z.object({
+        success: z.boolean(),
+        message: z.string()
+      }),
+      "Onbrails webhook response"
+    )
+  }
+})
+
 export const centiiv = createRoute({
   tags,
   path: "/webhooks/centiiv",
@@ -166,6 +213,7 @@ export const palmpayPaymentNotify = createRoute({
 })
 
 export type BellbankRoute = typeof bellbank;
+export type OnbrailsRoute = typeof onbrails;
 export type CentiivRoute = typeof centiiv;
 export type OffRampRoute = typeof offramp;
 export type PalmpayRoute = typeof palmpayPaymentNotify;

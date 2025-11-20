@@ -92,6 +92,8 @@ interface TransferDto {
 }
 
 export default class {
+  bankCode = '090672';
+
   private fetch: BetterFetch;
   private token: string | null = null;
   // private tokenInterval: NodeJS.Timeout;

@@ -72,6 +72,11 @@ const EnvSchema = z
     CENTIIV_API_URL: z.url().optional(),
     CENTIIV_WH_URL: z.url().optional(),
 
+    // Onbrails
+    ONBRAILS_API_URL: z.url(),
+    ONBRAILS_API_KEY: z.string(),
+    ONBRAILS_WHS: z.string(),
+
     // Better stack
     BETTER_STACK_TOKEN_ID: z.string().optional(),
     BETTER_STACK_INGESTION_HOST: z.string().optional(),

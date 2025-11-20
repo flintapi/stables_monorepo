@@ -1,6 +1,7 @@
 import BellbankAdapter from "./bellbank/bellbank.adapter";
 import CentiivAdapter from "./centiiv/centiiv.adapter";
 import PalmpayAdapter, { PalmpayTransferRequest } from "./palmpay/palmpay.adapter";
+import OnbrailsAdapter from "./onbrails/onbrails.adapter"; 
 
 export interface TransferRequest {
   accountNumber: string;
