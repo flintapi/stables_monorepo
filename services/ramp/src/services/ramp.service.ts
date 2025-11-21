@@ -187,7 +187,7 @@ class Ramp {
         transactionId: transaction.id,
         reference: transaction.reference,
         amount: transaction.amount,
-        status: transaction.status,
+        status: updateTransaction.status,
         network: transaction.network,
         createdAt: transaction.createdAt,
         updatedAt: transaction.updatedAt,
