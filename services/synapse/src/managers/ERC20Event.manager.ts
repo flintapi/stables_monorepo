@@ -134,6 +134,7 @@ export default class EventListenerManager {
       eventStream,
     };
 
+    console.log("Setting config for listener", config.id)
     this.listeners.set(config.id, state);
 
     // Store persistent listeners for restart capability

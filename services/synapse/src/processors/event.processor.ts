@@ -19,14 +19,12 @@ export class EventProcessor extends Transform {
     try {
       // This is where your custom logic runs
       await this.config.onEvent(event);
+      console.log("Event processor config: ", JSON.stringify(this.config, null, 3))
+      this.emit('shutdown', this.listenerId);
 
       // const source = new EventSource(`https://example.com/events`);
 
       // If temporary listener, signal shutdown after first event
-      if (!this.config.persistent) {
-        this.emit('shutdown', this.listenerId);
-      }
-
       // Pass event downstream (if there were more stages)
       callback(null, event);
     } catch (error) {

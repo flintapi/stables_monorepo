@@ -24,42 +24,42 @@ const fiatPaymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
 
 class Ramp {
   static async processOffRampJob(data: RampServiceJob, attemptsMade: number) {
-    if (attemptsMade > 0) {
-      fiatPaymentContext.setStrategy(PaymentProvider.CENTIIV);
-      // TODO: check last provider used in updated job data
-      const { transactionId, organizationId, amountReceived } = data;
-      const organization = await db.query.organization.findFirst({
-        where(fields, ops) {
-          return ops.eq(fields.id, organizationId);
-        },
-      });
-      if(!organization) {
-        throw new Error("Organization not found")
-      }
-      const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
-      const transaction = await orgDb({
-        dbUrl: (metadata as { dbUrl: string })?.dbUrl,
-      }).query.transactions.findFirst({
-        where(fields, ops) {
-          return ops.eq(fields.id, transactionId);
-        },
-      });
+    // if (attemptsMade > 0) {
+    //   fiatPaymentContext.setStrategy(PaymentProvider.CENTIIV);
+    //   // TODO: check last provider used in updated job data
+    //   const { transactionId, organizationId, amountReceived } = data;
+    //   const organization = await db.query.organization.findFirst({
+    //     where(fields, ops) {
+    //       return ops.eq(fields.id, organizationId);
+    //     },
+    //   });
+    //   if(!organization) {
+    //     throw new Error("Organization not found")
+    //   }
+    //   const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+    //   const transaction = await orgDb({
+    //     dbUrl: (metadata as { dbUrl: string })?.dbUrl,
+    //   }).query.transactions.findFirst({
+    //     where(fields, ops) {
+    //       return ops.eq(fields.id, transactionId);
+    //     },
+    //   });
 
-      if (!transaction) {
-        throw new Error("Transaction not found");
-      }
+    //   if (!transaction) {
+    //     throw new Error("Transaction not found");
+    //   }
 
-      const { accountNumber, bankCode } =
-        transaction.metadata as TransactionMetadata;
+    //   const { accountNumber, bankCode } =
+    //     transaction.metadata as TransactionMetadata;
 
-      return await fiatPaymentContext.transfer({
-        accountNumber: accountNumber!,
-        bankCode: bankCode!,
-        reference: transaction.reference,
-        amount: Math.min(transaction.amount, amountReceived!),
-        narration: transaction?.narration || "Default narration",
-      }).then((responses) => rampLogger.info("Transfer made and completed...", responses));
-    } else {
+    //   return await fiatPaymentContext.transfer({
+    //     accountNumber: accountNumber!,
+    //     bankCode: bankCode!,
+    //     reference: transaction.reference,
+    //     amount: Math.min(transaction.amount, amountReceived!),
+    //     narration: transaction?.narration || "Default narration",
+    //   }).then((responses) => rampLogger.info("Transfer made and completed...", responses));
+    // } else {
       const { transactionId, organizationId, amountReceived, prevProviders } = data;
       rampLogger.info("Retry with new provider", prevProviders, amountReceived);
       const organization = await db.query.organization.findFirst({
@@ -99,7 +99,7 @@ class Ramp {
         transactionId: transaction.id,
         organizationId: organization?.id,
       });
-    }
+    // }
   }
 
   static async processOnRampJob(data: RampServiceJob, attemptsMade: number) {
