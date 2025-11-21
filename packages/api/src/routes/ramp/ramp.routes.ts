@@ -14,6 +14,7 @@ import {
 } from "./ramp.schema";
 import { createErrorSchema } from "stoker/openapi/schemas";
 import { validateRequest } from "@/middlewares/validate-request";
+import { lockPayoutRequest } from "@/middlewares/lock-request";
 
 const tags = ["Ramp"];
 
@@ -22,7 +23,10 @@ export const ramp = createRoute({
   path: "/ramp/initialise",
   method: "post",
   description: "Initialise a Ramp transaction - either off-ramp or on-ramp",
-  middleware: [validateRequest()],
+  middleware: [
+    lockPayoutRequest(),
+    validateRequest(),
+  ],
   request: {
     body: jsonContentRequired(rampRequestSchema, "Ramp transaction schema"),
   },

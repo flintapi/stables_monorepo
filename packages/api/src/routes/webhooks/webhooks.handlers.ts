@@ -278,11 +278,15 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
   }
 
   if (body.orderStatus === 3) {
-    apiLogger.info("Order status is failed")
+    let retryRef = transaction.reference.includes('.', transaction.reference.length - 1)
+      ? `${transaction.reference.split('.')[0]}.${crypto.randomUUID().substring(0, 6)}`
+      : `${transaction.reference}.${crypto.randomUUID().substring(0, 6)}`;
+
+    apiLogger.info("Order status is failed, retry ref", retryRef)
     const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
       .set({
         status: "failed",
-        reference: `${transaction.reference}-retry-${crypto.randomUUID().substring(0, 6)}` // update refernce for provider
+        reference: retryRef // update refernce for provider
       })
       .where(eq(orgSchema.transactions.id, transaction.id))
       .returning();
@@ -290,8 +294,11 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
     const job = await rampQueue.getJob(`ramp-off-ramp-${transaction.id}`)
     console.log("Found job", "Attempt made", job?.attemptsMade, "Job data", job?.data)
     if(job) {
-      await job.retry()
-      apiLogger.info("Retrying failed payout from payment provider", {data: job.data, jobId: job.id})
+      const state = await job.getState()
+      if(state === 'completed' || state === 'failed') {
+        await job.retry('completed')
+        apiLogger.info("Retrying failed payout from payment provider", {data: job.data, jobId: job.id})
+      }
       // TODO: send a retrying webhook event
     }
   } else if (body.orderStatus === 2) {

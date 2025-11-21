@@ -160,6 +160,7 @@ const authOptions = {
             data: {
               ...organization,
               metadata: {
+                active: false,
                 dbUrl: `libsql://${database.hostname}`, // provissioned turso db url
               }
             },
@@ -193,8 +194,9 @@ const authOptions = {
               .update(appSchema.organization)
               .set({
                 metadata: {
+                  active: false,
                   dbUrl: `libsql://${database.hostname}`, // provissioned turso db url
-                },
+                } as any,
               })
               .where(eq(appSchema.organization.id, organization.id))
               .returning();
@@ -230,7 +232,7 @@ const authOptions = {
 
             const result = (await job.waitUntilFinished(walletQueueEvents)) as {
               address: Address;
-              index: number;
+              index?: number;
             };
 
             // Step 2 - Create virtual account and add to wallet metadata

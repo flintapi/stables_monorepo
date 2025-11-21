@@ -4,12 +4,14 @@ import type { Address, Hex } from "viem";
 import { FiatPaymentContext, PaymentProvider } from "@flintapi/shared/Adapters";
 import { rampLogger } from "@flintapi/shared/Logger";
 import { bullMqBase, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
+
 import {
   networkToChainidMap,
   orgSchema,
   TOKEN_ADDRESSES,
   Webhook,
   type TransactionMetadata,
+  getAmountAfterFee
 } from "@flintapi/shared/Utils";
 import { QueueEvents } from "bullmq";
 import { encodeFunctionData, parseAbi, parseUnits } from "viem";
@@ -95,7 +97,7 @@ class Ramp {
         accountNumber: accountNumber,
         bankCode: bankCode,
         reference: transaction.reference,
-        amount: transaction.amount,
+        amount: getAmountAfterFee(transaction.amount),
         narration: transaction?.narration || "Default narration",
         transactionId: transaction.id,
         organizationId: organization?.id,
@@ -154,7 +156,7 @@ class Ramp {
           functionName: "transfer",
           args: [
             transaction.metadata!.address! as Address,
-            parseUnits(amountReceived?.toString() || "0", token.decimal),
+            parseUnits(getAmountAfterFee(amountReceived || 0)?.toString() || "0", token.decimal),
           ],
         }),
         contractAddress: token.address as Address,

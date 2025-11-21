@@ -7,3 +7,4 @@ export * as supportedChains from "./wallet/wallet.chains";
 export * from "./wallet/wallet.entities";
 export * from "./wallet/wallet.utils";
 export * from "./webhook-trigger";
+export * from "./fee-calculator";

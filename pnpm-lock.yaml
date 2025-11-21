@@ -654,6 +654,9 @@ importers:
       pino-pretty:
         specifier: ^13.1.1
         version: 13.1.2
+      redlock:
+        specifier: 5.0.0-beta.2
+        version: 5.0.0-beta.2
       stoker:
         specifier: 2.0.1
         version: 2.0.1(@asteasolutions/zod-to-openapi@8.1.0(zod@4.1.12))(@hono/zod-openapi@1.1.4(hono@4.10.6)(zod@4.1.12))(hono@4.10.6)(openapi3-ts@4.5.0)
@@ -670,6 +673,9 @@ importers:
       '@types/node':
         specifier: ^24.2.0
         version: 24.10.1
+      '@types/redlock':
+        specifier: ^4.0.7
+        version: 4.0.8
       cross-env:
         specifier: ^10.0.0
         version: 10.1.0
