@@ -10,7 +10,7 @@ primary_region = 'lhr'
   dockerfile = './kms.Dockerfile'
 
 [deploy]
-  strategy = 'rolling'
+  strategy = 'immediate'
 
 [env]
   PKCS11_MODULE_PATH = '/usr/lib/softhsm/libsofthsm2.so'
