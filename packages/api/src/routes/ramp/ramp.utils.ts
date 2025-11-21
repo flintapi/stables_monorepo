@@ -72,6 +72,17 @@ export async function fetchVirtualAccount(accountNumber: string) {
   }
 }
 
+export async function clearVirtualAccount(accountNumber: string) {
+  try {
+    const key = `va:${accountNumber}`;
+
+    const data = await CacheFacade.redisCache.del(key)
+  } catch (error) {
+    console.log("Failed to delete virtual account", error);
+    throw new Error("Failed to delete virtual account");
+  }
+}
+
 
 interface ISweepFundsProps {
   amount: number;

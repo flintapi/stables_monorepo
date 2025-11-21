@@ -141,7 +141,6 @@ class Ramp {
     const chainId = networkToChainidMap[transaction.network];
     const token = TOKEN_ADDRESSES[chainId].cngn;
 
-    const nonce = crypto.randomUUID().substring(0, 6);
     const job = await walletQueue.add(
       "sign-transaction",
       {
@@ -159,7 +158,7 @@ class Ramp {
         }),
         contractAddress: token.address as Address,
       },
-      { jobId: `kms-payout-${chainId}-cngn-${transaction.id}-${nonce}`, attempts: 1 },
+      { jobId: `kms-payout-${chainId}-cngn-${transaction.id}`, attempts: 1 },
     );
 
     const result = (await job.waitUntilFinished(walletQueueEvents)) as {

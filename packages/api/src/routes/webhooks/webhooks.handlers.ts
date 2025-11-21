@@ -17,7 +17,7 @@ import type {
   PalmpayRoute
 } from "./webhooks.routes";
 import env from "@/env";
-import { fetchVirtualAccount, sweepFunds } from "../ramp/ramp.utils";
+import { clearVirtualAccount, fetchVirtualAccount, sweepFunds } from "../ramp/ramp.utils";
 import { apiLogger } from "@flintapi/shared/Logger";
 import { bullMqBase, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import { QueueEvents } from "bullmq";
@@ -79,7 +79,6 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
     try {
       const amount = body?.amountReceived;
       const result = await fetchVirtualAccount(body?.virtualAccount);
-      const nonce = crypto.randomUUID().substring(0, 6)
 
       if (!result.transactionId) {
         apiLogger.warn("No transaction found in bellbank on-ramp webhook:", body)
@@ -98,7 +97,7 @@ export const bellbank: AppRouteHandler<BellbankRoute> = async (c) => {
           amountReceived: Number(amount),
         },
         {
-          jobId: `ramp-on-ramp-${result.transactionId}-${nonce}`,
+          jobId: `ramp-on-ramp-${result.transactionId}`,
           attempts: 3,
         },
       ).then((job) => apiLogger.info("On-Ramp Job sent...", job.data));
@@ -144,7 +143,6 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
     try {
       const amount = body.data.amount;
       const result = await fetchVirtualAccount(body.data.bankAccountNumber);
-      const nonce = crypto.randomUUID().substring(0, 6)
 
       if (!result.transactionId) {
         apiLogger.warn("No transaction found in onbrails on-ramp webhook:", body)
@@ -163,10 +161,13 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
           amountReceived: Number(amount),
         },
         {
-          jobId: `ramp-on-ramp-${result.transactionId}-${nonce}`,
+          jobId: `ramp-on-ramp-${result.transactionId}`,
           attempts: 3,
         },
-      ).then((job) => apiLogger.info("On-Ramp Job sent...", job.data));
+      ).then(async (job) => {
+        await clearVirtualAccount(body.data.bankAccountNumber)
+        apiLogger.info("On-Ramp Job sent...", job.data);
+      });
       return c.json(
         { success: true, message: "Transaction processed successfully" },
         HttpStatusCodes.OK,
