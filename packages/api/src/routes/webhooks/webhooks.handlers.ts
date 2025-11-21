@@ -299,6 +299,7 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
       chainId: networkToChainidMap[transaction.network],
       amount: transaction.amount,
       destinationAddress: env.TREASURY_EVM_ADDRESS,
+      depositAddress: transaction.metadata?.depositAddress,
       queue: kmsQueue,
       queueEvents: kmsQueueEvents,
       index: transaction.metadata?.index || 0,

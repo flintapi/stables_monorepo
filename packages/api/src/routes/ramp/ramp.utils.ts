@@ -6,8 +6,8 @@ import { CacheFacade } from "@flintapi/shared/Cache";
 import { QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import { QueueEvents } from "bullmq";
 import env from "@/env";
-import { ChainId, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
-import { Address, encodeFunctionData, Hex, parseAbi, parseUnits } from "viem";
+import { ChainId, supportedChains, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
+import { Address, createPublicClient, encodeFunctionData, Hex, parseAbi, parseUnits, extractChain, http } from "viem";
 
 export async function queryTransactionByVirtualAccount(
   db: ReturnType<typeof orgDb>,
@@ -76,6 +76,7 @@ export async function fetchVirtualAccount(accountNumber: string) {
 interface ISweepFundsProps {
   amount: number;
   destinationAddress: string;
+  depositAddress: Address;
   queue: typeof QueueInstances[QueueNames.WALLET_QUEUE];
   queueEvents: QueueEvents;
   chainId: ChainId;
@@ -83,9 +84,22 @@ interface ISweepFundsProps {
   transactionId: string;
 }
 export async function sweepFunds(keyLabel: string, params: ISweepFundsProps) {
-  const {queue, queueEvents, amount, destinationAddress, chainId, index, transactionId} = params
+  const {queue, queueEvents, amount, destinationAddress, chainId, index, transactionId, depositAddress} = params
 
   const token = TOKEN_ADDRESSES[chainId].cngn;
+
+  const client = createPublicClient({
+    chain: extractChain({chains: Object.values(supportedChains), id: chainId}),
+    transport: http()
+  })
+
+  const balance = await client.readContract({
+    address: token.address as Address,
+    abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
+    functionName: 'balanceOf',
+    args: [depositAddress],
+  }).catch(() => null)
+
   const job = await queue.add(
     "sign-transaction",
     {
@@ -98,7 +112,7 @@ export async function sweepFunds(keyLabel: string, params: ISweepFundsProps) {
         functionName: "transfer",
         args: [
           destinationAddress! as Address,
-          parseUnits(amount?.toString() || "0", token.decimal),
+          balance ?? parseUnits(amount?.toString() || "0", token.decimal),
         ],
       }),
       contractAddress: token.address as Address,
