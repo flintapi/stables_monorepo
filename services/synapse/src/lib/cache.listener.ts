@@ -17,7 +17,7 @@ export async function createListenerCache() {
     if(activeListeners.length) {
       const cacheListenerConfigs = await Promise.all(activeListeners.map(async (key) => {
         const config = await CacheFacade.redisCache.hgetall(key);
-        return { key, config } as { key: string;  config: Record<string, any>};
+        return { key, config } as { key: string;  config: any};
       }));
 
       for(const listenerConfig of cacheListenerConfigs) {
@@ -39,8 +39,9 @@ export async function createListenerCache() {
         console.log("Restored config", config, "Typeof rampData: ", typeof config?.rampData);
 
         const listenerService = new EventListenerService(publicClient);
+        const parsedConfig = JSON.parse(config)
         const { listenerId: restoredListenerId } = await listenerService.CreateOfframpListener(
-          {...config, rampData: JSON.parse(config?.rampData)} as EventServiceJob,
+          {...parsedConfig, rampData: JSON.parse(config?.rampData)} as EventServiceJob,
           listenerId
         );
         console.log("Restored listener id", restoredListenerId);
