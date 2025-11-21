@@ -19,7 +19,7 @@ export class EventProcessor extends Transform {
     try {
       // This is where your custom logic runs
       await this.config.onEvent(event);
-      console.log("Event processor config: ", JSON.stringify(this.config, null, 3))
+      console.log("Event processor config: ", JSON.stringify(this.config, (k, v) => typeof v === 'bigint'? v.toString() : v, 3))
       this.emit('shutdown', this.listenerId);
 
       // const source = new EventSource(`https://example.com/events`);
