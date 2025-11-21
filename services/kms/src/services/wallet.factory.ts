@@ -296,7 +296,7 @@ class WalletFactory {
       ), // Pick first one by default
       userOperation: {
         estimateFeesPerGas: async ({ bundlerClient }) => {
-          if(publicClient.chain?.testnet) {
+          if(publicClient.chain?.testnet || (publicClient.chain?.id === SupportedChains.bsc || publicClient.chain?.id === SupportedChains.bscTestnet)) {
             return getUserOperationGasPrice(bundlerClient)
           }
           return {
