@@ -36,6 +36,9 @@ const EnvSchema = z
     BASE_SEPOLIA_RPC: z.url(),
     BSC_RPC: z.url(),
     BSC_TESTNET_RPC: z.url(),
+
+    // RPC_TYPE
+    RPC_TYPE: z.enum(["http", "websocket"]).default("http"),
   })
   .superRefine((input, ctx) => {
     if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {

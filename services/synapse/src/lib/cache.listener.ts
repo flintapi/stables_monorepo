@@ -34,7 +34,7 @@ export async function createListenerCache() {
         console.log("Listener RPC", rpc)
         const publicClient = createPublicClient({
           chain,
-          transport: env.NODE_ENV !== "development"? webSocket(rpc, {keepAlive: {interval: 100}, retryDelay: 200, retryCount: 100_000}) : http(rpc),
+          transport: env.RPC_TYPE === "websocket"? webSocket(rpc, {keepAlive: {interval: 100}, retryDelay: 200, retryCount: 100_000}) : http(rpc, {retryCount: 100_000, retryDelay: 200, timeout: 100_000}),
         });
 
         console.log("Restored config", config, "Typeof rampData: ", typeof config?.rampData);
