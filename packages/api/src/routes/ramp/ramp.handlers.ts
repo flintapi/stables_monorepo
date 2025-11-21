@@ -104,9 +104,10 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             attempts: 2,
           },
         );
-        await eventJob.waitUntilFinished(
+        const listenerResult = await eventJob.waitUntilFinished(
           eventQueueEvents,
         );
+        apiLogger.info(`Listener created...`, listenerResult)
 
         return c.json(
           {

@@ -27,6 +27,7 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
         id: chainId as ChainId,
       });
       const rpc = RPC_URLS[chainId as ChainId];
+      console.log("Listener RPC", rpc)
       const publicClient = createPublicClient({
         chain,
         transport: env.NODE_ENV !== "development"? webSocket(rpc, {keepAlive: {interval: 1_000}}) : http(rpc),

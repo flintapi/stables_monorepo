@@ -31,6 +31,7 @@ export async function createListenerCache() {
           id: Number(chainId) as ChainId,
         });
         const rpc = RPC_URLS[Number(chainId) as ChainId];
+        console.log("Listener RPC", rpc)
         const publicClient = createPublicClient({
           chain,
           transport: env.NODE_ENV !== "development"? webSocket(rpc, {keepAlive: {interval: 1_000}}) : http(rpc),
