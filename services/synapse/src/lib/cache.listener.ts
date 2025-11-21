@@ -1,9 +1,10 @@
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { ChainId, supportedChains } from "@flintapi/shared/Utils";
-import { createPublicClient, extractChain, http } from "viem";
+import { createPublicClient, extractChain, http, webSocket } from "viem";
 import { RPC_URLS } from "./constants";
 import EventListenerService from "@/services/listener.service";
 import { EventServiceJob } from "@flintapi/shared/Queue";
+import env from "@/env";
 
 export async function createListenerCache() {
 
@@ -32,7 +33,7 @@ export async function createListenerCache() {
         const rpc = RPC_URLS[Number(chainId) as ChainId];
         const publicClient = createPublicClient({
           chain,
-          transport: http(rpc),
+          transport: env.NODE_ENV !== "development"? webSocket(rpc, {keepAlive: {interval: 1_000}}) : http(rpc),
         });
 
         console.log("Restored config", config, "Typeof rampData: ", typeof config?.rampData);

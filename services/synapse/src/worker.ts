@@ -10,20 +10,16 @@ import {
 import { ChainId, supportedChains } from "@flintapi/shared/Utils";
 import { eventLogger } from "@flintapi/shared/Logger";
 import { CacheFacade } from "@flintapi/shared/Cache";
-import { createPublicClient, http, extractChain } from "viem";
+import { createPublicClient, http, webSocket, extractChain } from "viem";
 import { RPC_URLS } from "./lib/constants";
 import { createListenerCache } from "./lib/cache.listener";
+import env from "./env";
 
 const name = QueueNames.EVENT_QUEUE;
 const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
   name,
   async (job) => {
     try {
-      console.log("Job: ", job.id, await job.getState());
-      console.log("Job Name: ", job.name);
-      console.log("Job Data: ", job.data);
-      // TODO: implement handler
-
       const { chainId } = job.data;
 
       const chain = extractChain({
@@ -33,7 +29,7 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
       const rpc = RPC_URLS[chainId as ChainId];
       const publicClient = createPublicClient({
         chain,
-        transport: http(rpc),
+        transport: env.NODE_ENV !== "development"? webSocket(rpc, {keepAlive: {interval: 1_000}}) : http(rpc),
       });
 
       const listenerService = new EventListenerService(publicClient);

@@ -13,6 +13,7 @@ import {
   PublicClient,
 } from "viem";
 import { createListenerCache } from "@/lib/cache.listener";
+import env from "@/env";
 
 /**
  * EventStream → EventProcessor → (optional: database writer, logger, etc.)
@@ -98,7 +99,6 @@ export default class EventListenerManager {
         "event Approval(address indexed owner, address indexed sender, uint256 value)",
       ]),
       batch: false,
-      poll: true,
       onError: (error) =>
         console.log("Error listening for ERC20 events", error),
       onLogs: async (logs: Log[]) => {
