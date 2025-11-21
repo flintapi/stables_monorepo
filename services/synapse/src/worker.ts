@@ -30,7 +30,7 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
       console.log("Listener RPC", rpc)
       const publicClient = createPublicClient({
         chain,
-        transport: env.NODE_ENV !== "development"? webSocket(rpc, {keepAlive: {interval: 1_000}}) : http(rpc),
+        transport: env.NODE_ENV !== "development"? webSocket(rpc, {keepAlive: {interval: 100}, retryDelay: 200, retryCount: 100_000}) : http(rpc),
       });
 
       const listenerService = new EventListenerService(publicClient);
