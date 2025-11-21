@@ -17,6 +17,7 @@ export const create = createRoute({
   path: "/wallet",
   method: "post",
   middleware: [validateRequest()],
+  hide: true,
   request: {
     body: jsonContentRequired(insertWalletSchema, "Create a new wallet"),
   },
@@ -47,6 +48,7 @@ export const list = createRoute({
   path: "/wallet",
   method: "get",
   middleware: [validateRequest()],
+  hide: true,
   request: {
     query: z.object({
       limit: z.number().min(1).max(100).default(10),
@@ -86,6 +88,7 @@ export const getOne = createRoute({
   tags,
   path: "/wallet/{walletId}",
   method: "get",
+  hide: true,
   middleware: [validateRequest()],
   request: {
     params: z.object({
@@ -114,6 +117,7 @@ export const update = createRoute({
   tags,
   path: "/wallet/{walletId}",
   method: "put",
+  hide: true,
   middleware: [validateRequest()],
   request: {
     params: z.object({
