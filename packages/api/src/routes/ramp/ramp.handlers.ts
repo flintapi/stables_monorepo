@@ -36,6 +36,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
     const organization = c.get("organization");
     const webhookUrl = c.get('webhookUrl');
     const webhookSecret = c.get('webhookSecret');
+    apiLogger.info("Ramp transaction genesis...", body);
 
     switch (body.type) {
       case "off": {
