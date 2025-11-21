@@ -64,7 +64,7 @@ class Ramp {
     //   }).then((responses) => rampLogger.info("Transfer made and completed...", responses));
     // } else {
       const { transactionId, organizationId, amountReceived, prevProviders } = data;
-      rampLogger.info("Payout transaction with palmpay...", prevProviders, amountReceived);
+      rampLogger.info("Payout transaction with palmpay...", {prevProviders, amountReceived});
       const organization = await db.query.organization.findFirst({
         where(fields, ops) {
           return ops.eq(fields.id, organizationId);
