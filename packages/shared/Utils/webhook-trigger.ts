@@ -3,15 +3,15 @@ import { betterFetch } from "@better-fetch/fetch";
 import crypto from "node:crypto";
 
 
-export default class Webhook {
-  static trigger(url: string, key: string, payload: any) {
+export class Webhook {
+  static async trigger(url: string, key: string, payload: any) {
 
     const webhook = new Webhook()
 
-    betterFetch(url, {
+    await betterFetch(url, {
       body: payload,
       headers: {
-        'x-signature': webhook.signBody(payload, key)
+        'x-flint-signature': webhook.signBody(payload, key)
       },
       retry: {
         type: 'exponential',

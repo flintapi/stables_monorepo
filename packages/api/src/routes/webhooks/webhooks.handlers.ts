@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import * as HttpStatusCodes from "stoker/http-status-codes";
-// import Webhook from "@/lib/webhook-trigger";
+import {Webhook} from "@flintapi/shared/Utils";
 import { Webhook as SvixWebhook } from "svix"
 
 import type { AppRouteHandler } from "@/lib/types";
@@ -20,7 +20,8 @@ import env from "@/env";
 import { clearVirtualAccount, fetchVirtualAccount, sweepFunds } from "../ramp/ramp.utils";
 import { apiLogger } from "@flintapi/shared/Logger";
 import { bullMqBase, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
-import { QueueEvents } from "bullmq";
+import { Job, QueueEvents } from "bullmq";
+import { auth } from "@/lib/auth";
 
 const rampQueue = QueueInstances[QueueNames.RAMP_QUEUE];
 const rampQueueEvents = new QueueEvents(QueueNames.RAMP_QUEUE, bullMqBase);
@@ -276,17 +277,21 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
     return c.text('success', HttpStatusCodes.OK)
   }
 
-  // TODO: Update transaction status
   if (body.orderStatus === 3) {
-    // TODO: trigger refund or sweep to treasury if failed
     const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
       .set({
         status: "failed",
+        reference: `${transaction.reference}-retry-${crypto.randomUUID().substring(6)}` // update refernce for provider
       })
       .where(eq(orgSchema.transactions.id, transaction.id))
       .returning();
     console.log("Transaction update", updatedTransaction);
-    // TODO: Optionally trigger refund
+    const job = await Job.fromId(rampQueue, `ramp-off-ramp-${transaction.id}`)
+    if(job) {
+      await job.retry()
+      apiLogger.info("Retrying failed payout from payment provider", {data: job.data, jobId: job.id})
+      // TODO: send a retrying webhook event
+    }
   } else if (body.orderStatus === 2) {
     const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
       .set({
@@ -295,6 +300,21 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
       .where(eq(orgSchema.transactions.id, transaction.id))
       .returning();
     apiLogger.info("Off-Ramp Transaction completed", updatedTransaction)
+    // TODO: Call webhook utility function
+    const event = `offramp.completed`;
+    Webhook.trigger(transaction.metadata?.notifyUrl, transaction.metadata?.webhookSecret, {
+      event,
+      data: {
+        transactionId: transaction.id,
+        reference: transaction.reference,
+        amount: transaction.amount,
+        status: transaction.status,
+        network: transaction.network,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+      }
+    }).then(() => apiLogger.info(`Webhook triggered: [${event}]`))
+    .catch((error) => apiLogger.warn(`API Key data not found to trigger webhook!!! SOS`, {error}))
 
     await sweepFunds(env.TREASURY_KEY_LABEL, {
       chainId: networkToChainidMap[transaction.network],
@@ -327,8 +347,6 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
   } else {
     apiLogger.info("Still pending payout...", body)
   }
-  // TODO: Call webhook utility function
-  // Webhook.trigger(transaction.metadata?.notifyUrl, )
 
   return c.text('success', HttpStatusCodes.OK);
 };

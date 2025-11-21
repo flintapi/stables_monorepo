@@ -13,6 +13,7 @@ const offRampSchema = z.object({
   reference: z.string().min(10),
   network: z.enum(["base", "bsc"]),
   amount: z.number().min(100).max(2_000_000),
+  notifyUrl: z.url().optional(),
   destination: z.object({
     bankCode: z.string().min(3),
     accountNumber: z.string().min(10),
@@ -30,6 +31,7 @@ const onRampSchema = z.object({
   reference: z.string().min(10),
   network: z.enum(["base", "bsc"]),
   amount: z.number().min(100).max(2_000_000),
+  notifyUrl: z.url().optional(),
   destination: z.object({
     address: z.string().min(12).startsWith("0x"),
   }),

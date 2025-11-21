@@ -67,6 +67,8 @@ export const validateRequest = () =>
 
     c.set("organization", organization as Organization);
     c.set("orgDatabase", orgDatabase);
+    c.set('webhookUrl', result.key?.metadata?.webhookUrl)
+    c.set('webhookSecret', result.key?.metadata?.webhookSecret)
 
     await next();
   });

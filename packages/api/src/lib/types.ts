@@ -12,6 +12,8 @@ export interface AppBindings {
     logger: PinoLogger;
     organization: Organization;
     orgDatabase: ReturnType<typeof orgDb>;
+    webhookSecret?: string;
+    webhookUrl?: string;
   };
 }
 

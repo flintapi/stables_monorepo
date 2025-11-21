@@ -33,6 +33,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
     const body = c.req.valid("json");
     const orgDatabase = c.get("orgDatabase");
     const organization = c.get("organization");
+    const webhookUrl = c.get('webhookUrl');
+    const webhookSecret = c.get('webhookSecret');
 
     switch (body.type) {
       case "off": {
@@ -72,6 +74,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
               accountNumber: destination.accountNumber,
               depositAddress: result.address,
               index: result.index, // update from kms service get-address
+              notifyUrl: body?.notifyUrl || webhookUrl,
+              webhookSecret,
             } as any,
           })
           .returning();
@@ -145,6 +149,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
               collectionBankCode: bankCode,
               collectionAccountNumber: accountNumber,
               collectionBankName: bankName ?? "Bellbank MFB",
+              notifyUrl: body?.notifyUrl || webhookUrl,
+              webhookSecret,
             },
           })
           .returning();

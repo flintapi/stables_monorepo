@@ -8,6 +8,7 @@ import {
   networkToChainidMap,
   orgSchema,
   TOKEN_ADDRESSES,
+  Webhook,
   type TransactionMetadata,
 } from "@flintapi/shared/Utils";
 import { QueueEvents } from "bullmq";
@@ -179,12 +180,22 @@ class Ramp {
     rampLogger.info("Transaction updated", updateTransaction);
 
     // TODO: Trigger webhook utils function
+    const event = `onramp.completed`;
+    Webhook.trigger(transaction.metadata?.notifyUrl, transaction.metadata?.webhookSecret, {
+      event,
+      data: {
+        transactionId: transaction.id,
+        reference: transaction.reference,
+        amount: transaction.amount,
+        status: transaction.status,
+        network: transaction.network,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+      }
+    }).then(() => rampLogger.info(`Webhook triggered: [${event}]`))
+    .catch((error) => rampLogger.warn(`API Key data not found to trigger webhook!!! SOS`, {error}))
 
     return { status: updateTransaction.status };
-  }
-
-  private async sweepAsset(amount: number, ) {
-
   }
 }
 
