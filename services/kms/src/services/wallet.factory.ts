@@ -267,27 +267,31 @@ class WalletFactory {
       account,
       client: publicClient,
       chain: publicClient.chain,
-      ...(publicClient.chain?.testnet && {paymaster: {
-        getPaymasterData: async (userOperation) =>{
-          try {
-            return await paymasterClient.sponsorUserOperation({userOperation})
+      ...((publicClient.chain?.testnet ||
+        publicClient.chain?.id === SupportedChains.bsc)
+        && {
+          paymaster: {
+            getPaymasterData: async (userOperation) =>{
+              try {
+                return await paymasterClient.sponsorUserOperation({userOperation})
+              }
+              catch(error: any) {
+                kmsLogger.error("Failed to get paymaster data")
+                return {} as GetPaymasterDataReturnType
+              }
+            },
+            getPaymasterStubData: async (userOperation) =>{
+              kmsLogger.info("Getting paymaster stub data...")
+              try {
+                return await paymasterClient.sponsorUserOperation({userOperation})
+              }
+              catch(error: any) {
+                kmsLogger.error("Failed to get paymaster stub data")
+                return {} as GetPaymasterStubDataReturnType
+              }
+            }
           }
-          catch(error: any) {
-            kmsLogger.error("Failed to get paymaster data")
-            return {} as GetPaymasterDataReturnType
-          }
-        },
-        getPaymasterStubData: async (userOperation) =>{
-          kmsLogger.info("Getting paymaster stub data...")
-          try {
-            return await paymasterClient.sponsorUserOperation({userOperation})
-          }
-          catch(error: any) {
-            kmsLogger.error("Failed to get paymaster stub data")
-            return {} as GetPaymasterStubDataReturnType
-          }
-        }
-      }}),
+        }),
       bundlerTransport: http(
         getBundlerUrl(
           publicClient.chain!.id as ChainId,
