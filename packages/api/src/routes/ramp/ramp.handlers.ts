@@ -27,6 +27,7 @@ import { apiLogger } from "@flintapi/shared/Logger";
 const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
 const eventQueue = QueueInstances[QueueNames.EVENT_QUEUE];
+const eventQueueEvents = new QueueEvents(QueueNames.EVENT_QUEUE, bullMqBase);
 
 export const ramp: AppRouteHandler<RampRequest> = async (c) => {
   try {
@@ -82,7 +83,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
         // Add job to event queue
         const tokenAddress = TOKEN_ADDRESSES[chainId].cngn.address as Address;
-        await eventQueue.add(
+        const eventJob = await eventQueue.add(
           "Transfer",
           {
             chainId,
@@ -102,6 +103,9 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             jobId: `event-Transfer-${chainId}-cngn-${c.get("requestId")}`,
             attempts: 2,
           },
+        );
+        await eventJob.waitUntilFinished(
+          eventQueueEvents,
         );
 
         return c.json(

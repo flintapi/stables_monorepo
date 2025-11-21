@@ -39,9 +39,8 @@ export async function createListenerCache() {
         console.log("Restored config", config, "Typeof rampData: ", typeof config?.rampData);
 
         const listenerService = new EventListenerService(publicClient);
-        const parsedConfig = JSON.parse(config)
         const { listenerId: restoredListenerId } = await listenerService.CreateOfframpListener(
-          {...parsedConfig, rampData: JSON.parse(config?.rampData)} as EventServiceJob,
+          {...config, persist: config?.persist === 'true', chainId: Number(config.chainId), rampData: JSON.parse(config?.rampData)} as EventServiceJob,
           listenerId
         );
         console.log("Restored listener id", restoredListenerId);
