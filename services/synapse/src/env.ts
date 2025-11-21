@@ -33,8 +33,10 @@ const EnvSchema = z
     REDIS_CONNECTION_URL: z.url(),
 
     BASE_RPC: z.url(),
+    BASE_RPC_HTTP: z.url(),
     BASE_SEPOLIA_RPC: z.url(),
     BSC_RPC: z.url(),
+    BSC_RPC_HTTP: z.url(),
     BSC_TESTNET_RPC: z.url(),
 
     // RPC_TYPE
