@@ -99,6 +99,7 @@ export default class EventListenerManager {
         "event Approval(address indexed owner, address indexed sender, uint256 value)",
       ]),
       batch: false,
+      fromBlock: config.fromBlock,
       onError: (error) =>
         console.log("Error listening for ERC20 events", error),
       onLogs: async (logs: Log[]) => {

@@ -14,6 +14,7 @@ export interface ListenerConfig {
   chainId: number;
   filter: EventFilter;
   persistent: boolean; // true for long-running, false for temporary
+  fromBlock: bigint;
   timeout?: number; // kill temporary listener when timeout is reached and no event is received
   onEvent: (event: any) => Promise<void>;
   onStart?: () => Promise<void>;

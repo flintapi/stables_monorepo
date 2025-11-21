@@ -40,7 +40,7 @@ export async function createListenerCache() {
 
         const listenerService = new EventListenerService(publicClient);
         const { listenerId: restoredListenerId } = await listenerService.CreateOfframpListener(
-          {...config, persist: config?.persist === 'true', chainId: Number(config.chainId), rampData: JSON.parse(config?.rampData)} as EventServiceJob,
+          {...config, fromBlock: BigInt(config?.fromBlock), persist: config?.persist === 'true', chainId: Number(config.chainId), rampData: JSON.parse(config?.rampData)} as EventServiceJob & {fromBlock: bigint},
           listenerId
         );
         console.log("Restored listener id", restoredListenerId);

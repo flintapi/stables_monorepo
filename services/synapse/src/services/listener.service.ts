@@ -46,7 +46,7 @@ export default class EventListenerService implements ListenerService {
 
   // REST endpoint handler
   async CreateOfframpListener(
-    data: EventServiceJob,
+    data: EventServiceJob & {fromBlock: bigint},
     restoreId?: string,
   ): Promise<{ listenerId: string }> {
     const {
@@ -58,8 +58,9 @@ export default class EventListenerService implements ListenerService {
       chainId,
       rampData,
       callbackUrl,
+      fromBlock
     } = data;
-    let newListenerConfig: Omit<ListenerConfig, "id">;
+    let newListenerConfig: Omit<ListenerConfig, "id" | "fromBlock">;
     if (eventName === "Transfer") {
       newListenerConfig = Factory.createERC20TransferListener(
         tokenAddress,
@@ -87,6 +88,7 @@ export default class EventListenerService implements ListenerService {
         {
           id: restoreId ?? this.generateEventId(eventName),
           ...newListenerConfig,
+          fromBlock,
           onStart: async () => {
             console.log("Listener starting...");
           },
@@ -103,7 +105,7 @@ export default class EventListenerService implements ListenerService {
   }
 
   async CreateOnRampListener(
-    data: EventServiceJob,
+    data: EventServiceJob & {fromBlock: bigint},
     restoreId?: string,
   ): Promise<{ listenerId: string }> {
     const {
@@ -115,8 +117,9 @@ export default class EventListenerService implements ListenerService {
       chainId,
       rampData,
       callbackUrl,
+      fromBlock,
     } = data;
-    let newListenerConfig: Omit<ListenerConfig, "id">;
+    let newListenerConfig: Omit<ListenerConfig, "id" | "fromBlock">;
     if (eventName === "Transfer") {
       newListenerConfig = Factory.createERC20TransferListener(
         tokenAddress,
@@ -143,6 +146,7 @@ export default class EventListenerService implements ListenerService {
       const listenerId = await this.manager.createListener({
         id: restoreId ?? this.generateEventId(eventName),
         ...newListenerConfig,
+        fromBlock,
         onStart: async () => {
           console.log("Listener starting...");
         },

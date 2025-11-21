@@ -9,7 +9,7 @@ export default class {
     persistent = false,
     chainId: number,
     onEvent: (event: any) => Promise<void>
-  ): Omit<ListenerConfig, 'id'> {
+  ): Omit<ListenerConfig, 'id' | 'fromBlock'> {
     return {
       chainId,
       filter: {

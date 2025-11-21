@@ -33,9 +33,10 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
         transport: getTransport(rpc, chainId),
       });
 
+      const fromBlock = await publicClient.getBlockNumber()
       const listenerService = new EventListenerService(publicClient);
       const { listenerId } = await listenerService.CreateOfframpListener(
-        job.data,
+        {...job.data, fromBlock },
       );
       console.log("Created listener id", listenerId);
 
