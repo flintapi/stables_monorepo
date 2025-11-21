@@ -116,6 +116,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             data: {
               type: "off-ramp",
               status: "pending",
+              transactionId: newTransaction.id,
               depositAddress: result.address,
             },
           },
@@ -173,6 +174,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             data: {
               type: "on",
               status: "pending",
+              transactionId: newTransaction.id,
               depositAccount: {
                 accountNumber,
                 accountName,

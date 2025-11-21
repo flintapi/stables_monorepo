@@ -8,9 +8,15 @@ export const updateTransaction = orgSchema.patchTransactionSchema;
 
 export type Transaction = z.infer<typeof selectTransaction>;
 
+const excludedChar = '.';
+const noExcludedCharRegex = new RegExp(`^[^${excludedChar}]*$`);
+
 const offRampSchema = z.object({
   type: z.literal("off"),
-  reference: z.string().min(10),
+  reference: z.string().min(5).regex(
+    noExcludedCharRegex,
+    `String cannot contain the character '${excludedChar}'`
+  ),
   network: z.enum(["base", "bsc"]),
   amount: z.number().min(100).max(2_000_000),
   notifyUrl: z.url().optional(),
@@ -23,12 +29,16 @@ const offRampSchema = z.object({
 const offRampResponseSchema = z.object({
   type: z.literal("off-ramp"),
   status: z.enum(["pending", "completed", "failed"]),
+  transactionId: z.string().optional(),
   depositAddress: z.string().min(12).startsWith("0x"),
 });
 
 const onRampSchema = z.object({
   type: z.literal("on"),
-  reference: z.string().min(10),
+  reference: z.string().min(5).regex(
+    noExcludedCharRegex,
+    `String cannot contain the character '${excludedChar}'`
+  ),
   network: z.enum(["base", "bsc"]),
   amount: z.number().min(100).max(2_000_000),
   notifyUrl: z.url().optional(),
@@ -40,6 +50,7 @@ const onRampSchema = z.object({
 const onRampResponseSchema = z.object({
   type: z.literal("on"),
   status: z.enum(["pending", "completed", "failed"]),
+  transactionId: z.string().optional(),
   depositAccount: z.object({
     accountNumber: z.string().min(10),
     bankCode: z.string().min(3),

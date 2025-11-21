@@ -98,7 +98,7 @@ class Ramp {
         bankCode: bankCode,
         reference: transaction.reference,
         amount: getAmountAfterFee(transaction.amount),
-        narration: transaction?.narration || "Default narration",
+        narration: transaction?.narration || organization?.name,
         transactionId: transaction.id,
         organizationId: organization?.id,
       });
