@@ -38,9 +38,10 @@ export function getBundlerUrl(chainId: ChainId, network: SupportedChains) {
       return `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/${chainId.toString()}?provider=PIMLICO`;
     // return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${process.env.PIMLICO_API_KEY || "pim_ZkLxqjsRCe4FRVhkd5LQQG"}`;
     case SupportedChains.bsc:
+      return `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/${chainId.toString()}?provider=PIMLICO`;
+      // return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${process.env.PIMLICO_API_KEY || "pim_ZkLxqjsRCe4FRVhkd5LQQG"}`;
     case SupportedChains.base:
       return `https://rpc.zerodev.app/api/v3/${env.ZERODEV_PROJECT_ID}/chain/${chainId.toString()}?provider=ULTRA_RELAY`;
-      // return `https://api.pimlico.io/v2/${chainId.toString() || "97"}/rpc?apikey=${process.env.PIMLICO_API_KEY || "pim_ZkLxqjsRCe4FRVhkd5LQQG"}`;
     default:
       throw new Error(`Unsupported network: ${network}`);
   }
