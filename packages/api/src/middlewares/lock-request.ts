@@ -10,7 +10,7 @@ const redlock = new Redlock([CacheFacade.redisCache], {
   retryCount: 0,
 });
 
-export const lockPayoutRequest = (ttl = 5000) => {
+export const lockPayoutRequest = (ttl = 10000) => {
   return createMiddleware(async (c, next) => {
     // @ts-ignore
     const body = await c.req.json();
