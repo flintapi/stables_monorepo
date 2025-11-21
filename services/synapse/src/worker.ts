@@ -11,7 +11,7 @@ import { ChainId, supportedChains } from "@flintapi/shared/Utils";
 import { eventLogger } from "@flintapi/shared/Logger";
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { createPublicClient, http, webSocket, extractChain } from "viem";
-import { RPC_URLS } from "./lib/constants";
+import { getTransport, RPC_URLS } from "./lib/constants";
 import { createListenerCache } from "./lib/cache.listener";
 import env from "./env";
 
@@ -30,7 +30,7 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
       console.log("Listener RPC", rpc)
       const publicClient = createPublicClient({
         chain,
-        transport: env.RPC_TYPE === "websocket"? webSocket(rpc, {keepAlive: {interval: 100}, retryDelay: 200, retryCount: 100_000}) : http(rpc, {retryCount: 100_000, retryDelay: 200, timeout: 100_000}),
+        transport: getTransport(rpc, chainId),
       });
 
       const listenerService = new EventListenerService(publicClient);
