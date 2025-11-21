@@ -59,15 +59,16 @@ export const validateRequest = () =>
         message: "No organization found with api key",
         success: false
       }, HttpStatusCodes.BAD_REQUEST);
-    } else if (!(organization.metadata as unknown as { active: boolean })?.active) {
+    }
+
+    const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+    if (!(metadata as unknown as { active: boolean })?.active) {
       return c.json({
         message: "Organization is not active",
         success: false,
       }, HttpStatusCodes.BAD_REQUEST);
     }
-    // const orgMetadata = organization.metadata as OrgMetadata;
 
-    const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
     const orgDatabase = orgDb({ dbUrl: metadata.dbUrl });
 
     c.set("organization", organization as Organization);

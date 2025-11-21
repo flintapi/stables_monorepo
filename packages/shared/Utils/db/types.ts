@@ -1,5 +1,7 @@
 export interface OrgMetadata {
   dbUrl: string;
+  active: boolean;
+  [key: string]: any;
 }
 
 export interface WalletMetadata {
