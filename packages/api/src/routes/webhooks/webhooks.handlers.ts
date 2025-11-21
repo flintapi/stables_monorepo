@@ -278,15 +278,17 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
   }
 
   if (body.orderStatus === 3) {
+    apiLogger.info("Order status is failed")
     const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
       .set({
         status: "failed",
-        reference: `${transaction.reference}-retry-${crypto.randomUUID().substring(6)}` // update refernce for provider
+        reference: `${transaction.reference}-retry-${crypto.randomUUID().substring(0, 6)}` // update refernce for provider
       })
       .where(eq(orgSchema.transactions.id, transaction.id))
       .returning();
     console.log("Transaction update", updatedTransaction);
-    const job = await Job.fromId(rampQueue, `ramp-off-ramp-${transaction.id}`)
+    const job = await rampQueue.getJob(`ramp-off-ramp-${transaction.id}`)
+    console.log("Found job", "Attempt made", job?.attemptsMade, "Job data", job?.data)
     if(job) {
       await job.retry()
       apiLogger.info("Retrying failed payout from payment provider", {data: job.data, jobId: job.id})
