@@ -5,6 +5,7 @@ import { FlickeringGrid } from '@/components/ui/flickering-grid-hero'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Footer } from '@/components/ui/footer'
+import { useTheme } from '@/components/theme-provider'
 // import { Features } from '@/components/blocks/features-9'
 
 export const Route = createFileRoute('/_home/')({ component: App })
@@ -49,7 +50,7 @@ function App() {
       {/*<section className="py-16 px-6 max-w-7xl mx-auto">
         <Features />
       </section>*/}
-      <div className="w-full mt-[65px]">
+      <div className="w-full mt-[20%]">
         <Footer
           logo={
             <Image
@@ -120,17 +121,26 @@ const GRID_CONFIG = {
     squareSize: 4,
     gridGap: 4,
   },
-  logo: {
+  logoDark: {
     color: '#EDF128',
-    maxOpacity: 0.65,
+    maxOpacity: 0.85,
     flickerChance: 0.18,
-    squareSize: 3,
+    squareSize: 4,
+    gridGap: 6,
+  },
+  logoLight: {
+    color: '#000000',
+    maxOpacity: 0.85,
+    flickerChance: 0.18,
+    squareSize: 4,
     gridGap: 6,
   },
 } as const
 
 const FlickeringGridDemo = () => {
   const isMobile = useIsMobile()
+  const { theme } = useTheme()
+
   return (
     <div className="flex w-full h-full">
       <FlickeringGrid
@@ -149,7 +159,9 @@ const FlickeringGridDemo = () => {
           animation: 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         }}
       >
-        <FlickeringGrid {...GRID_CONFIG.logo} />
+        <FlickeringGrid
+          {...(theme === 'dark' ? GRID_CONFIG.logoDark : GRID_CONFIG.logoLight)}
+        />
       </div>
     </div>
   )

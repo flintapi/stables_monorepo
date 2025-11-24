@@ -182,7 +182,7 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
   return (
     <div
       ref={containerRef}
-      className={cn(`h-full w-full ${className}`)}
+      className={cn(`h-full w-full`, className)}
       {...props}
     >
       <canvas
