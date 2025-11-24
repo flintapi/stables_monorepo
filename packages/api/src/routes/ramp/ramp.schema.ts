@@ -48,7 +48,7 @@ const onRampSchema = z.object({
 });
 
 const onRampResponseSchema = z.object({
-  type: z.literal("on"),
+  type: z.literal("on-ramp"),
   status: z.enum(["pending", "completed", "failed"]),
   transactionId: z.string().optional(),
   depositAccount: z.object({
