@@ -104,6 +104,8 @@ The destination prop can accept an object of `{"address": "0x1234567890abcdef123
 
 For off-ramp transactions the destination object accepts an object of `{"bankCode": "000013", "accountNumber": "1234567890"}` which tells us which bank account to credit with fiat.
 
+You can use the `<BASE_ULR>/v1/ramp/banks` endpoint to get the list of supported banks and their bank code.
+
 ```sh tab="Curl"
 curl --location --request POST 'https://stables.flintapi.io/v1/ramp/initialize' \
 --header 'Content-Type: application/json' \

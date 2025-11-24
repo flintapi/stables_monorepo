@@ -1,5 +1,83 @@
 ---
 title: Transactions resource
+description: This resource provides information about transactions and their status.
 ---
 
-This is the transactions request resource
+## Transaction request
+
+Find a transaction by its `id` or `reference` using the `<BASE_URL>/v1/ramp/transactions/` endpoint. Calling the endpoint without any query parameters will return a list of all transactions for the organisation.
+
+```sh tab="Get all transactions"
+curl --request GET \
+  --url https://stables.flintapi.io/v1/ramp/transactions \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: <FLINT_API_KEY>'
+```
+
+```sh tab="Get with id"
+curl --request GET \
+  --url https://stables.flintapi.io/v1/ramp/transactions?id={TRANSACTION_ID} \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: <FLINT_API_KEY>'
+```
+
+```sh tab="Get with reference"
+curl --request GET \
+  --url https://stables.flintapi.io/v1/ramp/transactions?reference={TRANSACTION_REFERENCE} \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: <FLINT_API_KEY>'
+```
+
+## Response
+
+```json tab="List"
+{
+  "status": "success",
+  "message": "Transaction list",
+  "data": [
+    {
+      "id": "trx_randasdbvobsad80o03bv9bsadv0bb9b3v",
+      "type": "off-ramp",
+      "status": "pending",
+      "network": "bsc",
+      "reference": "1234567890",
+      "amount": 1000,
+      "trackingId": "rand0000001495",
+      "narration": "Payout to customer",
+      "createdAt": "2022-01-01T00:00:00Z",
+      "updatedAt": "2022-01-01T00:00:00Z"
+    },
+    {
+      "id": "trx_randasdbvobsad80o03bvasdva999998bb9b3v",
+      "type": "off-ramp",
+      "status": "completed",
+      "network": "bsc",
+      "reference": "1234567890",
+      "amount": 2000,
+      "trackingId": "rand000000153c5",
+      "narration": "Payout to customer",
+      "createdAt": "2022-01-01T00:00:00Z",
+      "updatedAt": "2022-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+```json tab="Single"
+{
+  "status": "success",
+  "message": "Retrieved single transaction",
+  "data": {
+    "id": "trx_randasdbvobsad80o03bv9bsadv0bb9b3v",
+    "type": "on-ramp",
+    "status": "pending",
+    "network": "base",
+    "reference": "rand1234567890113bsdbbs",
+    "amount": 1000,
+    "trackingId": null,
+    "narration": null,
+    "createdAt": "2022-01-01T00:00:00Z",
+    "updatedAt": "2022-01-01T00:00:00Z"
+  }
+}
+```
