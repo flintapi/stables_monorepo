@@ -1,5 +1,176 @@
 ---
 title: Ramp resource
+description: Onboard your users to the first of its kind naira compliant stablecoin.
 ---
 
-This is the ramp request resource
+This ramp resource will guide you through the process of onboarding your users on to the cNGN stablecoin, and payout when you need to get back to fiat naira.
+
+## Overview
+
+Use the `/ramp/initialize` route to initiate a ramp transaction, specifying the `type` in the body.
+
+### Ramp transaction:
+
+The ramp transaction initialize endpoint is a simple endpoint that enables you to initiate a ramp transaction. It accepts a JSON payload with the following properties:
+
+<include>../../ramp-req-type-table.mdx</include>
+
+```sh tab="Curl"
+curl --request POST \
+  --url https://stables.flintapi.io/v1/ramp/initialize \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: <FLINT_API_KEY>' \
+  --data '{
+    "type": "on", // [!code highlight]
+    "reference": "trx_ref_rand00093942885990385824",
+    "network": "base", // base | bsc
+    "amount": 3500,
+    "notifyUrl": "https://webhook.site/34645843-485887534-nf758883dc-0985n93v774",
+    "destination": {
+      "address": "0x1234567890abcdef1234567890abcdef12345678",
+    },
+}'
+```
+
+```ts tab="Typescript" lineNumbers
+const response = fetch('https://stables.flintapi.io/v1/ramp/initialize', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': '<FLINT_API_KEY>',
+  },
+  body: JSON.stringify({
+    type: 'on', // [!code highlight]
+    reference: 'trx_ref_rand00093942885990385824',
+    network: 'base', // base | bsc
+    amount: 3500,
+    notifyUrl: 'https://webhook.site/34645843-485887534-nf758883dc-0985n93v774',
+    destination: {
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+    },
+  }),
+})
+```
+
+The `type` prop tells us what direction you want to transact in, acceptable values are `on` and `off` that represent on-ramp and off-ramp respectively.
+
+### Destination details:
+
+```sh tab="Curl"
+curl --request POST \
+  --url https://stables.flintapi.io/v1/ramp/initialize \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: <FLINT_API_KEY>' \
+  --data '{
+    "type": "on",
+    "reference": "trx_ref_rand00093942885990385824",
+    "network": "base", // base | bsc
+    "amount": 3500,
+    "notifyUrl": "https://webhook.site/34645843-485887534-nf758883dc-0985n93v774",
+    "destination": {
+      "address": "0x1234567890abcdef1234567890abcdef12345678", // [!code highlight]
+    },
+}'
+```
+
+```ts tab="Typescript" lineNumbers
+const response = fetch('https://stables.flintapi.io/v1/ramp/initialize', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': '<FLINT_API_KEY>',
+  },
+  body: JSON.stringify({
+    type: 'on',
+    reference: 'trx_ref_rand00093942885990385824',
+    network: 'base', // base | bsc
+    amount: 3500,
+    notifyUrl: 'https://webhook.site/34645843-485887534-nf758883dc-0985n93v774',
+    destination: {
+      // [!code highlight]
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+    },
+  }),
+})
+```
+
+<include>../../initialize-type-table.mdx</include>
+
+##### Wallet destination
+
+The destination prop can accept an object of `{"address": "0x1234567890abcdef1234567890abcdef12345678"}` for on ramp transaction, specify a destination address which can be your users wallet address that can be credited with the stablecoin token
+
+##### Bank destination
+
+For off-ramp transactions the destination object accepts an object of `{"bankCode": "000013", "accountNumber": "1234567890"}` which tells us which bank account to credit with fiat.
+
+```sh tab="Curl"
+curl --location --request POST 'https://stables.flintapi.io/v1/ramp/initialize' \
+--header 'Content-Type: application/json' \
+--header 'x-api-key: <FLINT_API_KEY>' \
+--data-raw '{
+    "type": "on",
+    "reference": "trx_ref_rand00093942885990385824",
+    "network": "base", // base | bsc
+    "amount": 3500,
+    "notifyUrl": "https://webhook.site/34645843-485887534-nf758883dc-0985n93v774",
+    "destination": {
+      "bankCode": "000013", // [!code highlight]
+      "accountNumber": "1234567890" // [!code highlight]
+    },
+}'
+```
+
+```ts tab="Typescript" lineNumbers
+const response = fetch('https://stables.flintapi.io/v1/ramp/initialize', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': '<FLINT_API_KEY>',
+  },
+  body: JSON.stringify({
+    type: 'on',
+    reference: 'trx_ref_rand00093942885990385824',
+    network: 'base', // base | bsc
+    amount: 3500,
+    notifyUrl: 'https://webhook.site/34645843-485887534-nf758883dc-0985n93v774',
+    destination: {
+      bankCode: '000013', // [!code highlight]
+      accountNumber: '1234567890', // [!code highlight]
+    },
+  }),
+})
+```
+
+## HTTP Response
+
+The response for the `/ramp/initialize` endpoint will contain collection information depending on the transaction `type`, `bankCode` and `accountNumber` for on ramp transaction and `address` for off ramp transactions.
+
+```json tab="Off Ramp"
+{
+  "status": "success",
+  "message": "Transaction initialized successfully",
+  "data": {
+    "status": "pending",
+    "transactionId": "trx_randasdbvobsad80o03bv9bsadv0bb9b3v",
+    "depositAddress": "0x0000000000000000000000000000000000000000"
+  }
+}
+```
+
+```json tab="On Ramp"
+{
+  "status": "success",
+  "message": "Transaction initialized successfully",
+  "data": {
+    "status": "pending",
+    "transactionId": "trx_randasdbvobsad80o03bv9bsadv0bb9b3v",
+    "depositAccount": {
+      "bankCode": "000013",
+      "accountNumber": "1234567890",
+      "bankName": "Globus Bank",
+      "accountName": "Ramp Collection"
+    }
+  }
+}
+```

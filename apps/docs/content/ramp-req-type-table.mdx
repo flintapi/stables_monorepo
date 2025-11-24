@@ -1,0 +1,49 @@
+import { TypeTable } from 'fumadocs-ui/components/type-table'
+
+<TypeTable
+  type={{
+    type: {
+      description: 'The type of the transaction',
+      type: 'string',
+      default: 'on',
+      required: true,
+      simplifiedType: 'string',
+    },
+    reference: {
+      description: 'The reference for the transaction',
+      type: 'string',
+      default: 'ref_trx_1234567890',
+      required: true,
+      simplifiedType: 'string',
+    },
+    network: {
+      description: 'The network for the transaction, can be `base` or `bsc`',
+      type: 'string',
+      default: 'base',
+      required: true,
+      simplifiedType: 'string',
+    },
+    amount: {
+      description: 'The amount to be transferred',
+      type: 'number',
+      default: 100,
+      required: true,
+      simplifiedType: 'number',
+    },
+    notifyUrl: {
+      description: 'The URL to notify when the transaction is completed',
+      type: 'string',
+      default: 'https://webhook.site/34645843-485887534-nf758883dc-0985n93v774',
+      required: false,
+      simplifiedType: 'string',
+    },
+    destination: {
+      description:
+        'The destination for the token(cNGN) or fiat(NGN) depending on the ramp type',
+      type: '{ address: string } | { bankCode: string; accountNumber: string }',
+      default: '{ address: "0x1234567890abcdef1234567890abcdef12345678" }',
+      required: true,
+      simplifiedType: 'object',
+    },
+  }}
+/>

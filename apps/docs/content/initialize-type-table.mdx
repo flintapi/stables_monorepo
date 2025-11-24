@@ -1,0 +1,12 @@
+<TypeTable
+  type={{
+    destination: {
+      description:
+        'The destination for the token(cNGN) or fiat(NGN) depending on the ramp type',
+      type: '{ address: string } | { bankCode: string; accountNumber: string }',
+      default: '{ address: "0x1234567890abcdef1234567890abcdef12345678" }',
+      required: true,
+      simplifiedType: 'object',
+    },
+  }}
+/>

@@ -72,3 +72,27 @@ export function isWebhookSignatureValid(
   return signature === hash
 }
 ```
+
+The webhook signature from our servers can be found the `x-flint-signature` header of the webhook event request, use this to verify that the payload is from our servers.
+
+```ts
+const flintWebhookRoute = app.post('/webhooks/flintapi/stables', (c) => {
+  const signature = c.req.header('x-flint-signature')
+
+  const isValid = isWebhookSignatureValid(
+    c.body,
+    signature,
+    process.env.FLINT_WEBHOOK_SECRET_KEY,
+  )
+
+  if (!isValid) {
+    return c.status(401).send('Invalid signature')
+  }
+
+  return c.status(200).send('OK')
+})
+```
+
+## Ready for kick-off
+
+With all this in mind you're ready to start the flint API Stablecoin stack. Check out the [On/Off-Ramp documentation](/docs/features/ramp) for more information on how to onboard your users to [cNGN](https://cngn.co)
