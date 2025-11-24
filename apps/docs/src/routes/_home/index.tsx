@@ -22,7 +22,7 @@ function App() {
               </h2>
               <div className="flex gap-2 items-center justify-center lg:justify-start lg:gap-5">
                 <Button size="lg" variant="default" asChild>
-                  <Link to="/docs">Getting started</Link>
+                  <Link to="/docs/$">Getting started</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <a href="https://console.flintapi.io">Create account</a>
