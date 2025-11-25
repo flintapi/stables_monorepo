@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "vite dev --port 3000",
     "build": "vite build",
-    "start:vercel": "node .output/server/index.mjs",
-    "deploy": "npm run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
+    "start": "node .output/server/index.mjs",
     "serve": "vite preview",
     "test": "vitest run",
     "lint": "eslint",
