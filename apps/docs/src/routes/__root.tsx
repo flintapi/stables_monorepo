@@ -1,4 +1,5 @@
 import {
+  ClientOnly,
   HeadContent,
   Scripts,
   createRootRouteWithContext,
@@ -59,7 +60,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="flex flex-col min-h-screen">
         <RootProvider>
-          <ThemeProvider defaultTheme="system">{children}</ThemeProvider>
+          <ClientOnly>
+            <ThemeProvider defaultTheme="system">{children}</ThemeProvider>
+          </ClientOnly>
         </RootProvider>
         <TanStackDevtools
           config={{

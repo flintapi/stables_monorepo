@@ -1,3 +1,5 @@
+'use client'
+
 import { createContext, useContext, useEffect, useState } from 'react'
 
 export type Theme = 'dark' | 'light' | 'system'
@@ -26,10 +28,8 @@ export function ThemeProvider({
   storageKey = 'theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() =>
-    typeof window !== 'undefined'
-      ? (localStorage.getItem(storageKey) as Theme)
-      : defaultTheme,
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme | null) ?? defaultTheme,
   )
 
   useEffect(() => {

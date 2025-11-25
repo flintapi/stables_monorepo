@@ -1,12 +1,12 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Image } from '@unpic/react'
-import { Github, Linkedin, Twitter } from 'lucide-react'
+import { Linkedin, Twitter } from 'lucide-react'
 import { FlickeringGrid } from '@/components/ui/flickering-grid-hero'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Footer } from '@/components/ui/footer'
 import { useTheme } from '@/components/theme-provider'
-// import { Features } from '@/components/blocks/features-9'
+import { Features } from '@/components/blocks/features-9'
 
 export const Route = createFileRoute('/_home/')({ component: App })
 
@@ -37,14 +37,12 @@ function App() {
               width={1628}
               height={1044}
               decoding="async"
-              // data-nimg="1"
               className="absolute z-20 text-transparent top-[460px] left-[20%] max-w-[1200px] rounded-xl border-2 lg:top-[400px] max-xl:top-[500px] animate-in fade-in duration-400"
-              // style="color:transparent"
               src="/hero-preview.png"
             />
           </div>
         </div>
-        <FlickeringGridDemo />
+        <FlickeringGridCluster />
       </section>
 
       {/*<section className="py-16 px-6 max-w-7xl mx-auto">
@@ -137,7 +135,7 @@ const GRID_CONFIG = {
   },
 } as const
 
-const FlickeringGridDemo = () => {
+const FlickeringGridCluster = () => {
   const isMobile = useIsMobile()
   const { theme } = useTheme()
 
