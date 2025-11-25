@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Footer } from '@/components/ui/footer'
 import { useTheme } from '@/components/theme-provider'
-import { Features } from '@/components/blocks/features-9'
 
 export const Route = createFileRoute('/_home/')({ component: App })
 
@@ -45,9 +44,6 @@ function App() {
         <FlickeringGridCluster />
       </section>
 
-      {/*<section className="py-16 px-6 max-w-7xl mx-auto">
-        <Features />
-      </section>*/}
       <div className="w-full mt-[20%]">
         <Footer
           logo={
