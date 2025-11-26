@@ -10,7 +10,7 @@ import { useTheme } from '@/components/theme-provider'
 export const Route = createFileRoute('/_home/')({
   component: App,
   onError(err) {
-      console.log("Error occured in route", err)
+    console.log('Error occured in route', err)
   },
 })
 
@@ -46,9 +46,9 @@ function App() {
             />
           </div>
         </div>
-        <ClientOnly>
+        {/*<ClientOnly>
           <FlickeringGridCluster />
-        </ClientOnly>
+        </ClientOnly>*/}
       </section>
 
       <div className="w-full mt-[20%]">
