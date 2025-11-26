@@ -10,9 +10,9 @@ export const Route = createFileRoute('/_home')({
 function RouteComponent() {
   return (
     <HomeLayout
-      // {...baseOptions()}
+      {...baseOptions()}
       themeSwitch={{
-        enabled: true,
+        enabled: false,
         component: <ThemeToggle />,
         mode: 'light-dark-system',
       }}
