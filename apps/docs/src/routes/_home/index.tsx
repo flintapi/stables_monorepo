@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { ClientOnly, Link, createFileRoute } from '@tanstack/react-router'
 import { Image } from '@unpic/react'
 import { Linkedin, Twitter } from 'lucide-react'
 import { FlickeringGrid } from '@/components/ui/flickering-grid-hero'
@@ -7,7 +7,12 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { Footer } from '@/components/ui/footer'
 import { useTheme } from '@/components/theme-provider'
 
-export const Route = createFileRoute('/_home/')({ component: App })
+export const Route = createFileRoute('/_home/')({
+  component: App,
+  onError(err) {
+      console.log("Error occured in route", err)
+  },
+})
 
 function App() {
   return (
@@ -41,7 +46,9 @@ function App() {
             />
           </div>
         </div>
-        <FlickeringGridCluster />
+        <ClientOnly>
+          <FlickeringGridCluster />
+        </ClientOnly>
       </section>
 
       <div className="w-full mt-[20%]">

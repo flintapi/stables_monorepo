@@ -48,7 +48,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
-
+  onError(err) {
+      console.log("Error occured in app", err)
+  },
   shellComponent: RootDocument,
 })
 

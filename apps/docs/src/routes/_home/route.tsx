@@ -10,7 +10,7 @@ export const Route = createFileRoute('/_home')({
 function RouteComponent() {
   return (
     <HomeLayout
-      {...baseOptions()}
+      // {...baseOptions()}
       themeSwitch={{
         enabled: true,
         component: <ThemeToggle />,
