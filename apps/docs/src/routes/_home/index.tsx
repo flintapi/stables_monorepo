@@ -46,9 +46,9 @@ function App() {
             />
           </div>
         </div>
-        {/*<ClientOnly>
+        <ClientOnly>
           <FlickeringGridCluster />
-        </ClientOnly>*/}
+        </ClientOnly>
       </section>
 
       <div className="w-full mt-[20%]">
@@ -140,7 +140,7 @@ const GRID_CONFIG = {
 
 const FlickeringGridCluster = () => {
   const isMobile = useIsMobile()
-  const { theme } = useTheme()
+  // const { theme } = useTheme()
 
   return (
     <div className="flex w-full h-full">
@@ -160,9 +160,7 @@ const FlickeringGridCluster = () => {
           animation: 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         }}
       >
-        <FlickeringGrid
-          {...(theme === 'dark' ? GRID_CONFIG.logoDark : GRID_CONFIG.logoLight)}
-        />
+        <FlickeringGrid {...GRID_CONFIG.logoDark} />
       </div>
     </div>
   )

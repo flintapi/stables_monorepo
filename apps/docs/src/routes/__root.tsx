@@ -1,5 +1,5 @@
 import {
-  ClientOnly,
+  // ClientOnly,
   HeadContent,
   Scripts,
   createRootRouteWithContext,
@@ -16,7 +16,7 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { ThemeProvider } from '@/components/theme-provider'
+// import { ThemeProvider } from '@/components/theme-provider'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -49,7 +49,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     ],
   }),
   onError(err) {
-      console.log("Error occured in app", err)
+    console.log('Error occured in app', err)
   },
   shellComponent: RootDocument,
 })
@@ -61,11 +61,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="flex flex-col min-h-screen">
-        <RootProvider>
-          <ClientOnly>
-            <ThemeProvider defaultTheme="system">{children}</ThemeProvider>
-          </ClientOnly>
-        </RootProvider>
+        <RootProvider>{children}</RootProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
