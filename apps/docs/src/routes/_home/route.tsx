@@ -12,7 +12,7 @@ function RouteComponent() {
     <HomeLayout
       {...baseOptions()}
       themeSwitch={{
-        enabled: false,
+        enabled: true,
         component: <ThemeToggle />,
         mode: 'light-dark-system',
       }}
