@@ -13,8 +13,6 @@ Use the `/ramp/initialize` route to initiate a ramp transaction, specifying the 
 
 The ramp transaction initialize endpoint is a simple endpoint that enables you to initiate a ramp transaction. It accepts a JSON payload with the following properties:
 
-<include>../../ramp-req-type-table.mdx</include>
-
 ```sh tab="Curl"
 curl --request POST \
   --url https://stables.flintapi.io/v1/ramp/initialize \
@@ -51,6 +49,8 @@ const response = fetch('https://stables.flintapi.io/v1/ramp/initialize', {
   }),
 })
 ```
+
+<include>../../ramp-req-type-table.mdx</include>
 
 The `type` prop tells us what direction you want to transact in, acceptable values are `on` and `off` that represent on-ramp and off-ramp respectively.
 
@@ -93,8 +93,6 @@ const response = fetch('https://stables.flintapi.io/v1/ramp/initialize', {
   }),
 })
 ```
-
-<include>../../initialize-type-table.mdx</include>
 
 ##### Wallet destination
 

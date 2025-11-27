@@ -1,10 +1,10 @@
-import { TypeTable } from 'fumadocs-ui/components/type-table'
+import { TypeTable } from '@/components/type-table'
 
 <TypeTable
   type={{
     type: {
       description: 'The type of the transaction',
-      type: 'string',
+      type: 'on | off',
       default: 'on',
       required: true,
       simplifiedType: 'string',
@@ -18,7 +18,7 @@ import { TypeTable } from 'fumadocs-ui/components/type-table'
     },
     network: {
       description: 'The network for the transaction, can be `base` or `bsc`',
-      type: 'string',
+      type: 'base | bsc',
       default: 'base',
       required: true,
       simplifiedType: 'string',
