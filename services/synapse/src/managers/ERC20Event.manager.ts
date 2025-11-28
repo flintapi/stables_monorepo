@@ -1,19 +1,14 @@
 import { pipeline } from "stream/promises";
-import { EventStream } from "../streams/event.stream";
 import { EventProcessor } from "../processors/event.processor";
-import { MetricsCollector } from "../processors/metrics.processor";
-import { DatabaseWriter } from "@/processors/database.processor";
+// import { MetricsCollector } from "../processors/metrics.processor";
+// import { DatabaseWriter } from "@/processors/database.processor";
 import { ListenerConfig, ListenerState } from "../lib/types";
 import {
-  Hex,
-  Log,
-  parseAbi,
-  parseAbiItem,
-  parseEventLogs,
   PublicClient,
 } from "viem";
 import { createListenerCache } from "@/lib/cache.listener";
-import env from "@/env";
+import { EthStream } from "@/streams/eth.stream";
+import { ChainId } from "@flintapi/shared/Utils";
 
 /**
  * EventStream → EventProcessor → (optional: database writer, logger, etc.)
@@ -29,11 +24,12 @@ export default class EventListenerManager {
   private client: PublicClient; // viem client
   private persistentStore: Map<string, ListenerConfig> = new Map(); // This can be swapped with redis cache
 
-  private constructor(client: PublicClient) {
+  constructor(client: PublicClient) {
     this.client = client;
-    this.restorePersistentListeners();
+    // this.restorePersistentListeners();
   }
 
+  // Singleton won't work for our new setup with multiple listeners
   static getInstance(client: PublicClient): EventListenerManager {
     if (!EventListenerManager.instance) {
       EventListenerManager.instance = new EventListenerManager(client);
@@ -55,7 +51,8 @@ export default class EventListenerManager {
     await config.onStart?.();
 
     // Create event stream with backpressure handling
-    const eventStream = new EventStream(config);
+    // const eventStream = new EventStream(config);
+    const ethStream = new EthStream(this.client, config.chainId as ChainId, config)
     const eventProcessor = new EventProcessor(config, config.id);
     // TODO: Bring in database processor
     // const metricsCollector = new MetricsCollector(config, config.id);
@@ -65,12 +62,17 @@ export default class EventListenerManager {
     // );
 
     // Handle stream events
-    eventStream.on("pause-watcher", () => {
-      console.warn(`Pausing watcher for ${config.id} due to backpressure`);
+    ethStream.on("data", (chunk) => {
+      console.warn(`Data still comming through for ${config.id}`);
+      console.log("Data", chunk)
     });
 
-    eventStream.on("resume-watcher", () => {
-      console.log(`Resuming watcher for ${config.id}`);
+    ethStream.on("end", () => {
+      console.log(`Eth stream ended for ${config.id}`);
+    });
+
+    ethStream.on("close", () => {
+      console.log(`Eth stream closed for ${config.id}`);
     });
 
     // databaseWriter.once("error", (err) => {
@@ -84,55 +86,16 @@ export default class EventListenerManager {
     });
 
     // Start processing pipeline
-    this.startEventPipeline(eventStream, eventProcessor);
+    this.startEventPipeline(ethStream, eventProcessor);
 
     // Create viem watcher with backpressure awareness
     console.log(config.filter, ":::Filter for event");
 
-    const unwatch = this.client.watchContractEvent({
-      // address: config.filter.address,
-      // args: {to: config.filter.args.to},
-      // eventName: config.filter.eventName,
-      ...config.filter,
-      abi: parseAbi([
-        "event Transfer(address indexed from, address indexed to, uint256 value)",
-        "event Approval(address indexed owner, address indexed sender, uint256 value)",
-      ]),
-      batch: false,
-      fromBlock: config.fromBlock,
-      onError: (error) =>
-        console.log("Error listening for ERC20 events", error),
-      onLogs: async (logs: Log[]) => {
-        for (const log of logs) {
-          try {
-            const [decodedLogs] = parseEventLogs({
-              abi: parseAbi([
-                "event Transfer(address indexed from, address indexed to, uint256 value)",
-                "event Approval(address indexed owner, address indexed sender, uint256 value)",
-              ]),
-              logs: [log],
-              eventName: config.filter.eventName,
-            });
-            const success = eventStream.addEvent(decodedLogs);
-            if (!success && !eventStream.isPaused()) {
-              console.warn(
-                `Buffer full for listener ${config.id}, dropping event`,
-              );
-            }
-          } catch (error: any) {
-            console.warn("Failed to parse log:", error);
-            continue;
-          }
-        }
-      },
-    });
-
     const state: ListenerState = {
       id: config.id,
-      unwatch,
       config,
       status: "active",
-      eventStream,
+      eventStream: ethStream,
     };
 
     console.log("Setting config for listener", config.id)
@@ -147,7 +110,7 @@ export default class EventListenerManager {
   }
 
   private async startEventPipeline(
-    eventStream: EventStream,
+    eventStream: EthStream,
     eventProcessor: EventProcessor,
     // metricsCollector?: DatabaseWriter,
   ) {
@@ -167,13 +130,14 @@ export default class EventListenerManager {
 
     // Close stream first
     if (listener.eventStream && !listener.eventStream.destroyed) {
-      console.log("Stream will auto close...");
-      // listener.eventStream.destroy();
+      console.log("Stream will auto close...", listener.eventStream.destroyed);
+      listener.eventStream.destroy();
     }
 
-    listener.unwatch();
     listener.status = "stopped";
     this.listeners.delete(id);
+
+    console.log("Listener after destroyed and stopped", listener.status, JSON.stringify(listener.config, (k,v) => typeof v === 'bigint'? v.toString() : v, 3))
 
     // Remove from persistent store if not persistent
     if (!listener.config.persistent) {
@@ -191,66 +155,6 @@ export default class EventListenerManager {
       } catch (error) {
         console.error(`Failed to restore listener ${id}:`, error);
       }
-    }
-  }
-
-  // Create backpressure-aware event stream
-  private createEventStream(config: ListenerConfig): ReadableStream {
-    let controller: ReadableStreamDefaultController;
-
-    const stream = new ReadableStream(
-      {
-        start(ctrl) {
-          controller = ctrl;
-        },
-
-        async pull() {
-          // Ready for more data - can resume viem watcher if paused
-        },
-
-        cancel() {
-          console.log(`Stream cancelled for listener ${config.id}`);
-        },
-      },
-      {
-        highWaterMark: 16, // Buffer size
-        size: () => 1, // Each event counts as 1 unit
-      },
-    );
-
-    // Process stream with proper flow control
-    this.processEventStream(stream, config);
-
-    return stream;
-  }
-
-  private async processEventStream(
-    stream: ReadableStream,
-    config: ListenerConfig,
-  ) {
-    const reader = stream.getReader();
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        try {
-          await config.onEvent(value);
-
-          // Auto-shutdown for temporary listeners
-          if (!config.persistent) {
-            await this.stopListener(config.id);
-            break;
-          }
-        } catch (error) {
-          console.error(`Error processing event in ${config.id}:`, error);
-          // Could implement retry logic here
-        }
-      }
-    } finally {
-      reader.releaseLock();
     }
   }
 

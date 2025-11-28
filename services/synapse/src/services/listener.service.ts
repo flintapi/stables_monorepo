@@ -24,7 +24,7 @@ export default class EventListenerService implements ListenerService {
   private fetch: BetterFetch;
 
   constructor(client: any) {
-    this.manager = EventListenerManager.getInstance(client);
+    this.manager = new EventListenerManager(client); // this can't be a singleton
     this.fetch = createFetch({
       timeout: 10000 * 3,
       retry: {

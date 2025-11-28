@@ -33,7 +33,7 @@ export async function createListenerCache() {
         console.log("Listener RPC", rpc)
         const publicClient = createPublicClient({
           chain,
-          transport: getTransport(rpc, Number(chainId))
+          transport: getTransport(rpc, chain.id)
         });
 
         console.log("Restored config", config, "Typeof rampData: ", typeof config?.rampData);
@@ -54,6 +54,18 @@ export async function createListenerCache() {
     await CacheFacade.redisCache.hset(`synapse:listener:${listenerId}`, config);
   }
 
+  const updateFromBlock = async (listenerId: string, fromBlock: number) => {
+    const hasKey = await CacheFacade.redisCache.exists(`synapse:listener:${listenerId}`);
+    if (!hasKey) return;
+
+    const lastBlock = await CacheFacade.redisCache.hget(`synapse:listener:${listenerId}`, 'fromBlock');
+
+    if (!lastBlock) return;
+    if (fromBlock <= BigInt(lastBlock)) return;
+
+    await CacheFacade.redisCache.hset(`synapse:listener:${listenerId}`, { fromBlock });
+  }
+
   const deleteListener = async (listenerId: string) => {
     await CacheFacade.redisCache.del(`synapse:listener:${listenerId}`);
   }
@@ -64,6 +76,7 @@ export async function createListenerCache() {
     restoreListeners,
     listenerIds,
     storeListener,
-    deleteListener
+    deleteListener,
+    updateFromBlock
   }
 }

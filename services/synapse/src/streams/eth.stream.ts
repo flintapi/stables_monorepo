@@ -1,0 +1,151 @@
+import { createListenerCache } from "@/lib/cache.listener";
+import { ListenerConfig } from "@/lib/types";
+import { ChainId } from "@flintapi/shared/Utils";
+import { Readable } from "node:stream";
+import { Address, parseAbi, parseAbiItem, parseEventLogs, PublicClient } from "viem";
+
+
+export class EthStream extends Readable {
+  private readonly chainId: ChainId;
+  private client: PublicClient;
+  private interval: NodeJS.Timeout | null = null;
+  private lastProcessedBlock: number = 0;
+  private isProcessing: boolean = false;
+
+  private config: ListenerConfig
+
+  constructor(client: PublicClient, chainId: ChainId, config: ListenerConfig) {
+    super({ objectMode: true, highWaterMark: 1000 });
+    this.client = client;
+    this.chainId = chainId;
+    this.config = config;
+    this.lastProcessedBlock = Number(config.fromBlock);
+  }
+
+  async _read(size: number) {
+    if(!this.interval && !this.isProcessing) {
+      await this.FetchAndStreamLogs();
+      this.interval = setInterval(() => this.FetchAndStreamLogs(), 3000) as unknown as NodeJS.Timeout;
+    }
+  }
+
+  private async FetchAndStreamLogs(): Promise<void> {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+    const listenerCache = await createListenerCache()
+
+    const maxRetries = 5;
+    const baseDelay = 1000;
+    const chunkSize = 1000; // number of blocks to query at a time, based on provider support
+    let retryCount = 0;
+    try {
+      const transferEventAbi = parseAbiItem([
+        "event Transfer(address indexed from, address indexed to, uint256 value)"
+      ]);
+      const approveEventAbi = parseAbiItem([
+        "event Approval(address indexed owner, address indexed sender, uint256 value)"
+      ])
+      const latestBlock = Number(await this.client.getBlockNumber());
+      let fromBlock = Math.max(0, this.lastProcessedBlock > 0? this.lastProcessedBlock+1 : latestBlock - chunkSize)
+
+      while(fromBlock <= latestBlock) {
+        const toBlock = Math.min(fromBlock + chunkSize - 1, latestBlock);
+
+        while(retryCount < maxRetries) {
+          try {
+            console.log("Get log ID", this.config.id, "From Block", fromBlock, "To Block", toBlock)
+            console.log("Type of args", typeof this.config.filter.args, "Arg data", this.config.filter.args)
+            const logs = await this.client.getLogs({
+              address: this.config.filter.address,
+              event: transferEventAbi,
+              args: {
+                to: this.config.filter.args.to as Address | Array<Address>,
+                from: this.config.filter.args.from as Address | Array<Address>,
+              },
+              // ...this.config.filter.args,
+              fromBlock: BigInt(fromBlock),
+              toBlock: BigInt(toBlock),
+              strict: true
+            })
+
+            // TODO: Loop through logs and send for processing
+            for (const log of logs) {
+              try {
+                if (!this.push(log)) {
+                  await new Promise(resolve => this.once('drain', resolve));
+                }
+                if(!this.config.persistent) {
+                  console.log("End stream for", this.config.id, "Persistent config", this.config.persistent);
+                  this.emit('end');
+                  this.emit('close');
+                }
+                //await this.addEvent(decodedLogs); // Send event to another processor or stream
+              } catch (error: any) {
+                console.warn("Failed to parse log:", error);
+                continue;
+              }
+            }
+
+            // Reset retry count, and move to next range
+            retryCount = 0;
+            break;
+          }
+          catch (error: any) {
+            if (error.code === -32005 || error.code === -32000) {
+                // Handle rate limit or invalid range errors
+                retryCount++;
+                const delay = baseDelay * Math.pow(2, retryCount);
+                console.warn(
+                    `Error fetching logs on chain ${this.chainId} for blocks ${fromBlock} to ${toBlock}, retrying in ${delay}ms (attempt ${retryCount}): ${error.message}`
+                );
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                // Unrecoverable error
+                console.error(`Unrecoverable error on chain ${this.chainId}: ${error.message}`);
+                throw error;
+            }
+          }
+        }
+
+        if(retryCount >= maxRetries) {
+          console.log(`Failed to fetch logs for blocks ${fromBlock} to ${toBlock} on chain ${this.chainId} after ${maxRetries} attempts`);
+          this.emit('error', new Error(`Max retries exceeded for blocks ${fromBlock} to ${toBlock}.`));
+          return;
+        }
+
+        fromBlock = toBlock + 1; // Move to the next chunk
+        // TODO: Cache new fromBlock to preserve restore state
+        await listenerCache.updateFromBlock(this.config.id, fromBlock)
+          .catch(console.log);
+      }
+
+      this.lastProcessedBlock = latestBlock; // Update latest block
+    } catch (error) {
+      console.error(error);
+      this.emit('error', error);
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
+  async _destroy(error: Error | null, callback: (error?: Error | null) => void): Promise<void> {
+    console.log("About to be destroyed...")
+    if(this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+    try {
+      // Clear what evet is in processing memory
+      if(this.isProcessing) {
+        this.isProcessing = false;
+      }
+    }
+    catch(error: any) {
+      console.log("Error: ", error.message);
+      callback(error)
+      return;
+    }
+    callback(error)
+
+  }
+}

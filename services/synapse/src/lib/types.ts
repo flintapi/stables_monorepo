@@ -1,5 +1,6 @@
 import { Address } from "viem";
 import { EventStream } from "../streams/event.stream";
+import { EthStream } from "@/streams/eth.stream";
 
 // Event Listener Types
 export interface EventFilter {
@@ -23,8 +24,7 @@ export interface ListenerConfig {
 
 export interface ListenerState {
   id: string;
-  unwatch: () => void;
   config: ListenerConfig;
   status: 'active' | 'stopped';
-  eventStream?: EventStream;
+  eventStream?: EthStream; // Stream producing data
 }
