@@ -121,7 +121,7 @@ export const offramp = createRoute({
       z.object({
         organizationId: z.string(),
         transactionId: z.string(),
-        event: z.any(),
+        transactionHash: z.string().startsWith(`0x`),
         amountReceived: z.coerce.number(),
         type: z.enum(['on', 'off']),
       }),

@@ -198,13 +198,25 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
 
 export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
   const body = c.req.valid("json");
+  const signature = c.req.header('x-signature')
+
+  console.log("Body", body)
+  const hash = crypto.createHmac("sha512", Buffer.from(env.SYNAPSE_WH_KEY, 'utf8')).update(Buffer.from(JSON.stringify({...body,amountReceived: body.amountReceived.toString()}).trim(), 'utf8')).digest("hex")
+  console.log("Hash", hash)
+  if(signature !== hash) {
+    console.log(`Invalid event from synapse service`, signature)
+    apiLogger.warn(`Invalid signature from synapse service abandon processing...`)
+    return c.json({
+      success: false,
+      message: `Invalid event signaure from synapse`
+    }, HttpStatusCodes.BAD_REQUEST)
+  }
 
   const transactionId = body.transactionId;
   const organizationId = body.organizationId;
   const amountReceived = body.amountReceived;
   const type = body?.type;
-  const event = JSON.parse(body.event);
-  apiLogger.info("Event from synapse service", { event, body });
+  apiLogger.info("Event from synapse service", { body });
 
   if (type !== "off") {
     return c.json(

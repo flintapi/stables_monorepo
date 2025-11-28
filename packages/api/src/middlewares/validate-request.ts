@@ -6,6 +6,7 @@ import db, { orgDb } from "@/db";
 import { APIKeyMetadata, OrgMetadata } from "@flintapi/shared/Utils";
 import { AppBindings, Organization } from "@/lib/types";
 import { APIError } from "better-auth";
+import env from "@/env";
 
 export const validateRequest = () =>
   createMiddleware<AppBindings>(async (c, next) => {
@@ -62,7 +63,7 @@ export const validateRequest = () =>
     }
 
     const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
-    if (!(metadata as unknown as { active: boolean })?.active) {
+    if (!(metadata as unknown as { active: boolean })?.active && env.NODE_ENV !== "development") {
       return c.json({
         message: "Organization is not active",
         success: false,

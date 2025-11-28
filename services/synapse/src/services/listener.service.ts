@@ -10,6 +10,9 @@ import { type BetterFetch, createFetch } from "@better-fetch/fetch";
 import { formatUnits, Log, parseAbi, ParseEventLogsReturnType } from "viem";
 import { ChainId, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import { createListenerCache } from "@/lib/cache.listener";
+import crypto from "node:crypto"
+import env from "@/env";
+import { eventLogger } from "@flintapi/shared/Logger";
 
 interface ListenerService {
   CreateOfframpListener(request: EventServiceJob): Promise<any>;
@@ -182,26 +185,31 @@ export default class EventListenerService implements ListenerService {
     transactionId?: string,
   ) {
     return async (event: ParseEventLogsReturnType<ReturnType<typeof parseAbi>, ["Transfer"]>[0]) => {
-      console.log("Event received:", event);
-
-      // TODO: call webhook queue with organizationData as job data
+      const payload = {
+        organizationId,
+        transactionId,
+        transactionHash: event?.transactionHash,
+        amountReceived: formatUnits((event.args as { value: bigint })?.value, TOKEN_ADDRESSES[chainId].cngn.decimal),
+        type
+      };
       const { data, error } = await this.fetch(callbackUrl, {
         method: "POST",
-        body: {
-          organizationId,
-          transactionId,
-          event: JSON.stringify(event, (k, v) =>
-            typeof v === "bigint" ? v.toString() : v,
-          ),
-          type,
-          amountReceived: formatUnits((event.args as {value: bigint})?.value, TOKEN_ADDRESSES[chainId].cngn.decimal)
+        headers: {
+          "x-signature": this.signPayload(payload)
         },
+        body: payload,
       });
 
       if (error) {
-        console.log("Callback error", JSON.stringify(error, null, 3));
+        eventLogger.error("Callback error", error);
       }
-      console.log("Callback response data", JSON.stringify(data, null, 3));
+      eventLogger.info("Callback response data", JSON.stringify(data, null, 3));
     };
+  }
+
+  private signPayload(payload: any): string {
+    const stringifyPayload = JSON.stringify(payload).trim();
+    console.log("Stringy payload", stringifyPayload)
+    return crypto.createHmac("sha512", Buffer.from(env.SYNAPSE_WH_KEY, 'utf8')).update(Buffer.from(stringifyPayload, 'utf8')).digest("hex");
   }
 }

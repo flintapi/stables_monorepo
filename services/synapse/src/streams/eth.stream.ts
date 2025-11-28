@@ -1,8 +1,9 @@
 import { createListenerCache } from "@/lib/cache.listener";
 import { ListenerConfig } from "@/lib/types";
+import { eventLogger } from "@flintapi/shared/Logger";
 import { ChainId } from "@flintapi/shared/Utils";
 import { Readable } from "node:stream";
-import { Address, parseAbi, parseAbiItem, parseEventLogs, PublicClient } from "viem";
+import { Address, parseAbiItem, PublicClient } from "viem";
 
 
 export class EthStream extends Readable {
@@ -52,9 +53,8 @@ export class EthStream extends Readable {
         const toBlock = Math.min(fromBlock + chunkSize - 1, latestBlock);
 
         while(retryCount < maxRetries) {
+          // eventLogger.info(`From block: ${fromBlock} - To block ${toBlock}`)
           try {
-            console.log("Get log ID", this.config.id, "From Block", fromBlock, "To Block", toBlock)
-            console.log("Type of args", typeof this.config.filter.args, "Arg data", this.config.filter.args)
             const logs = await this.client.getLogs({
               address: this.config.filter.address,
               event: transferEventAbi,
@@ -62,26 +62,24 @@ export class EthStream extends Readable {
                 to: this.config.filter.args.to as Address | Array<Address>,
                 from: this.config.filter.args.from as Address | Array<Address>,
               },
-              // ...this.config.filter.args,
               fromBlock: BigInt(fromBlock),
               toBlock: BigInt(toBlock),
-              strict: true
+              strict: true // turn on strict mode, only get logs that conform to the args
             })
 
-            // TODO: Loop through logs and send for processing
+            // Loop through logs and send for processing
             for (const log of logs) {
               try {
                 if (!this.push(log)) {
                   await new Promise(resolve => this.once('drain', resolve));
                 }
                 if(!this.config.persistent) {
-                  console.log("End stream for", this.config.id, "Persistent config", this.config.persistent);
+                  eventLogger.info(`End stream for: ${this.config.id}`, this.config);
                   this.emit('end');
                   this.emit('close');
                 }
-                //await this.addEvent(decodedLogs); // Send event to another processor or stream
               } catch (error: any) {
-                console.warn("Failed to parse log:", error);
+                eventLogger.warn("Failed to parse log:", error);
                 continue;
               }
             }
@@ -95,20 +93,20 @@ export class EthStream extends Readable {
                 // Handle rate limit or invalid range errors
                 retryCount++;
                 const delay = baseDelay * Math.pow(2, retryCount);
-                console.warn(
+                eventLogger.warn(
                     `Error fetching logs on chain ${this.chainId} for blocks ${fromBlock} to ${toBlock}, retrying in ${delay}ms (attempt ${retryCount}): ${error.message}`
                 );
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
                 // Unrecoverable error
-                console.error(`Unrecoverable error on chain ${this.chainId}: ${error.message}`);
+                eventLogger.warn(`Unrecoverable error on chain ${this.chainId}: ${error.message}`);
                 throw error;
             }
           }
         }
 
         if(retryCount >= maxRetries) {
-          console.log(`Failed to fetch logs for blocks ${fromBlock} to ${toBlock} on chain ${this.chainId} after ${maxRetries} attempts`);
+          eventLogger.error(`Failed to fetch logs for blocks ${fromBlock} to ${toBlock} on chain ${this.chainId} after ${maxRetries} attempts`);
           this.emit('error', new Error(`Max retries exceeded for blocks ${fromBlock} to ${toBlock}.`));
           return;
         }
@@ -116,12 +114,12 @@ export class EthStream extends Readable {
         fromBlock = toBlock + 1; // Move to the next chunk
         // TODO: Cache new fromBlock to preserve restore state
         await listenerCache.updateFromBlock(this.config.id, fromBlock)
-          .catch(console.log);
+          .catch(eventLogger.error);
       }
 
       this.lastProcessedBlock = latestBlock; // Update latest block
     } catch (error) {
-      console.error(error);
+      eventLogger.error("Error getting logs", error);
       this.emit('error', error);
     } finally {
       this.isProcessing = false;
@@ -129,23 +127,20 @@ export class EthStream extends Readable {
   }
 
   async _destroy(error: Error | null, callback: (error?: Error | null) => void): Promise<void> {
-    console.log("About to be destroyed...")
     if(this.interval) {
       clearInterval(this.interval);
       this.interval = null;
     }
     try {
-      // Clear what evet is in processing memory
       if(this.isProcessing) {
         this.isProcessing = false;
       }
     }
     catch(error: any) {
-      console.log("Error: ", error.message);
+      eventLogger.error("Error: ", error);
       callback(error)
       return;
     }
     callback(error)
-
   }
 }

@@ -72,7 +72,7 @@ const events = ensureQueueEventHandlers(name, (events) => {
 
   events.on("completed", async ({ jobId, returnvalue, prev }) => {
     const job = await QueueInstances[name].getJob(jobId);
-    eventLogger.log(`Job finished with id: ${jobId}`, {
+    eventLogger.info(`Job finished with id: ${jobId}`, {
       returnvalue,
       prev,
       jobName: job?.name,

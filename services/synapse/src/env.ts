@@ -42,6 +42,8 @@ const EnvSchema = z
     // RPC_TYPE
     BASE_RPC_TYPE: z.enum(["http", "websocket"]).default("http"),
     BSC_RPC_TYPE: z.enum(["http", "websocket"]).default("http"),
+
+    SYNAPSE_WH_KEY: z.string()
   })
   .superRefine((input, ctx) => {
     if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {

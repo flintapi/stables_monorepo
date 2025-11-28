@@ -9,6 +9,7 @@ import {
 import { createListenerCache } from "@/lib/cache.listener";
 import { EthStream } from "@/streams/eth.stream";
 import { ChainId } from "@flintapi/shared/Utils";
+import { eventLogger } from "@flintapi/shared/Logger";
 
 /**
  * EventStream → EventProcessor → (optional: database writer, logger, etc.)
@@ -60,19 +61,8 @@ export default class EventListenerManager {
     //   { ...config, organizationId, transactionId },
     //   config.id,
     // );
-
-    // Handle stream events
-    ethStream.on("data", (chunk) => {
-      console.warn(`Data still comming through for ${config.id}`);
-      console.log("Data", chunk)
-    });
-
-    ethStream.on("end", () => {
-      console.log(`Eth stream ended for ${config.id}`);
-    });
-
     ethStream.on("close", () => {
-      console.log(`Eth stream closed for ${config.id}`);
+      eventLogger.info(`Eth stream closed for ${config.id}`);
     });
 
     // databaseWriter.once("error", (err) => {
@@ -80,16 +70,15 @@ export default class EventListenerManager {
     // });
 
     eventProcessor.on("shutdown", (id: string) => {
-      console.log(`Shutdown event emitted: listener ID: ${id}`);
+      eventLogger.info(`Shutdown event emitted: listener ID: ${id}`);
 
       this.stopListener(id);
     });
 
     // Start processing pipeline
+    // Create viem watcher with backpressure awareness
     this.startEventPipeline(ethStream, eventProcessor);
 
-    // Create viem watcher with backpressure awareness
-    console.log(config.filter, ":::Filter for event");
 
     const state: ListenerState = {
       id: config.id,
@@ -97,8 +86,6 @@ export default class EventListenerManager {
       status: "active",
       eventStream: ethStream,
     };
-
-    console.log("Setting config for listener", config.id)
     this.listeners.set(config.id, state);
 
     // Store persistent listeners for restart capability
@@ -117,7 +104,7 @@ export default class EventListenerManager {
     try {
       await pipeline(eventStream, eventProcessor);
     } catch (error) {
-      console.error("Event processing pipeline error:", error);
+      eventLogger.error("Event processing pipeline error:", error);
     }
   }
 
@@ -130,18 +117,15 @@ export default class EventListenerManager {
 
     // Close stream first
     if (listener.eventStream && !listener.eventStream.destroyed) {
-      console.log("Stream will auto close...", listener.eventStream.destroyed);
       listener.eventStream.destroy();
     }
 
     listener.status = "stopped";
     this.listeners.delete(id);
 
-    console.log("Listener after destroyed and stopped", listener.status, JSON.stringify(listener.config, (k,v) => typeof v === 'bigint'? v.toString() : v, 3))
-
     // Remove from persistent store if not persistent
     if (!listener.config.persistent) {
-      console.log("Clearing cache....")
+      eventLogger.info("Clearing cache....")
       const cache = await createListenerCache();
       await cache.deleteListener(id);
     }
