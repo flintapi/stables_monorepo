@@ -94,7 +94,7 @@ class Ramp {
       if(!accountNumber || !bankCode) {
         throw new Error("Account number or bank code not found");
       }
-      const df = new DecimalFormat('#,##0.0#');
+      const df = new DecimalFormat('###0.#');
       const transactionAmount = df.format(getAmountAfterFee(amountReceived!))
 
       return await fiatPaymentContext.transfer({
@@ -148,7 +148,7 @@ class Ramp {
     const chainId = networkToChainidMap[transaction.network];
     const token = TOKEN_ADDRESSES[chainId].cngn;
 
-    const df = new DecimalFormat('#,##0.0#');
+    const df = new DecimalFormat('###0.#');
     const transactionAmount = df.format(getAmountAfterFee(amountReceived!))
 
     const job = await walletQueue.add(
