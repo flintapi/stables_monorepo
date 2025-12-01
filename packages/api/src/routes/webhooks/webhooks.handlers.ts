@@ -329,6 +329,7 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
         transactionId: transaction.id,
         reference: transaction.reference,
         amount: transaction.amount,
+        processedAmount: body.amount,
         status: updatedTransaction.status,
         network: transaction.network,
         createdAt: transaction.createdAt,

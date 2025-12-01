@@ -196,6 +196,7 @@ class Ramp {
         transactionId: transaction.id,
         reference: transaction.reference,
         amount: transaction.amount,
+        processedAmount: amountReceived,
         status: updateTransaction.status,
         onrampHash: result.hash,
         network: transaction.network,
