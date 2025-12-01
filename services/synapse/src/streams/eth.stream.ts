@@ -53,7 +53,6 @@ export class EthStream extends Readable {
         const toBlock = Math.min(fromBlock + chunkSize - 999, latestBlock);
 
         while(retryCount < maxRetries) {
-          console.log(`From block: ${fromBlock} - To block ${toBlock}`)
           try {
             const logs = await this.client.getLogs({
               address: this.config.filter.address,
