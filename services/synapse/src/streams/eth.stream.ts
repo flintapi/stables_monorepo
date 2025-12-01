@@ -50,7 +50,7 @@ export class EthStream extends Readable {
       let fromBlock = Math.max(0, this.lastProcessedBlock > 0? this.lastProcessedBlock+1 : latestBlock - chunkSize)
 
       while(fromBlock <= latestBlock) {
-        const toBlock = Math.min(fromBlock + chunkSize - 1, latestBlock);
+        const toBlock = Math.min(fromBlock + chunkSize - 999, latestBlock);
 
         while(retryCount < maxRetries) {
           console.log(`From block: ${fromBlock} - To block ${toBlock}`)
