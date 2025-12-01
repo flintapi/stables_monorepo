@@ -1,5 +1,6 @@
 import type { RampServiceJob } from "@flintapi/shared/Queue";
 import type { Address, Hex } from "viem";
+import DecimalFormat from "decimal-format"
 
 import { FiatPaymentContext, PaymentProvider } from "@flintapi/shared/Adapters";
 import { rampLogger } from "@flintapi/shared/Logger";
@@ -63,6 +64,7 @@ class Ramp {
     //     narration: transaction?.narration || "Default narration",
     //   }).then((responses) => rampLogger.info("Transfer made and completed...", responses));
     // } else {
+
       const { transactionId, organizationId, amountReceived, prevProviders } = data;
       rampLogger.info("Payout transaction with palmpay...", {prevProviders, amountReceived});
       const organization = await db.query.organization.findFirst({
@@ -92,12 +94,14 @@ class Ramp {
       if(!accountNumber || !bankCode) {
         throw new Error("Account number or bank code not found");
       }
+      const df = new DecimalFormat('#,##0.0#');
+      const transactionAmount = df.format(getAmountAfterFee(amountReceived!))
 
       return await fiatPaymentContext.transfer({
         accountNumber: accountNumber,
         bankCode: bankCode,
         reference: transaction.reference,
-        amount: getAmountAfterFee(transaction.amount),
+        amount: Number(transactionAmount),
         narration: transaction?.narration || organization?.name,
         transactionId: transaction.id,
         organizationId: organization?.id,
@@ -144,6 +148,9 @@ class Ramp {
     const chainId = networkToChainidMap[transaction.network];
     const token = TOKEN_ADDRESSES[chainId].cngn;
 
+    const df = new DecimalFormat('#,##0.0#');
+    const transactionAmount = df.format(getAmountAfterFee(amountReceived!))
+
     const job = await walletQueue.add(
       "sign-transaction",
       {
@@ -156,7 +163,7 @@ class Ramp {
           functionName: "transfer",
           args: [
             transaction.metadata!.address! as Address,
-            parseUnits(getAmountAfterFee(amountReceived || 0)?.toString() || "0", token.decimal),
+            parseUnits(transactionAmount, token.decimal),
           ],
         }),
         contractAddress: token.address as Address,

@@ -12,6 +12,7 @@
     "start": "node ./dist/src/index.js",
     "build": "tsc && tsc-alias",
     "typecheck": "tsc --noEmit",
+    "test": "pnpm with-env vitest run",
     "with-env": "dotenv -e .env --"
   },
   "dependencies": {
