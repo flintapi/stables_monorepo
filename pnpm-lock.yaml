@@ -41,6 +41,9 @@ importers:
       bullmq:
         specifier: 5.58.5
         version: 5.58.5
+      decimal-format:
+        specifier: ^4.1.1
+        version: 4.1.1
       dotenv:
         specifier: ^16.6.1
         version: 16.6.1
@@ -5024,6 +5027,9 @@ packages:
       supports-color:
         optional: true
 
+  decimal-format@4.1.1:
+    resolution: {integrity: sha512-UZiDZ5tZFxYJAH6ipDvLuNbR1F89Ip03o8jgEkTPKHnBTxwk7LmpGe/bacbTIL/MlI3VOrHq3oG/emPDJdvqdw==}
+
   decimal.js-light@2.5.1:
     resolution: {integrity: sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==}
 
@@ -6562,7 +6568,6 @@ packages:
 
   libsql@0.5.22:
     resolution: {integrity: sha512-NscWthMQt7fpU8lqd7LXMvT9pi+KhhmTHAJWUB/Lj6MWa0MKFv0F2V4C6WKKpjCVZl0VwcDz4nOI3CyaT1DDiA==}
-    cpu: [x64, arm64, wasm32, arm]
     os: [darwin, linux, win32]
 
   lightningcss-android-arm64@1.30.2:
@@ -13818,6 +13823,8 @@ snapshots:
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
+
+  decimal-format@4.1.1: {}
 
   decimal.js-light@2.5.1: {}
 

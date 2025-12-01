@@ -59,6 +59,7 @@
     "typescript-eslint": "^8.46.2",
     "viem": "^2.37.3",
     "winston": "^3.17.0",
+    "decimal-format": "^4.1.1",
     "zod": "^4.1.5"
   },
   "devDependencies": {
