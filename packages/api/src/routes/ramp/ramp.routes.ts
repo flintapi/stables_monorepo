@@ -60,7 +60,7 @@ export const transaction = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(
-      createRampResponseSchema(selectTransaction),
+      createRampResponseSchema(selectTransaction.omit({metadata: true})),
       "Get transaction",
     ),
     [HttpStatusCodes.NOT_FOUND]: jsonContent(
