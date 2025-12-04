@@ -50,7 +50,9 @@ export const transactions = sqliteTable(
   ],
 );
 
-export const selectTransactionSchema = createSelectSchema(transactions);
+export const selectTransactionSchema = createSelectSchema(transactions).omit({
+  metadata: true
+});
 
 export const insertTransactionSchema = createInsertSchema(transactions)
   .required({

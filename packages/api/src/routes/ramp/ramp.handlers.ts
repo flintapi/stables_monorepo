@@ -266,7 +266,7 @@ export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
         {
           status: "success" as ResponseStatus,
           message: "Transaction details",
-          data: transaction,
+          data: {...transaction, metadata: null},
         },
         HttpStatusCodes.OK,
       );
@@ -277,7 +277,10 @@ export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
       {
         status: "success" as ResponseStatus,
         message: "Transaction details",
-        data: transactions,
+        data: transactions.map((trx) => ({
+          ...trx,
+          metadata: null
+        })),
       },
       HttpStatusCodes.OK,
     );
