@@ -109,7 +109,7 @@ curl --location --request POST 'https://stables.flintapi.io/v1/ramp/initialize' 
 --header 'Content-Type: application/json' \
 --header 'x-api-key: <FLINT_API_KEY>' \
 --data-raw '{
-    "type": "on",
+    "type": "off",
     "reference": "trx_ref_rand00093942885990385824",
     "network": "base", // base | bsc
     "amount": 3500,
@@ -129,7 +129,7 @@ const response = fetch('https://stables.flintapi.io/v1/ramp/initialize', {
     'x-api-key': '<FLINT_API_KEY>',
   },
   body: JSON.stringify({
-    type: 'on',
+    type: 'off',
     reference: 'trx_ref_rand00093942885990385824',
     network: 'base', // base | bsc
     amount: 3500,
