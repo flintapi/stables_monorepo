@@ -100,7 +100,7 @@ class Ramp {
       return await fiatPaymentContext.transfer({
         accountNumber: accountNumber,
         bankCode: bankCode,
-        reference: transaction.reference,
+        reference: `${transaction.reference}:${transaction.id}`,
         amount: Number(transactionAmount),
         narration: transaction?.narration || organization?.name,
         transactionId: transaction.id,
