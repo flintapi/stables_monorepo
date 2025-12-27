@@ -168,7 +168,7 @@ class Ramp {
         }),
         contractAddress: token.address as Address,
       },
-      { jobId: `kms-payout-${chainId}-cngn-${transaction.id}`, attempts: 1 },
+      { jobId: `kms-payout-${chainId}-cngn-${transaction.id}-${crypto.randomUUID().slice(0,6)}`, attempts: 1 },
     );
 
     const result = (await job.waitUntilFinished(walletQueueEvents)) as {
