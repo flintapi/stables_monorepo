@@ -50,7 +50,7 @@ async function main() {
       );
 
       kmsLogger.info(`Receipt for chain with ID ${data.chainId}`, receipt)
-      kmsLogger.info(`Hash for chain ID`, receipt.transactionHash)
+      kmsLogger.info(`Hash for chain ID`, {hash: receipt.transactionHash})
     }
     catch (error: any) {
       kmsLogger.error("Failed to transfer from treasury", error)
@@ -62,5 +62,5 @@ async function main() {
 }
 
 
-main()
-  .catch(kmsLogger.error)
+// main()
+//   .catch(kmsLogger.error)
