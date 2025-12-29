@@ -12,7 +12,8 @@ import {
   TOKEN_ADDRESSES,
   Webhook,
   type TransactionMetadata,
-  getAmountAfterFee
+  getAmountAfterFee,
+  OrgMetadata
 } from "@flintapi/shared/Utils";
 import { QueueEvents } from "bullmq";
 import { encodeFunctionData, parseAbi, parseUnits } from "viem";
@@ -75,7 +76,7 @@ class Ramp {
       if(!organization) {
         throw new Error("Organization not found")
       }
-      const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+      const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
       const transaction = await orgDb({
         dbUrl: metadata?.dbUrl
       }).query.transactions.findFirst({
@@ -95,7 +96,7 @@ class Ramp {
         throw new Error("Account number or bank code not found");
       }
       const df = new DecimalFormat('###0.#');
-      const transactionAmount = df.format(getAmountAfterFee(amountReceived!))
+      const transactionAmount = df.format(getAmountAfterFee(amountReceived!, metadata.activeFee? {activeFee: metadata.activeFee} : undefined))
 
       return await fiatPaymentContext.transfer({
         accountNumber: accountNumber,
@@ -128,7 +129,7 @@ class Ramp {
       throw new Error("Organization not found");
     }
 
-    const metadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+    const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
     const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
 
     const transaction = await orgDatabase.query.transactions.findFirst({
@@ -149,7 +150,7 @@ class Ramp {
     const token = TOKEN_ADDRESSES[chainId].cngn;
 
     const df = new DecimalFormat('###0.#');
-    const transactionAmount = df.format(getAmountAfterFee(amountReceived!))
+    const transactionAmount = df.format(getAmountAfterFee(amountReceived!, metadata.activeFee? {activeFee: metadata.activeFee} : undefined))
 
     const job = await walletQueue.add(
       "sign-transaction",

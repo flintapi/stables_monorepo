@@ -1,13 +1,13 @@
 import { orgDb } from "@/db";
 import { sql } from "drizzle-orm";
 import { transaction } from "./ramp.schema";
-import type { Transaction } from "./ramp.schema";
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import { QueueEvents } from "bullmq";
-import env from "@/env";
-import { ChainId, supportedChains, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
+import { ChainId, OrgMetadata, supportedChains, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import { Address, createPublicClient, encodeFunctionData, Hex, parseAbi, parseUnits, extractChain, http } from "viem";
+import { Context } from "hono";
+import { AppBindings } from "@/lib/types";
 
 export async function queryTransactionByVirtualAccount(
   db: ReturnType<typeof orgDb>,
@@ -83,6 +83,22 @@ export async function clearVirtualAccount(accountNumber: string) {
   }
 }
 
+
+export function validateAmount(amount: number, context: Context<AppBindings>) {
+  const organization = context.get("organization");
+  const { activeFee, perTransactionLimit } = organization.metadata as OrgMetadata;
+
+  if(!activeFee || !perTransactionLimit) {
+    if(amount < 100 || amount > 2_000_000) {
+      throw new Error('Amount must be between 100 and 2,000,000');
+    }
+  } else {
+    if(amount < 100 || amount > 10_000_000) {
+      throw new Error('Amount must be between 100 and 10,000,000');
+    }
+  }
+
+}
 
 interface ISweepFundsProps {
   amount: number;

@@ -18,7 +18,7 @@ const offRampSchema = z.object({
     `String cannot contain the character '${excludedChar}'`
   ),
   network: z.enum(["base", "bsc"]),
-  amount: z.number().min(100).max(2_000_000),
+  amount: z.number().min(100),
   notifyUrl: z.url().optional(),
   destination: z.object({
     bankCode: z.string().min(3),
@@ -40,7 +40,7 @@ const onRampSchema = z.object({
     `String cannot contain the character '${excludedChar}'`
   ),
   network: z.enum(["base", "bsc"]),
-  amount: z.number().min(100).max(2_000_000),
+  amount: z.number().min(100),
   notifyUrl: z.url().optional(),
   destination: z.object({
     address: z.string().min(12).startsWith("0x"),

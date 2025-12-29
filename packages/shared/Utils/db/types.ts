@@ -1,6 +1,8 @@
 export interface OrgMetadata {
   dbUrl: string;
   active: boolean;
+  activeFee?: number;
+  perTransactionLimit?: number;
   [key: string]: any;
 }
 
