@@ -6,6 +6,7 @@ import * as handlers from "./ramp.handlers"
 const router = createRouter()
   .openapi(routes.ramp, handlers.ramp)
   .openapi(routes.banks, handlers.banks)
+  .openapi(routes.nameQuery, handlers.nameQuery)
   .openapi(routes.transaction, handlers.transaction)
 
 

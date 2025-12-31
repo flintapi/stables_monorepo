@@ -3,6 +3,7 @@ import type {
   RampRequest,
   BankListRequest,
   TransactionRequest,
+  NameQueryRequest,
 } from "./ramp.routes";
 import { transaction as transactionSchema } from "./ramp.schema";
 import {
@@ -233,6 +234,42 @@ export const banks: AppRouteHandler<BankListRequest> = async (c) => {
     );
   }
 };
+
+export const nameQuery: AppRouteHandler<NameQueryRequest> = async (c) => {
+  try {
+    const query = c.req.valid("query")
+    const provider = PaymentProvider.PALMPAY;
+
+    const paymentContext = new FiatPaymentContext(provider);
+
+    const nameQueryResponse = await paymentContext.nameEnquiry({
+      bankCode: query.bankCode,
+      accountNumber: query.accountNumber,
+    });
+
+    return c.json(
+      {
+        status: "success" as ResponseStatus,
+        message: "Bank list",
+        data: {
+          ...nameQueryResponse
+        }
+      },
+      HttpStatusCodes.OK,
+    );
+  }
+  catch(error: any) {
+    apiLogger.error(`Failed to get account name: ${error.message}`, error)
+    return c.json(
+      {
+        status: "failed" as ResponseStatus,
+        message: "Failed to get account name",
+        data: null,
+      },
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
 
 export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
   try {

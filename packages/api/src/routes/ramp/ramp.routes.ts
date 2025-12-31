@@ -107,6 +107,37 @@ export const banks = createRoute({
   },
 });
 
+export const nameQuery = createRoute({
+  tags,
+  path: "/ramp/banks/nameQuery",
+  method: "get",
+  middleware: [validateRequest()],
+  description: "Query account name for an account number",
+  request: {
+    query: z.object({
+      bankCode: z.string().describe("Bank code, can be found in /ramp/banks endpoint"),
+      accountNumber: z.string().min(10).max(10)
+    })
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      createRampResponseSchema(
+        z.object({
+          name: z.string(),
+          accountNumber: z.string().min(10).max(10),
+          bank: z.string()
+        })
+      ),
+      "Account details"
+    ),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      createRampResponseSchema("Internal server error"),
+      "Internal server error",
+    ),
+  }
+})
+
 export type RampRequest = typeof ramp;
 export type BankListRequest = typeof banks;
 export type TransactionRequest = typeof transaction;
+export type NameQueryRequest = typeof nameQuery;
