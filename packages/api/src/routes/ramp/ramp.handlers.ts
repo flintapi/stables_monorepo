@@ -242,7 +242,7 @@ export const nameQuery: AppRouteHandler<NameQueryRequest> = async (c) => {
 
     const paymentContext = new FiatPaymentContext(provider);
 
-    const nameQueryResponse = await paymentContext.nameEnquiry({
+    const accountName = await paymentContext.nameEnquiry({
       bankCode: query.bankCode,
       accountNumber: query.accountNumber,
     });
@@ -250,9 +250,11 @@ export const nameQuery: AppRouteHandler<NameQueryRequest> = async (c) => {
     return c.json(
       {
         status: "success" as ResponseStatus,
-        message: "Bank list",
+        message: "Bank name query",
         data: {
-          ...nameQueryResponse
+          accountName: accountName,
+          accountNumber: query.accountNumber,
+          bankCode: query.bankCode
         }
       },
       HttpStatusCodes.OK,

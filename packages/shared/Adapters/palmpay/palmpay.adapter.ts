@@ -127,6 +127,7 @@ export default class {
   async nameEnquiry(request: { bankCode: string; accountNumber: string; }) {
     const body = {
       ...this.getDefaultBody(),
+      version: "V2.0",
       bankCode: request.bankCode,
       bankAccNo: request.accountNumber,
     }
@@ -151,12 +152,13 @@ export default class {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "CountryCode": "NG",
+        "Accept-Encoding": "gzip",
         "Authorization": `Bearer ${process.env.PALMPAY_APP_ID}`,
       }
     });
 
     if(error || !nameEnqResponse.data) {
-      console.log("Error fetching account name:", error, nameEnqResponse);
+      console.log("Error fetching account name:", error);
       throw new Error("Failed to fetch account details");
     }
 

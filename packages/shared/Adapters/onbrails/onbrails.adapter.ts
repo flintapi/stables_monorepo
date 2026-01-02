@@ -1,7 +1,7 @@
 /**
 * onbrails adapter to create virtual accounts for collection
 */
-import { createFetch, type BetterFetch } from "@better-fetch/fetch"; 
+import { createFetch, type BetterFetch } from "@better-fetch/fetch";
 
 interface VirtualAccountInput {
   firstName: string;
