@@ -13,8 +13,10 @@ export async function createListenerCache() {
   const restoreListeners = async () => {
     console.log("Attempting restore...")
     console.log("Active listeners count:", activeListeners.length)
+    const ttlSeconds = 5 * 60;
     if(activeListeners.length) {
       const cacheListenerConfigs = await Promise.all(activeListeners.map(async (key) => {
+        await CacheFacade.redisCache.expire(key, ttlSeconds);
         const config = await CacheFacade.redisCache.hgetall(key);
         return { key, config } as { key: string;  config: any};
       }));
