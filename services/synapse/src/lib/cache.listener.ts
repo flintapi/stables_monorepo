@@ -16,6 +16,7 @@ export async function createListenerCache() {
     const ttlSeconds = 5 * 60;
     if(activeListeners.length) {
       const cacheListenerConfigs = await Promise.all(activeListeners.map(async (key) => {
+        // TODO: add TTL of 5 minutes
         await CacheFacade.redisCache.expire(key, ttlSeconds);
         const config = await CacheFacade.redisCache.hgetall(key);
         return { key, config } as { key: string;  config: any};
