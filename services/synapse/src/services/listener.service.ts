@@ -87,11 +87,13 @@ export default class EventListenerService implements ListenerService {
               );
             },
       );
+      const timeout = 5 * 60_000; // in miliseconds
       const listenerId = await this.manager.createListener(
         {
           id: restoreId ?? this.generateEventId(eventName),
           ...newListenerConfig,
           fromBlock,
+          timeout: Date.now() + timeout,
           onStart: async () => {
             console.log("Listener starting...");
           },
@@ -146,10 +148,12 @@ export default class EventListenerService implements ListenerService {
               );
             },
       );
+      const timeout = 5 * 60_000; // in miliseconds
       const listenerId = await this.manager.createListener({
         id: restoreId ?? this.generateEventId(eventName),
         ...newListenerConfig,
         fromBlock,
+        timeout: Date.now() + timeout,
         onStart: async () => {
           console.log("Listener starting...");
         },

@@ -8,7 +8,7 @@ import {
   ensureQueueEventHandlers,
 } from "@flintapi/shared/Queue";
 import { ChainId, supportedChains } from "@flintapi/shared/Utils";
-import { eventLogger } from "@flintapi/shared/Logger";
+import { eventLogger, kmsLogger } from "@flintapi/shared/Logger";
 import { CacheFacade } from "@flintapi/shared/Cache";
 import { createPublicClient, http, webSocket, extractChain } from "viem";
 import { getTransport, RPC_URLS } from "./lib/constants";
@@ -85,6 +85,44 @@ async function restoreListeners() {
   await cache.restoreListeners();
 }
 
+// async function triggerTestJob() {
+//   const chainId = 84532;
+//   const jobData = {
+//     rampData: {
+//       type: "on",
+//       transactionId: '',
+//       organizationId: '',
+//       amountReceived: 10000
+//     },
+//     eventArgType: 'to',
+//     address: '0xC5dDD7A035fC6e664f0E8f18299fB09f8766676e',
+//     tokenAddress: '0x46C85152bFe9f96829aA94755D9f915F9B10EF5F',
+//     chainId: 84532,
+//     persist: false,
+//     callbackUrl: 'https://stables.flintapi.io/webhooks/synapse',
+//     eventName: 'Transfer'
+//   }
+
+//   const chain = extractChain({
+//     chains: Object.values(supportedChains),
+//     id: chainId as ChainId,
+//   });
+//   const rpc = RPC_URLS[chainId as ChainId];
+//   console.log("Listener RPC", rpc)
+//   const publicClient = createPublicClient({
+//     chain,
+//     transport: getTransport(rpc, chainId),
+//   });
+
+//   const fromBlock = await publicClient.getBlockNumber()
+//   const listenerService = new EventListenerService(publicClient);
+//   const { listenerId: testListenerId } = await listenerService.CreateOfframpListener(
+//     {...jobData, fromBlock} as EventServiceJob & {fromBlock: bigint},
+//   );
+
+//   console.log(`Listner ID ${testListenerId} added....`)
+// }
+
 function reportMemoryUsage() {
   const memoryUsage = process.memoryUsage();
   console.log("Worker Memory Usage:");
@@ -117,4 +155,4 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 restoreListeners()
-  .catch(console.log)
+  .catch(kmsLogger.error)

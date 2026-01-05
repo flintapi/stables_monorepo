@@ -1,6 +1,6 @@
 import { createListenerCache } from "@/lib/cache.listener";
 import { ListenerConfig } from "@/lib/types";
-import { eventLogger } from "@flintapi/shared/Logger";
+import { eventLogger, kmsLogger } from "@flintapi/shared/Logger";
 import { ChainId } from "@flintapi/shared/Utils";
 import { Readable } from "node:stream";
 import { Address, parseAbiItem, PublicClient } from "viem";
@@ -24,6 +24,8 @@ export class EthStream extends Readable {
   }
 
   async _read(size: number) {
+    // TODO: Implement timeout tracker to kill listener when current time in seconds exceeds timeout
+    console.log("Looping log to track _read function for a Readable stream")
     if(!this.interval && !this.isProcessing) {
       await this.FetchAndStreamLogs();
       this.interval = setInterval(() => this.FetchAndStreamLogs(), 3000) as unknown as NodeJS.Timeout;
@@ -50,6 +52,13 @@ export class EthStream extends Readable {
       let fromBlock = Math.max(0, this.lastProcessedBlock > 0? this.lastProcessedBlock+1 : latestBlock - chunkSize)
 
       while(fromBlock <= latestBlock) {
+        // TODO: Check timeout
+        if(this.config?.timeout && Date.now() > this.config?.timeout) {
+          kmsLogger.info(`Timout reached for the screen time`)
+          this.emit('end')
+          this.emit('close', this.config.id)
+          return;
+        }
         const toBlock = Math.min(fromBlock + chunkSize - 999, latestBlock);
 
         while(retryCount < maxRetries) {

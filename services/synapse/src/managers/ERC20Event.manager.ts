@@ -61,8 +61,11 @@ export default class EventListenerManager {
     //   { ...config, organizationId, transactionId },
     //   config.id,
     // );
-    ethStream.on("close", () => {
-      eventLogger.info(`Eth stream closed for ${config.id}`);
+    ethStream.on("close", (id?: string) => {
+      eventLogger.info(`Eth stream closed for ${id}`);
+      if(id) {
+        this.stopListener(id);
+      }
     });
 
     // databaseWriter.once("error", (err) => {
