@@ -93,7 +93,7 @@ export default class EventListenerService implements ListenerService {
           id: restoreId ?? this.generateEventId(eventName),
           ...newListenerConfig,
           fromBlock,
-          timeout: Date.now() + timeout,
+          timeout: persist ? (Date.now() + timeout) : undefined,
           onStart: async () => {
             console.log("Listener starting...");
           },
@@ -153,7 +153,7 @@ export default class EventListenerService implements ListenerService {
         id: restoreId ?? this.generateEventId(eventName),
         ...newListenerConfig,
         fromBlock,
-        timeout: Date.now() + timeout,
+        timeout: persist ? (Date.now() + timeout) : undefined,
         onStart: async () => {
           console.log("Listener starting...");
         },
