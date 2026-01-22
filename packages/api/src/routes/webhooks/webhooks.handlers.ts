@@ -25,6 +25,7 @@ import { Job, QueueEvents } from "bullmq";
 import { auth } from "@/lib/auth";
 import { transactionList } from "../console/console.routes";
 import { insertTransactionSchema } from "@/db/org-schema";
+import { OnbrailsAdapter } from "@flintapi/shared/Adapters";
 
 const rampQueue = QueueInstances[QueueNames.RAMP_QUEUE];
 const rampQueueEvents = new QueueEvents(QueueNames.RAMP_QUEUE, bullMqBase);
@@ -191,6 +192,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
           dbUrl: metadata?.dbUrl
         });
 
+        const onbrailsAdapter = new OnbrailsAdapter()
         const [newTransaction] = await orgDatabase
           .insert(transactionSchema)
           .values({
@@ -203,7 +205,10 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
               isDestinationExternal: true,
               // bankCode: destination.bankCode,
               // accountNumber: destination.accountNumber,
-              depositAddress: result.autofundData?.address,
+              address: result.autofundData?.address,
+              collectionBankCode: onbrailsAdapter.bankCode,
+              collectionAccountNumber: body.data.bankAccountNumber,
+              collectionBankName: "Globus Bank",
               notifyUrl: metadata?.webhookUrl,
               webhookSecret: metadata?.webhookSecret,
             } as any,
