@@ -57,7 +57,7 @@ export async function cacheVirtualAccount(
       await CacheFacade.redisCache.hmset(key, data);
       await CacheFacade.redisCache.expire(key, 60 * 60 * 24); // ttl: 24hours
     } else if('autofundData' in data) {
-      await CacheFacade.redisCache.hmset(key, data);
+      await CacheFacade.redisCache.hmset(key, {...data, autofundData: JSON.stringify(data?.autofundData)});
     } else {
       throw new Error(`Data required not found: expected 'transactionId or autofundData fields', recieved ${JSON.stringify(data, null)}`)
     }
@@ -71,11 +71,14 @@ export async function fetchVirtualAccount(accountNumber: string) {
   try {
     const key = `va:${accountNumber}`;
 
-    const data = (await CacheFacade.redisCache.hgetall(key)) as unknown as IVAStoreData | null;
+    const data = (await CacheFacade.redisCache.hgetall(key)) as unknown as Record<string, any> | null;
     if (!data) {
       throw new Error("Virtual account not found");
     }
-    return data;
+    if('autofundData' in data) {
+      data.autofundData = typeof data?.autofundData === 'string'? JSON.parse(data?.autofundData) : data?.autofundData;
+    }
+    return data as IVAStoreData;
   } catch (error) {
     console.log("Failed to fetch virtual account", error);
     throw new Error("Failed to fetch virtual account");

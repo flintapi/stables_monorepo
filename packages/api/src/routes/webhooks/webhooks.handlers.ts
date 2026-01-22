@@ -224,7 +224,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
             amountReceived: Number(amount),
           },
           {
-            jobId: `autofund-on-ramp-${result.transactionId}`,
+            jobId: `autofund-on-ramp-${newTransaction.id}-${crypto.randomUUID().substring(0, 6)}`,
             attempts: 3,
           },
         ).then(async (job) => {
