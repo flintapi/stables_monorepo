@@ -12,6 +12,7 @@ import { Address } from "viem"
 export const createAutofunder: AppRouteHandler<CreateAutofundRoute> = async (c) => {
   try {
     const organization = c.get('organization')
+    const webhookSecret = c.get('webhookSecret')
     // const orgDatabase = c.get('orgDatabase')
     // const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
     // const orgDatabase = orgDb({
@@ -31,7 +32,8 @@ export const createAutofunder: AppRouteHandler<CreateAutofundRoute> = async (c) 
       autofundData: {
         address: body.autofundAddress as Address,
         network: body.network,
-        notifyUrl: body?.notifyUrl
+        notifyUrl: body?.notifyUrl,
+        webhookSecret
       }
     });
     return c.json({

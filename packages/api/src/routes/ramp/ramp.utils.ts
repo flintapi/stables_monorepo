@@ -8,6 +8,7 @@ import { ChainId, OrgMetadata, supportedChains, TOKEN_ADDRESSES } from "@flintap
 import { Address, createPublicClient, encodeFunctionData, Hex, parseAbi, parseUnits, extractChain, http } from "viem";
 import { Context } from "hono";
 import { AppBindings } from "@/lib/types";
+import { apiLogger } from "@flintapi/shared/Logger";
 
 export async function queryTransactionByVirtualAccount(
   db: ReturnType<typeof orgDb>,
@@ -46,6 +47,7 @@ interface IVAStoreData {
     address: Address;
     network: "bsc" | "base",
     notifyUrl?: string;
+    webhookSecret?: string,
   };
 }
 export async function cacheVirtualAccount(
@@ -63,7 +65,7 @@ export async function cacheVirtualAccount(
       throw new Error(`Data required not found: expected 'transactionId or autofundData fields', recieved ${JSON.stringify(data, null)}`)
     }
   } catch (error) {
-    console.log("Failed to cache virtual account", error);
+    apiLogger.error("Failed to cache virtual account", error);
     throw new Error("Failed to cache virtual account");
   }
 }
@@ -81,7 +83,7 @@ export async function fetchVirtualAccount(accountNumber: string) {
     }
     return data as IVAStoreData;
   } catch (error) {
-    console.log("Failed to fetch virtual account", error);
+    apiLogger.error("Failed to fetch virtual account", error);
     throw new Error("Failed to fetch virtual account");
   }
 }
@@ -92,7 +94,7 @@ export async function clearVirtualAccount(accountNumber: string) {
 
     const data = await CacheFacade.redisCache.del(key)
   } catch (error) {
-    console.log("Failed to delete virtual account", error);
+    apiLogger.error("Failed to delete virtual account", error);
     throw new Error("Failed to delete virtual account");
   }
 }

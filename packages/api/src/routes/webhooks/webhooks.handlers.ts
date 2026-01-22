@@ -210,8 +210,8 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
               collectionBankCode: onbrailsAdapter.bankCode,
               collectionAccountNumber: body.data.bankAccountNumber,
               collectionBankName: "Globus Bank",
-              notifyUrl: result?.autofundData?.notifyUrl ?? metadata?.webhookUrl,
-              webhookSecret: metadata?.webhookSecret,
+              notifyUrl: result?.autofundData?.notifyUrl,
+              webhookSecret: result?.autofundData?.webhookSecret,
             } as any,
           })
           .returning();
