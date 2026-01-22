@@ -19,6 +19,7 @@ const offRampSchema = z.object({
   ),
   network: z.enum(["base", "bsc"]),
   amount: z.number().min(100),
+  narration: z.string().optional().describe("Extra narration to add to the payout transaction"),
   notifyUrl: z.url().optional(),
   destination: z.object({
     bankCode: z.string().min(3),

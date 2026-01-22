@@ -71,6 +71,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             network,
             reference,
             amount,
+            narration: body?.narration,
             metadata: {
               isDestinationExternal: true,
               bankCode: destination.bankCode,

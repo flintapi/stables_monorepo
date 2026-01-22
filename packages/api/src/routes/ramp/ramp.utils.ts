@@ -44,7 +44,8 @@ interface IVAStoreData {
   transactionId?: string;
   autofundData?: {
     address: Address;
-    network: "bsc" | "base"
+    network: "bsc" | "base",
+    notifyUrl?: string;
   };
 }
 export async function cacheVirtualAccount(

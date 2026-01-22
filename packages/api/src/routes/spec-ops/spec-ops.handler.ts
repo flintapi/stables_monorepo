@@ -30,7 +30,8 @@ export const createAutofunder: AppRouteHandler<CreateAutofundRoute> = async (c) 
       organizationId: organization.id,
       autofundData: {
         address: body.autofundAddress as Address,
-        network: body.network
+        network: body.network,
+        notifyUrl: body?.notifyUrl
       }
     });
     return c.json({

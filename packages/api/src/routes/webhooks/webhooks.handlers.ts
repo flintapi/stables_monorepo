@@ -201,6 +201,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
             network: result?.autofundData?.network,
             reference: crypto.randomUUID(),
             amount: Number(amount),
+            narration: `${organization.name?.toUpperCase()} Deposit`,
             metadata: {
               isDestinationExternal: true,
               // bankCode: destination.bankCode,
@@ -209,7 +210,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
               collectionBankCode: onbrailsAdapter.bankCode,
               collectionAccountNumber: body.data.bankAccountNumber,
               collectionBankName: "Globus Bank",
-              notifyUrl: metadata?.webhookUrl,
+              notifyUrl: result?.autofundData?.notifyUrl ?? metadata?.webhookUrl,
               webhookSecret: metadata?.webhookSecret,
             } as any,
           })

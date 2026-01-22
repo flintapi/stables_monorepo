@@ -8,7 +8,8 @@ export const createAutofundRequestSchema = z.object({
   customerEmail: z.email(),
   phoneNumber: z.string().min(10),
   autofundAddress: z.string().startsWith('0x'),
-  network: z.enum(["base", "bsc"])
+  network: z.enum(["base", "bsc"]),
+  notifyUrl: z.url().optional()
 })
 
 export const createAutofundResponseSchema = z.object({
