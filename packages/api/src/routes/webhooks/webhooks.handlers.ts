@@ -223,7 +223,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
             attempts: 3,
           },
         ).then(async (job) => {
-          await clearVirtualAccount(body.data.bankAccountNumber)
+          // await clearVirtualAccount(body.data.bankAccountNumber)
           apiLogger.info("On-Ramp[autofund] Job sent...", job.data);
         });
         
