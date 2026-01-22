@@ -3,6 +3,8 @@ import {jsonContent} from "stoker/openapi/helpers"
 import * as HttpStatusCodes from "stoker/http-status-codes"
 import { autofundResponseSchema, createAutofundRequestSchema, createAutofundResponseSchema } from "./spec-ops.schema";
 import { createErrorSchema } from "stoker/openapi/schemas";
+import { lockPayoutRequest } from "@/middlewares/lock-request";
+import { validateRequest } from "@/middlewares/validate-request";
 
 const tags = ["Spec ops"];
 
@@ -10,6 +12,10 @@ export const createAutofund = createRoute({
   hide: false,
   tags,
   path: "/spec-ops/autofund/create",
+  middleware: [
+    lockPayoutRequest(),
+    validateRequest(),
+  ],
   method: "post",
   request: {
     body: jsonContent(
