@@ -39,15 +39,28 @@ export const getDefaultVirtualAccountArgs = {
 
 export const defaultBankCode = "090672";
 
+interface IVAStoreData {
+  organizationId: string;
+  transactionId?: string;
+  autofundData?: {
+    address: Address;
+    network: "bsc" | "base"
+  };
+}
 export async function cacheVirtualAccount(
   accountNumber: string,
-  data: { organizationId: string; transactionId?: string },
+  data: IVAStoreData,
 ) {
   try {
-    const key = `va:${accountNumber}`;
-
-    await CacheFacade.redisCache.hmset(key, data);
-    await CacheFacade.redisCache.expire(key, 60 * 60 * 24); // ttl: 24hours
+    const key: string = `va:${accountNumber}`;
+    if('transactionId' in data) {
+      await CacheFacade.redisCache.hmset(key, data);
+      await CacheFacade.redisCache.expire(key, 60 * 60 * 24); // ttl: 24hours
+    } else if('autofundData' in data) {
+      await CacheFacade.redisCache.hmset(key, data);
+    } else {
+      throw new Error(`Data required not found: expected 'transactionId or autofundData fields', recieved ${JSON.stringify(data, null)}`)
+    }
   } catch (error) {
     console.log("Failed to cache virtual account", error);
     throw new Error("Failed to cache virtual account");
@@ -58,10 +71,7 @@ export async function fetchVirtualAccount(accountNumber: string) {
   try {
     const key = `va:${accountNumber}`;
 
-    const data = (await CacheFacade.redisCache.hgetall(key)) as {
-      organizationId: string;
-      transactionId?: string;
-    } | null;
+    const data = (await CacheFacade.redisCache.hgetall(key)) as unknown as IVAStoreData | null;
     if (!data) {
       throw new Error("Virtual account not found");
     }

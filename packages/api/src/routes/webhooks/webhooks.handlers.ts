@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import * as HttpStatusCodes from "stoker/http-status-codes";
-import {Webhook} from "@flintapi/shared/Utils";
+import {OrgMetadata, Webhook} from "@flintapi/shared/Utils";
 import { Webhook as SvixWebhook } from "svix"
 
 import type { AppRouteHandler } from "@/lib/types";
@@ -18,10 +18,13 @@ import type {
 } from "./webhooks.routes";
 import env from "@/env";
 import { clearVirtualAccount, fetchVirtualAccount, sweepFunds } from "../ramp/ramp.utils";
+import {transaction as transactionSchema} from "../ramp/ramp.schema"
 import { apiLogger } from "@flintapi/shared/Logger";
 import { bullMqBase, QueueInstances, QueueNames } from "@flintapi/shared/Queue";
 import { Job, QueueEvents } from "bullmq";
 import { auth } from "@/lib/auth";
+import { transactionList } from "../console/console.routes";
+import { insertTransactionSchema } from "@/db/org-schema";
 
 const rampQueue = QueueInstances[QueueNames.RAMP_QUEUE];
 const rampQueueEvents = new QueueEvents(QueueNames.RAMP_QUEUE, bullMqBase);
@@ -145,30 +148,86 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
       const amount = body.data.amount;
       const result = await fetchVirtualAccount(body.data.bankAccountNumber);
 
-      if (!result.transactionId) {
-        apiLogger.warn("No transaction found in onbrails on-ramp webhook:", body)
-        return c.json(
-          { success: false, message: "No transaction found" },
-          HttpStatusCodes.BAD_REQUEST,
-        );
-      }
+      if('transactionId' in result) {
+        if (!result.transactionId) {
+          apiLogger.warn("No transaction found in onbrails on-ramp webhook:", body)
+          return c.json(
+            { success: false, message: "No transaction found" },
+            HttpStatusCodes.BAD_REQUEST,
+          );
+        }
 
-      await rampQueue.add(
-        "on-ramp",
-        {
-          type: "on",
-          organizationId: result.organizationId,
-          transactionId: result.transactionId,
-          amountReceived: Number(amount),
-        },
-        {
-          jobId: `ramp-on-ramp-${result.transactionId}`,
-          attempts: 3,
-        },
-      ).then(async (job) => {
-        await clearVirtualAccount(body.data.bankAccountNumber)
-        apiLogger.info("On-Ramp Job sent...", job.data);
-      });
+        await rampQueue.add(
+          "on-ramp",
+          {
+            type: "on",
+            organizationId: result.organizationId,
+            transactionId: result.transactionId,
+            amountReceived: Number(amount),
+          },
+          {
+            jobId: `ramp-on-ramp-${result.transactionId}`,
+            attempts: 3,
+          },
+        ).then(async (job) => {
+          await clearVirtualAccount(body.data.bankAccountNumber)
+          apiLogger.info("On-Ramp Job sent...", job.data);
+        });
+      }
+      else if('autofundData' in result) {
+        // TODO: Handle auto fund
+        //> Create transaction, then insert required data to rampQueue
+
+        const organization = await db.query.organization.findFirst({
+          where(fields, ops) {
+            return ops.eq(fields.id, result.organizationId);
+          },
+        });
+        if(!organization) {
+          throw new Error("Organization not found")
+        }
+        const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+        const orgDatabase = await orgDb({
+          dbUrl: metadata?.dbUrl
+        });
+
+        const [newTransaction] = await orgDatabase
+          .insert(transactionSchema)
+          .values({
+            type: "deposit",
+            status: "pending",
+            network: result?.autofundData?.network,
+            reference: crypto.randomUUID(),
+            amount: Number(amount),
+            metadata: {
+              isDestinationExternal: true,
+              // bankCode: destination.bankCode,
+              // accountNumber: destination.accountNumber,
+              depositAddress: result.autofundData?.address,
+              notifyUrl: metadata?.webhookUrl,
+              webhookSecret: metadata?.webhookSecret,
+            } as any,
+          })
+          .returning();
+
+        await rampQueue.add(
+          "on-ramp",
+          {
+            type: "on",
+            organizationId: result.organizationId,
+            transactionId: newTransaction.id,
+            amountReceived: Number(amount),
+          },
+          {
+            jobId: `autofund-on-ramp-${result.transactionId}`,
+            attempts: 3,
+          },
+        ).then(async (job) => {
+          await clearVirtualAccount(body.data.bankAccountNumber)
+          apiLogger.info("On-Ramp[autofund] Job sent...", job.data);
+        });
+        
+      }
       return c.json(
         { success: true, message: "Transaction processed successfully" },
         HttpStatusCodes.OK,
