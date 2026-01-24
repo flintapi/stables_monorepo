@@ -1,8 +1,9 @@
 {
   "name": "@flintapi/ramp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
+  "descritpion": "Ramp service to handle value destination",
   "author": {
     "email": "miraclef60@gmail.com",
     "name": "Miracle Friday"

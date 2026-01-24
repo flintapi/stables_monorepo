@@ -90,7 +90,7 @@ All app routes are grouped together and exported into single type as `AppType` i
 
 ## Endpoints
 
-| Path               | Description              |
+| Path               | Descriptions             |
 | ------------------ | ------------------------ |
 | GET /doc           | Open API Specification   |
 | GET /reference     | Scalar API Documentation |
