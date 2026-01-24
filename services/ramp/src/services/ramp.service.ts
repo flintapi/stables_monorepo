@@ -209,6 +209,107 @@ class Ramp {
 
     return { status: updateTransaction.status };
   }
+
+  static async processAutofundJob(data: RampServiceJob, attemptsMade: number) {
+    rampLogger.info(`Processing [deposit.autofund]`, {data, attemptsMade})
+
+
+    const { transactionId, organizationId, type, amountReceived } = data;
+
+    if (type !== "autofund") {
+      throw new Error("Ramp is not of type autofund");
+    }
+
+    const organization = await db.query.organization.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.id, organizationId);
+      },
+    });
+
+    if (!organization) {
+      throw new Error("Organization not found");
+    }
+
+    const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+    const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
+
+    const transaction = await orgDatabase.query.transactions.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.id, transactionId);
+      },
+    });
+
+    if (!transaction) {
+      throw new Error("Transaction not found");
+    }
+
+    const toAddress = transaction.metadata?.address;
+    if (!toAddress) {
+      throw new Error("No receiving address added to this transaction");
+    }
+    const chainId = networkToChainidMap[transaction.network];
+    const token = TOKEN_ADDRESSES[chainId].cngn;
+
+    const df = new DecimalFormat('###0.#');
+    const transactionAmount = df.format(getAmountAfterFee(amountReceived!, metadata.activeFee? {activeFee: metadata.activeFee} : undefined))
+
+    const job = await walletQueue.add(
+      "sign-transaction",
+      {
+        chainId,
+        keyLabel: env.TREASURY_KEY_LABEL, // will be the signer if index for smart account is not provided
+        data: encodeFunctionData({
+          abi: parseAbi([
+            "function transfer(address to, uint256 amount) external returns (bool)",
+          ]),
+          functionName: "transfer",
+          args: [
+            transaction.metadata!.address! as Address,
+            parseUnits(transactionAmount, token.decimal),
+          ],
+        }),
+        contractAddress: token.address as Address,
+      },
+      { jobId: `kms-payout-${chainId}-cngn-${transaction.id}-${crypto.randomUUID().slice(0,6)}`, attempts: 1 },
+    );
+
+    const result = (await job.waitUntilFinished(walletQueueEvents)) as {
+      hash: Hex;
+    };
+
+    const [updateTransaction] = await orgDatabase
+      .update(orgSchema.transactions)
+      .set({
+        status: "completed",
+        metadata: {
+          ...transaction.metadata,
+          transactionHash: result.hash,
+        } as any,
+      })
+      .where(eq(orgSchema.transactions.id, transactionId))
+      .returning();
+    rampLogger.info("Transaction updated", updateTransaction);
+
+    // TODO: Trigger webhook utils function
+    const event = `deposit.autofund.completed`;
+    Webhook.trigger(transaction.metadata?.notifyUrl, transaction.metadata?.webhookSecret, {
+      event,
+      data: {
+        transactionId: transaction.id,
+        reference: transaction.reference,
+        amount: transaction.amount,
+        processedAmount: amountReceived,
+        status: updateTransaction.status,
+        autofundHash: result.hash,
+        network: transaction.network,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+      }
+    }).then(() => rampLogger.info(`Webhook triggered: [${event}]`))
+    .catch((error) => rampLogger.warn(`API Key data not found to trigger webhook!!! SOS`, {error}))
+
+    return { status: updateTransaction.status };
+  }
 }
 
 export default Ramp;

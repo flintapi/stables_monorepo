@@ -4,7 +4,7 @@ import type { PaymentProvider } from "Adapters";
 import type { ChainId } from "Utils";
 
 export interface RampServiceJob {
-  type: "off" | "on";
+  type: "off" | "on" | "autofund";
   organizationId: string;
   transactionId: string;
   amountReceived?: number;

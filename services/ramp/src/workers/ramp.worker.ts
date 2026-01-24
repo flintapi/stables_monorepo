@@ -15,7 +15,7 @@ import Ramp from "@/services/ramp.service";
 // Will be run in its own docker container
 
 const name = QueueNames.RAMP_QUEUE;
-const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
+const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp" | "autofund">(
   name,
   async (job) => {
     // Log job start
@@ -54,7 +54,14 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp">(
           rampLogger.error(`On-ramp failed`, onRampError);
           throw onRampError;
         }
-        break;
+      }
+      case "autofund": {
+        try {
+          return await Ramp.processAutofundJob(job.data, job.attemptsMade);
+        }
+        catch(autofundError: any) {
+          rampLogger.error(`Autofund failed`, autofundError);
+        }
       }
       default:
         throw new Error("Invalid job name");

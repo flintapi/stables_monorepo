@@ -26,7 +26,7 @@ export enum QueueNames {
   WALLET_QUEUE = "wallet-queue",
 }
 
-const rampServiceQueue = new Queue<RampServiceJob, any, "off-ramp" | "on-ramp">(
+const rampServiceQueue = new Queue<RampServiceJob, any, "off-ramp" | "on-ramp" | "autofund">(
   QueueNames.RAMP_QUEUE,
   bullMqBase,
 );

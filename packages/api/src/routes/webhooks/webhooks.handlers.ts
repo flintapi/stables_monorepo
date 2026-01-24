@@ -188,7 +188,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
           throw new Error("Organization not found")
         }
         const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
-        const orgDatabase = await orgDb({
+        const orgDatabase = orgDb({
           dbUrl: metadata?.dbUrl
         });
 
@@ -217,9 +217,9 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
           .returning();
 
         await rampQueue.add(
-          "on-ramp",
+          "autofund",
           {
-            type: "on",
+            type: "autofund",
             organizationId: result.organizationId,
             transactionId: newTransaction.id,
             amountReceived: Number(amount),
@@ -229,7 +229,6 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
             attempts: 3,
           },
         ).then(async (job) => {
-          // await clearVirtualAccount(body.data.bankAccountNumber)
           apiLogger.info("On-Ramp[autofund] Job sent...", job.data);
         });
         
