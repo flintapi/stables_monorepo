@@ -174,3 +174,58 @@ The response for the `/ramp/initialise` endpoint will contain collection informa
   }
 }
 ```
+
+# Webhook Payload
+The JSON payload outlined below clarifies the payload for the ramp webhooks
+
+```json tab="On Ramp"
+{
+  "event": "onramp.completed",
+  "data": {
+    transactionId: "trx_longid123487654",
+    reference: "ref_merchantref000001",
+    amount: 1000,
+    processedAmount: 1000,
+    address: "0x00000000000000000000000000000000000",
+    status: "complete",
+    onrampHash: "0x000000000000000000000000000000000000000000000000000000000000",
+    network: "base",
+    createdAt: "1770019196506",
+    updatedAt: "1770019196506",
+  }
+}
+```
+
+```json tab="Off Ramp"
+{
+  "event": "offramp.completed",
+  "data": {
+    transactionId: "trx_longid123487654",
+    reference: "ref_merchantref000001",
+    amount: 1000,
+    processedAmount: 1000,
+    status: "complete",
+    network: "base",
+    createdAt: "1770019196506",
+    updatedAt: "1770019196506",
+  }
+}
+```
+
+```json tab="Auto fund"
+{
+  "event": "deposit.autofund.completed",
+  "data": {
+    transactionId: "trx_longid123487654",
+    reference: "ref_merchantref000001",
+    amount: 1000,
+    processedAmount: 1000,
+    address: "0x00000000000000000000000000000000000",
+    status: "complete",
+    onrampHash: "0x000000000000000000000000000000000000000000000000000000000000",
+    network: "base",
+    createdAt: "1770019196506",
+    updatedAt: "1770019196506",
+  }
+}
+```
