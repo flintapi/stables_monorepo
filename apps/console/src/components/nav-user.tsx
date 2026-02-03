@@ -97,7 +97,8 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-red-400 hover:bg-red-500 hover:text-red-400"
+              variant='destructive'
+              className="text-red-400 hover:bg-red-500 hover:text-white"
               onClick={async () => {
                 await authClient.signOut({
                   fetchOptions: {
@@ -114,7 +115,7 @@ export function NavUser({
                 })
               }}
             >
-              <IconLogout className="text-red-400" />
+              <IconLogout />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

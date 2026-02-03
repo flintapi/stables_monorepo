@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { Github, GithubIcon, LoaderCircle } from 'lucide-react'
+import { GithubIcon } from 'lucide-react'
+import { IconBrandGoogle } from "@tabler/icons-react"
 import { useRouter, useSearch } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -10,8 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+/* import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label' */
 import { useAppForm } from '@/hooks/demo.form'
 import { authClient } from '@/lib/auth-client'
 import { env } from '@/env'
@@ -92,12 +93,21 @@ export function LoginForm({
                   <GithubIcon className="size-5" />
                   Login with Github
                 </Button>
-                {/*<Button
+                <Button
                   variant="outline"
                   type="button"
                   className="w-full"
-                  onClick={() => {
+                  onClick={async () => {
                     console.log('Clicked google login button')
+                    const data = await authClient.signIn.social({
+                      provider: 'google',
+                      callbackURL:
+                        typeof query !== 'undefined'
+                          ? query.redirect
+                          : `${env.VITE_APP_URL}/overview`,
+                      // disableRedirect: true,
+                    })
+                    console.log('Google data', data.data?.url)
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -107,7 +117,7 @@ export function LoginForm({
                     />
                   </svg>
                   Login with Google
-                </Button>*/}
+                </Button>
               </div>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">

@@ -23,6 +23,39 @@ export const getInvitationQueryOptions = queryOptions({
   },
 })
 
+export const getUserInvitationsQueryOptions = queryOptions({
+  queryKey: ['invitation', 'personal', 'list'],
+  queryFn: async () => {
+    const { data: userInvitation, error } = await authClient.organization.listUserInvitations();
+
+    if (error) throw error;
+    return userInvitation
+  }
+});
+
+export const acceptUserInvitationMutationOptions = mutationOptions({
+  mutationKey: ['invitation', 'personal', 'accept'],
+  mutationFn: async (input: { invitationId: string }) => {
+    try {
+      const { data, error } = await authClient.organization.acceptInvitation({
+        invitationId: input.invitationId,
+      });
+
+      if (error) {
+        console.log('Error accepting invitation:', error);
+        throw error;
+      }
+
+      return data;
+    }
+    catch (error: any) {
+      console.log("Failed to accpet invite", error)
+      throw error;
+    }
+
+  }
+})
+
 export const getOrganizationsQueryOptions = queryOptions({
   queryKey: ['organization', 'list'],
   queryFn: async () => {
@@ -77,12 +110,12 @@ export const getOrganizationTransactionsQueryOptions = queryOptions({
           credentials: 'include',
         },
       )
-      if(response.ok) {
+      if (response.ok) {
         const data = (await response.json()) as Array<OrganizationTransaction>
         return data
       }
 
-      const failedResponse = await response.json() as {message: string};
+      const failedResponse = await response.json() as { message: string };
       throw new Error(failedResponse.message)
 
     } catch (error: any) {
@@ -120,13 +153,13 @@ export const getOrganizationWalletsQueryOptions = queryOptions({
         method: 'GET',
         credentials: 'include',
       })
-      if(response.ok) {
+      if (response.ok) {
         const data = (await response.json()) as Array<OrganizationWallet>
 
         return data
       }
 
-      const failedResponse = await response.json() as {message: string};
+      const failedResponse = await response.json() as { message: string };
       throw new Error(failedResponse.message)
     } catch (error: any) {
       console.log('Error occured fetching wallets', error)
