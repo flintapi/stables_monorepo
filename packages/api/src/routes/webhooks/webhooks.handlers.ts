@@ -387,7 +387,8 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
     apiLogger.info("Off-Ramp Transaction completed", updatedTransaction)
     // TODO: Call webhook utility function
     const event = `offramp.completed`;
-    Webhook.trigger(transaction.metadata?.notifyUrl, transaction.metadata?.webhookSecret, {
+    const url = transaction.metadata?.notifyUrl;
+    Webhook.trigger(url, transaction.metadata?.webhookSecret, {
       event,
       data: {
         transactionId: transaction.id,
@@ -400,7 +401,7 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
         createdAt: transaction.createdAt,
         updatedAt: transaction.updatedAt,
       }
-    }).then(() => apiLogger.info(`Webhook triggered: [${event}]`))
+    }).then((response) => apiLogger.info(`Webhook triggered: [${event}]`, {url, transaction, response}))
     .catch((error) => apiLogger.warn(`API Key data not found to trigger webhook!!! SOS`, {error}))
 
     await sweepFunds(env.TREASURY_KEY_LABEL, {

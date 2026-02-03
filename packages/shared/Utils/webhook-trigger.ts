@@ -8,7 +8,7 @@ export class Webhook {
 
     const webhook = new Webhook()
 
-    await betterFetch(url, {
+    const {data: response} = await betterFetch(url, {
       body: payload,
       headers: {
         'x-flint-signature': webhook.signBody(payload, key)
@@ -26,6 +26,8 @@ export class Webhook {
         }
       }
     })
+
+    return response;
   }
 
   private signBody(payload: any, key: string) {
