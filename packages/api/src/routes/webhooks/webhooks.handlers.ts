@@ -372,7 +372,7 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
     if(job) {
       const state = await job.getState()
       if(state === 'completed' || state === 'failed') {
-        await job.retry('completed')
+        // await job.retry('completed')
         apiLogger.info("Retrying failed payout from payment provider", {data: job.data, jobId: job.id})
       }
       // TODO: send a retrying webhook event
