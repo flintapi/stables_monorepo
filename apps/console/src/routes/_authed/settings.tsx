@@ -32,11 +32,13 @@ import { Switch } from '@/components/ui/switch'
 import { FatInput } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import {
+  acceptUserInvitationMutationOptions,
   deleteAPIKeyMutationOptions,
   getInvitationQueryOptions,
   getOrganizationApiKeysQueryOptions,
   getOrganizationsQueryOptions,
   getTeamQueryOptions,
+  getUserInvitationsQueryOptions,
 } from '@/lib/api-client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { authClient } from '@/lib/auth-client'
@@ -381,6 +383,15 @@ const TeamTab: FC = () => {
 
   const { data: team } = useQuery(getTeamQueryOptions)
   const { data: invitations } = useQuery(getInvitationQueryOptions)
+  const { data: userInvitations } = useQuery(getUserInvitationsQueryOptions)
+  const { data: _acceptInviteData, mutateAsync, isPending: acceptingInvite, error } = useMutation(acceptUserInvitationMutationOptions)
+  const filteredData = (userInvitations || []).filter(i => i.status !== "accepted")
+
+  if (error) {
+    toast.error(`Failed to accept invitation`, {
+      description: error?.message
+    })
+  }
 
   const showInviteModal = () => {
     NiceModal.show(TeamInviteModal)
@@ -403,6 +414,7 @@ const TeamTab: FC = () => {
           {team && team.total > 0 ? (
             team.members.map((member) => (
               <ListItem
+                key={member.id}
                 title={member.user.name}
                 description={member.user.email}
                 suffix={
@@ -431,6 +443,7 @@ const TeamTab: FC = () => {
           {invitations && invitations.length ? (
             invitations.map((invite) => (
               <ListItem
+                key={invite.email}
                 title={invite.email}
                 description={invite.status}
                 suffix={
@@ -451,6 +464,42 @@ const TeamTab: FC = () => {
           ) : (
             <div>No invitations yet</div>
           )}
+        </List>
+        <List>
+          {
+            userInvitations && userInvitations.length ? (
+              filteredData.map((invite) => (
+                <ListItem
+                  key={invite.email}
+                  title={invite.email}
+                  description={invite.status}
+                  suffix={
+                    <div className='flex items-center justify-between'>
+                      <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">{invite.role}</div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className='rounded-2xl'
+                        onClick={async () => {
+                          console.log("Accept invitation")
+                          await mutateAsync({ invitationId: invite.id })
+                        }}
+                      >{acceptingInvite ? <Loader /> : 'Accept invite'}</Button>
+                    </div>
+                  }
+                  prefix={
+                    <Avatar>
+                      <AvatarImage src={undefined as string | undefined} />
+                      <AvatarFallback>
+                        {invite.email.slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  }
+                />
+              ))) : (
+              <span>You do not have any pending invitations</span>
+            )
+          }
         </List>
       </CardContent>
     </Card>

@@ -1,5 +1,6 @@
+import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 
-export const Loader: React.FC = () => (
-  <Loader2 className="animate-spin m-auto transition-opacity duration-300 ease-in" />
+export const Loader: React.FC = (props: {className?: string}) => (
+  <Loader2 className={cn("animate-spin m-0 transition-opacity duration-300 ease-in", props?.className)} />
 )
