@@ -56,6 +56,53 @@ export const acceptUserInvitationMutationOptions = mutationOptions({
   }
 })
 
+export const cancelInvitationMutationOptions = mutationOptions({
+  mutationKey: ['invitation', 'members', 'cencel'],
+  mutationFn: async (input: { invitationId: string }) => {
+    try {
+      const { data, error } = await authClient.organization.cancelInvitation({
+        invitationId: input.invitationId,
+      });
+
+      if (error) {
+        console.log('Error canceling invitation:', error);
+        throw error;
+      }
+
+      return data;
+    }
+    catch (error: any) {
+      console.log("Failed to cancel invite", error)
+      throw error;
+    }
+
+  }
+})
+
+export const removeMemberMutationOptions = mutationOptions({
+  mutationKey: ['invitation', 'members', 'remove'],
+  mutationFn: async (input: { memberId: string, organizationId: string }) => {
+    try {
+      const { data, error } = await authClient.organization.removeMember({
+        memberIdOrEmail: input.memberId,
+        organizationId: input.organizationId
+      });
+
+      if (error) {
+        console.log('Error removing member:', error);
+        throw error;
+      }
+
+      return data;
+    }
+    catch (error: any) {
+      console.log("Failed to remove member", error)
+      throw error;
+    }
+
+  }
+})
+
 export const getOrganizationsQueryOptions = queryOptions({
   queryKey: ['organization', 'list'],
   queryFn: async () => {

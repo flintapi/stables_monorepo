@@ -16,6 +16,7 @@ interface ListItemProps {
   title: string
   description?: string
   className?: string
+  borderLast?: boolean
 }
 
 export function ListItem({
@@ -24,11 +25,16 @@ export function ListItem({
   title,
   description,
   className,
+  borderLast = false,
 }: ListItemProps) {
   return (
     <div
       className={cn(
-        'grid lg:flex items-center gap-4 p-4 border-b border-border last:border-b-0',
+        'grid lg:flex items-center gap-4 p-4 border-border ',
+        {
+          "last:border-b-1": borderLast,
+          "border-b": !borderLast,
+        },
         className,
       )}
     >

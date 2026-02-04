@@ -80,9 +80,9 @@ const authOptions = {
       //   : "http://localhost:9999/api/auth/callback/github",
     },
     google: {
-      enabled: false,
-      clientId: env.GOOGLE_CLIENT_ID || "",
-      clientSecret: env.GOOGLE_CLIENT_SECRET || "",
+      enabled: true,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
   plugins: [
@@ -97,16 +97,6 @@ const authOptions = {
         inviter,
         id,
       }) => {
-        console.log(
-          "sendInvitationEmail",
-          organization,
-          email,
-          role,
-          invitation,
-          inviter,
-          id,
-        );
-
         const consoleUrl = env.CONSOLE_URL;
         const inviteLink = `${consoleUrl}/invite/${invitation.id}`;
 
@@ -116,11 +106,13 @@ const authOptions = {
             body: `
               You have been invited to join the organization ${organization.name}.
               <br/>Please click or copy the link below to accept the invitation:
+              <br/>
+              <br/>
               <br/><a href="${inviteLink}">${inviteLink}</a>`,
             to: email,
           });
         } catch (error) {
-          console.log("Error sending email", error);
+          apiLogger.error("Error sending email", {error});
           throw new APIError("INTERNAL_SERVER_ERROR", {
             message: "Failed to send Invitation email",
           });

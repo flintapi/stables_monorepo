@@ -2,8 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import NiceModal from '@ebay/nice-modal-react'
 import z from 'zod'
-import { Check, ChevronsUpDown, Copy, PlusCircle, Trash2 } from 'lucide-react'
-import { IconCancel, IconGlobe, IconMoodEmpty } from '@tabler/icons-react'
+import { Check, ChevronsUpDown, PlusCircle, Trash2 } from 'lucide-react'
+import { IconCancel, IconGlobe } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import TeamInviteModal from './-components/modals/TeamInvite'
 import CreateAPIKeyModal from './-components/modals/CreateAPIKey'
@@ -11,7 +11,6 @@ import { showDeleteOrgModal } from './-components/modals/DeleteOrganization'
 import type { FC } from 'react'
 import { Container, Main, Section } from '@/components/craft'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
@@ -33,12 +32,14 @@ import { FatInput } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import {
   acceptUserInvitationMutationOptions,
+  cancelInvitationMutationOptions,
   deleteAPIKeyMutationOptions,
   getInvitationQueryOptions,
   getOrganizationApiKeysQueryOptions,
   getOrganizationsQueryOptions,
   getTeamQueryOptions,
   getUserInvitationsQueryOptions,
+  removeMemberMutationOptions,
 } from '@/lib/api-client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { authClient } from '@/lib/auth-client'
@@ -384,7 +385,20 @@ const TeamTab: FC = () => {
   const { data: team } = useQuery(getTeamQueryOptions)
   const { data: invitations } = useQuery(getInvitationQueryOptions)
   const { data: userInvitations } = useQuery(getUserInvitationsQueryOptions)
-  const { data: _acceptInviteData, mutateAsync, isPending: acceptingInvite, error } = useMutation(acceptUserInvitationMutationOptions)
+  const {
+    mutateAsync: acceptInviteMutateAsync,
+    isPending: acceptingInvite,
+    error
+  } = useMutation(acceptUserInvitationMutationOptions)
+  const {
+    mutateAsync: cancelInviteMutateAsync,
+    isPending: cancelingInvite,
+  } = useMutation(cancelInvitationMutationOptions)
+  const {
+    mutateAsync: removeMemberMutateAsync,
+    isPending: removingMember,
+  } = useMutation(removeMemberMutationOptions)
+
   const filteredData = (userInvitations || []).filter(i => i.status !== "accepted")
 
   if (error) {
@@ -418,8 +432,20 @@ const TeamTab: FC = () => {
                 title={member.user.name}
                 description={member.user.email}
                 suffix={
-                  <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">
-                    {member.role}
+                  <div className='flex items-center justify-between gap-3'>
+                    <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">{member.role}</div>
+                    {member.role !== "owner" && <Button
+                      size="sm"
+                      variant="destructive"
+                      className='rounded-2xl'
+                      onClick={async () => {
+                        await removeMemberMutateAsync({
+                          memberId: member.id,
+                          organizationId: member.organizationId
+                        })
+                          .then((_value) => toast.success(`${member.user.email} has been removed from the organzation`))
+                      }}
+                    >{removingMember ? <Loader /> : 'Remove'}</Button>}
                   </div>
                 }
                 prefix={
@@ -438,17 +464,27 @@ const TeamTab: FC = () => {
             <div>No members yet</div>
           )}
         </List>
-        <Separator className="my-4" />
         <List>
+          <h1>Invitations you sent.</h1>
           {invitations && invitations.length ? (
-            invitations.map((invite) => (
+            invitations.filter(i => i.status === 'pending').map((invite) => (
               <ListItem
                 key={invite.email}
                 title={invite.email}
                 description={invite.status}
+                borderLast
                 suffix={
-                  <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">
-                    {invite.role}
+                  <div className='flex items-center justify-between gap-3'>
+                    <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">{invite.role}</div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className='rounded-2xl'
+                      onClick={async () => {
+                        await cancelInviteMutateAsync({ invitationId: invite.id })
+                          .then((_value) => toast.success(`Invite with ID: ${_value.id}, has been canceled`))
+                      }}
+                    >{cancelingInvite ? <Loader /> : 'Cancel invite'}</Button>
                   </div>
                 }
                 prefix={
@@ -473,6 +509,7 @@ const TeamTab: FC = () => {
                   key={invite.email}
                   title={invite.email}
                   description={invite.status}
+                  borderLast
                   suffix={
                     <div className='flex items-center justify-between'>
                       <div className="inline-flex text-xs text-primary px-1 rounded-md border border-primary">{invite.role}</div>
@@ -481,8 +518,8 @@ const TeamTab: FC = () => {
                         variant="outline"
                         className='rounded-2xl'
                         onClick={async () => {
-                          console.log("Accept invitation")
-                          await mutateAsync({ invitationId: invite.id })
+                          await acceptInviteMutateAsync({ invitationId: invite.id })
+                            .then((_value) => toast.success(`Invite with ID: ${_value.invitation.id}`))
                         }}
                       >{acceptingInvite ? <Loader /> : 'Accept invite'}</Button>
                     </div>
@@ -497,7 +534,7 @@ const TeamTab: FC = () => {
                   }
                 />
               ))) : (
-              <span>You do not have any pending invitations</span>
+              <span>You do not have any invitations to accept.</span>
             )
           }
         </List>
