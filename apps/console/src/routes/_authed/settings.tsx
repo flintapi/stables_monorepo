@@ -444,6 +444,9 @@ const TeamTab: FC = () => {
                           organizationId: member.organizationId
                         })
                           .then((_value) => toast.success(`${member.user.email} has been removed from the organzation`))
+                          .catch((_error) => toast.error(`Failed to remove member: ${member.user.email}`, {
+                            description: _error?.message
+                          }))
                       }}
                     >{removingMember ? <Loader /> : 'Remove'}</Button>}
                   </div>
@@ -483,6 +486,9 @@ const TeamTab: FC = () => {
                       onClick={async () => {
                         await cancelInviteMutateAsync({ invitationId: invite.id })
                           .then((_value) => toast.success(`Invite with ID: ${_value.id}, has been canceled`))
+                          .catch((_error) => toast.error(`Failed to cancel invite`, {
+                            description: _error?.message
+                          }))
                       }}
                     >{cancelingInvite ? <Loader /> : 'Cancel invite'}</Button>
                   </div>
@@ -520,6 +526,9 @@ const TeamTab: FC = () => {
                         onClick={async () => {
                           await acceptInviteMutateAsync({ invitationId: invite.id })
                             .then((_value) => toast.success(`Invite with ID: ${_value.invitation.id}`))
+                            .catch((_error) => toast.error(`Failed to accept invite`, {
+                              description: _error?.message
+                            }))
                         }}
                       >{acceptingInvite ? <Loader /> : 'Accept invite'}</Button>
                     </div>
