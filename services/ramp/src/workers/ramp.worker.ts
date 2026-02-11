@@ -82,7 +82,7 @@ const events = ensureQueueEventHandlers(name, (events) => {
   events.on("failed", async ({ jobId, failedReason }) => {
     try {
       const job = await QueueInstances["ramp-queue"].getJob(jobId);
-      rampLogger.error(`Failed job with id: ${jobId}`, {
+      rampLogger.error(`Failed ${job?.name} job with id: ${jobId}`, {
         failedReason,
         name: job?.name,
         opts: job?.opts,
