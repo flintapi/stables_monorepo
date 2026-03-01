@@ -84,6 +84,10 @@ const EnvSchema = z
     JWT_SECRET: z.string(),
     BOARD_EMAIL: z.string(),
     BOARD_PHASH: z.string(),
+
+    // Switch
+    SWITCH_URL: z.string(),
+    SWITCH_API_KEY: z.string(),
   })
   .superRefine((input, ctx) => {
     if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {

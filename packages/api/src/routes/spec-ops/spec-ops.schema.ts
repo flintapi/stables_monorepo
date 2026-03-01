@@ -33,6 +33,21 @@ export const autofundResponseSchema = (
         status: z.enum(["success", "failed", "pending"]).default("pending"),
         message: z.string().min(1),
         data: schemaOrMessage,
+    });
+
+export const otcResponseSchema = (
+  schemaOrMessage: z.ZodSchema | string,
+) =>
+  typeof schemaOrMessage === "string"
+    ? z.object({
+        status: z.enum(["success", "failed", "pending"]).default("failed"),
+        message: z.string().min(1).default(schemaOrMessage),
+        data: z.any().nullable().default(null),
+      })
+    : z.object({
+        status: z.enum(["success", "failed", "pending"]).default("pending"),
+        message: z.string().min(1),
+        data: schemaOrMessage,
       });
 
 

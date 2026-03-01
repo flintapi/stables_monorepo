@@ -8,6 +8,7 @@ const router = createRouter()
   .openapi(routes.onbrails, handlers.onbrails)
   .openapi(routes.centiiv, handlers.centiiv)
   .openapi(routes.offramp, handlers.offramp)
-  .openapi(routes.palmpayPaymentNotify, handlers.palmpayPaymentNotify);
+  .openapi(routes.palmpayPaymentNotify, handlers.palmpayPaymentNotify)
+  .openapi(routes.switchNotify, handlers.switchNotify);
 
 export default router;

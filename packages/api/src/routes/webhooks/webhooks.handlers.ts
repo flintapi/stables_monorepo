@@ -14,7 +14,8 @@ import type {
   OnbrailsRoute,
   CentiivRoute,
   OffRampRoute,
-  PalmpayRoute
+  PalmpayRoute,
+  SwitchRoute
 } from "./webhooks.routes";
 import env from "@/env";
 import { clearVirtualAccount, fetchVirtualAccount, sweepFunds } from "../ramp/ramp.utils";
@@ -231,7 +232,7 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
         ).then(async (job) => {
           apiLogger.info("On-Ramp[autofund] Job sent...", job.data);
         });
-        
+
       }
       return c.json(
         { success: true, message: "Transaction processed successfully" },
@@ -258,7 +259,6 @@ export const onbrails: AppRouteHandler<OnbrailsRoute> = async (c) => {
     );
   }
 };
-
 
 export const offramp: AppRouteHandler<OffRampRoute> = async (c) => {
   const body = c.req.valid("json");
@@ -438,3 +438,68 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
 
   return c.text('success', HttpStatusCodes.OK);
 };
+
+export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
+  const body = c.req.valid('json')
+  const params = c.req.valid('param')
+  apiLogger.info(`Request body`, {body})
+
+  try {
+    const organization = await db.query.organization.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.id, params.organizationId)
+      }
+    })
+
+    if (!organization) {
+      return c.text('failed', HttpStatusCodes.BAD_REQUEST);
+    }
+
+    const metadata = typeof organization.metadata !== 'string' ? organization.metadata : JSON.parse(organization.metadata);
+    const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
+    // TODO: validate transaction
+    const transaction = await orgDatabase.query.transactions.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.reference, params.reference)
+      }
+    })
+    if (!transaction) {
+      return c.text('failed', HttpStatusCodes.BAD_REQUEST);
+    } else if (transaction.status === "completed") {
+      // Update db and call org callbackUrl
+      const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
+        .set({
+          status: "completed",
+        })
+        .where(eq(orgSchema.transactions.id, transaction.id))
+        .returning();
+
+      const event = `otc.onramp.completed`;
+      const url = transaction.metadata?.notifyUrl;
+      Webhook.trigger(url, transaction.metadata?.webhookSecret, {
+        event,
+        data: {
+          transactionId: transaction.id,
+          reference: transaction.reference,
+          amount: transaction.amount,
+          processedAmount: body.amount ?? transaction.amount,
+          destinationAddress: transaction.metadata?.address,
+          status: updatedTransaction.status,
+          network: transaction.network,
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+        }
+      }).then((response) => apiLogger.info(`Webhook triggered: [${event}]`, {url, transaction, response}))
+      .catch((error) => apiLogger.warn(`API Key data not found to trigger webhook!!! SOS`, {error}))
+      return c.text('success', HttpStatusCodes.OK)
+    }
+
+    return c.text('success', HttpStatusCodes.OK)
+  }
+  catch (error: any) {
+    apiLogger.error("Failed to process switch callback", error)
+    return c.text('failed',
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
+}

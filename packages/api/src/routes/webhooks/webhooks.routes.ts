@@ -212,8 +212,59 @@ export const palmpayPaymentNotify = createRoute({
   },
 })
 
+export const switchNotify = createRoute({
+  tags,
+  path: "/webhooks/switch/{organizationId}/{reference}",
+  method: "post",
+  hide: true,
+  middleware: [],
+  request: {
+    params: z.object({
+      organizationId: z.string(),
+      reference: z.string(),
+    }),
+    body: jsonContent(
+      z.any(),
+      "Notification payload",
+    ),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('success').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Switch callback response"
+    },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('failed').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Switch callback error response"
+    },
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('failed').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Internal server error response"
+    }
+  },
+})
+
 export type BellbankRoute = typeof bellbank;
 export type OnbrailsRoute = typeof onbrails;
 export type CentiivRoute = typeof centiiv;
 export type OffRampRoute = typeof offramp;
 export type PalmpayRoute = typeof palmpayPaymentNotify;
+export type SwitchRoute = typeof switchNotify;
