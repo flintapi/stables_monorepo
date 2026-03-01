@@ -106,7 +106,7 @@ export const executeTrade = createRoute({
         feePercent: z.number(),
         network: z.enum(['base', 'bsc']),
         asset: z.enum(['usdc']),
-        reference: z.string(),
+        reference: z.uuid(),
         notifyUrl: z.url(),
         destination: z.object({
           address: z.string().startsWith('0x')

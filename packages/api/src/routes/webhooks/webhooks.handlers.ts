@@ -465,7 +465,9 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
     })
     if (!transaction) {
       return c.text('failed', HttpStatusCodes.BAD_REQUEST);
-    } else if (transaction.status === "completed") {
+    }
+
+    if (body.status.toLowerCase() === 'completed') {
       // Update db and call org callbackUrl
       const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
         .set({
