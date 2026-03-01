@@ -6,7 +6,7 @@ export function getAmountAfterFee(amount: number, feeConfig?: {activeFee: number
   if(feeConfig) {
     const {activeFee} = feeConfig;
     const fee = (amount * activeFee);
-    return (amount - fee);
+    return fee > FEE_CAP ? (amount - FEE_CAP) : (amount - fee);
   }
 
   const fee = (amount * FEE_PERCENT);
