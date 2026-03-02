@@ -11,9 +11,9 @@ async function main() {
   // TODO: run script to send tokens for treasury management
 
   const BscDestination = `0xCEF2C867afb682e0A325E6C09211Dfee1f65A4b6`;
-  const BaseDestination = `0xC5dDD7A035fC6e664f0E8f18299fB09f8766676e`;
+  const BaseDestination = `0xa0DfFf397bC986F17586C003adbEcFf0711914B5`; //`0xC5dDD7A035fC6e664f0E8f18299fB09f8766676e`;
   const BSC_AMOUNT = 3_000_000;
-  const BASE_AMOUNT = 12_000_000;
+  const BASE_AMOUNT = 5_400;
 
   const BSC_DATA = {
     destination: BscDestination,
@@ -62,5 +62,5 @@ async function main() {
 }
 
 
-// main()
-//   .catch(kmsLogger.error)
+main()
+  .catch(kmsLogger.error)
