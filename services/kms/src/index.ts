@@ -62,5 +62,5 @@ async function main() {
 }
 
 
-main()
-  .catch(kmsLogger.error)
+// main()
+//   .catch(kmsLogger.error)
