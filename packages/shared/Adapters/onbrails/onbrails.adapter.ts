@@ -69,6 +69,7 @@ class OnbrailsAdapter {
     });
 
     if(virtualAccountError) {
+      console.log('Failed to create virtual account', {virtualAccountError})
       throw virtualAccountError.message
     }
 

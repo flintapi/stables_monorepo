@@ -133,7 +133,11 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
         const bankCode = bankAdapter.bankCode;
         const { accountNumber, accountName, bankName } =
-          await bankAdapter.createVirtualAccount();
+          await bankAdapter.createVirtualAccount()
+            .catch((error) => {
+              apiLogger.error(`Failed to create virtual account`, {error});
+              throw error;
+            });
 
         apiLogger.info("On ramp bank details:", {
           accountNumber,
