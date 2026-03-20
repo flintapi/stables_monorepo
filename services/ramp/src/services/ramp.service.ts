@@ -97,11 +97,12 @@ class Ramp {
       }
       const df = new DecimalFormat('###0.#');
       const transactionAmount = df.format(getAmountAfterFee(amountReceived!, metadata.activeFee? {activeFee: metadata.activeFee} : undefined))
+      const nonce = crypto.randomUUID().slice(0, 6);
 
       return await fiatPaymentContext.transfer({
         accountNumber: accountNumber,
         bankCode: bankCode,
-        reference: `${transaction.reference}:${transaction.id}`,
+        reference: `${transaction.reference}:${transaction.id}-${nonce}`,
         amount: Number(transactionAmount),
         narration: transaction?.narration || organization?.name,
         transactionId: transaction.id,
