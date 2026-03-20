@@ -1,6 +1,7 @@
 import { ChainId, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import "./workers/kp.worker";
 import { Address, encodeFunctionData, parseAbi, parseUnits } from "viem"
+import {base} from "viem/chains"
 import kmsService from "./services/kms.services"
 import { kmsLogger } from "@flintapi/shared/Logger";
 import env from "./env";
@@ -13,7 +14,7 @@ async function main() {
   const BscDestination = `0xCEF2C867afb682e0A325E6C09211Dfee1f65A4b6`;
   const BaseDestination = `0x107a7F8d51F75f48082294E8FacEdcc1C29CCca3`; //`0x107a7F8d51F75f48082294E8FacEdcc1C29CCca3`; //`0xC5dDD7A035fC6e664f0E8f18299fB09f8766676e`;
   const BSC_AMOUNT = 1_062_433.96675;
-  const BASE_AMOUNT = 600_000;
+  const BASE_AMOUNT = 400_000;
 
   const BSC_DATA = {
     destination: BscDestination,
@@ -51,6 +52,9 @@ async function main() {
 
       kmsLogger.info(`Receipt for chain with ID ${data.chainId}`, receipt)
       kmsLogger.info(`Hash for chain ID`, {hash: receipt.transactionHash})
+      kmsLogger.info(`Explorer URL`, {
+        url: `${base.blockExplorers.default.url}/tx/${receipt.transactionHash}`
+      })
     }
     catch (error: any) {
       kmsLogger.error("Failed to transfer from treasury", error)
@@ -62,5 +66,5 @@ async function main() {
 }
 
 
-// main()
-//   .catch(kmsLogger.error)
+main()
+  .catch(kmsLogger.error)
