@@ -66,5 +66,6 @@ async function main() {
 }
 
 
+// To run
 main()
   .catch(kmsLogger.error)
