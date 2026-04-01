@@ -6,6 +6,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import mdx from 'fumadocs-mdx/vite';
 import {nitro} from "nitro/vite"
+import {cloudflare} from "@cloudflare/vite-plugin"
 
 const config = defineConfig({
   plugins: [
@@ -21,8 +22,9 @@ const config = defineConfig({
         enabled: false
       },
     }),
+    cloudflare({viteEnvironment: {name: 'ssr'}}),
     nitro({
-      preset: "vercel"
+      preset: "cloudflare-pages"
     }),
     viteReact({
       babel: {

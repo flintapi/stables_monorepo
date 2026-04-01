@@ -17,10 +17,7 @@ import type { FC } from 'react'
 import { Loader } from '@/components/ui/loader'
 import { Container } from '@/components/craft'
 import { DataTable } from '@/components/data-table'
-import {
-  // TransactionTableContext,
-  TransactionsTable,
-} from '@/components/tables/transactions'
+import { TransactionsTable } from '@/components/tables/transactions'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -46,7 +43,6 @@ type ActivityTabs = 'transactions' | 'wallets' | 'events'
 
 export const Activities: FC = () => {
   const [tab, setTab] = useState<ActivityTabs>('transactions')
-  // const { table } = use(TransactionTableContext)
 
   return (
     <Container className="animate-fade-down">
@@ -84,7 +80,9 @@ export const Activities: FC = () => {
           <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
             <TabsTrigger value="transactions">
               Transactions
-              {/*<Badge variant="secondary">3</Badge>*/}
+              {/*<Badge variant="secondary">
+                3
+              </Badge>*/}
             </TabsTrigger>
             <TabsTrigger value="wallets">
               Wallets

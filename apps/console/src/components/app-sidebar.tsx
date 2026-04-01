@@ -2,6 +2,7 @@ import * as React from 'react'
 import {
   IconBread,
   IconCamera,
+  IconCashBanknote,
   // IconChartBar,
   IconDashboard,
   IconDatabase,
@@ -127,6 +128,11 @@ const data = {
       title: 'Transactions',
       url: '/transactions',
       icon: List,
+    },
+    {
+      title: 'OTC Table',
+      url: '/otc-table',
+      icon: IconCashBanknote,
     },
   ],
   eventTypes: [
