@@ -77,6 +77,7 @@ import { OrganizationTransaction, OrganizationWallet } from '@/lib/api-client'
 import { Badge } from './ui/badge'
 import { List, ListItem } from './ui/list'
 import { Copy } from 'lucide-react'
+import { TransactionTableContext } from './tables/transactions'
 
 type RowSchema = z.ZodTypeAny
 
@@ -100,7 +101,7 @@ export function DragHandle({ id }: { id: number }) {
   )
 }
 
-function DraggableRow({ row }: { row: Row<z.infer<RowSchema>> }) {
+export function DraggableRow({ row }: { row: Row<z.infer<RowSchema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: (row.original as { id: string })?.id,
   })
@@ -125,7 +126,12 @@ function DraggableRow({ row }: { row: Row<z.infer<RowSchema>> }) {
   )
 }
 
-export function DataTable<T>({
+interface GenTableType {
+  id: string
+  [key: string]: any
+}
+
+export function DataTable<T extends GenTableType>({
   data: initialData,
   columns,
   table,
@@ -159,7 +165,9 @@ export function DataTable<T>({
     }
   }
 
-  // const { table } = React.use(TransactionTableContext)
+  React.useEffect(() => {
+    console.log('Re-render table on pagination', table.getState())
+  })
 
   return (
     <DndContext
@@ -212,22 +220,22 @@ export function DataTable<T>({
 }
 
 const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 },
+  { month: 'January', offramp: 186, onramp: 80 },
+  { month: 'February', offramp: 305, onramp: 200 },
+  { month: 'March', offramp: 237, onramp: 120 },
+  { month: 'April', offramp: 73, onramp: 190 },
+  { month: 'May', offramp: 209, onramp: 130 },
+  { month: 'June', offramp: 214, onramp: 140 },
 ]
 
 const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: 'var(--primary)',
+  offramp: {
+    label: 'Off-Ramp',
+    color: 'var(--color-chart-1)',
   },
-  mobile: {
-    label: 'Mobile',
-    color: 'var(--primary)',
+  onramp: {
+    label: 'On-Ramp',
+    color: 'var(--color-chart-2)',
   },
 } satisfies ChartConfig
 
@@ -249,7 +257,7 @@ export function TransactionTableCellViewer({
         <DrawerHeader className="gap-1">
           <DrawerTitle>Transaction details</DrawerTitle>
           <DrawerDescription>
-            Showing total visitors for the last 6 months
+            Showing total transactions for the last 6 months
           </DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
@@ -278,19 +286,19 @@ export function TransactionTableCellViewer({
                     content={<ChartTooltipContent indicator="dot" />}
                   />
                   <Area
-                    dataKey="mobile"
+                    dataKey="offramp"
                     type="natural"
-                    fill="var(--color-mobile)"
+                    fill="var(--color-chart-1)"
                     fillOpacity={0.6}
-                    stroke="var(--color-mobile)"
+                    stroke="var(--color-chart-1)"
                     stackId="a"
                   />
                   <Area
-                    dataKey="desktop"
+                    dataKey="onramp"
                     type="natural"
-                    fill="var(--color-desktop)"
+                    fill="var(--color-chart-2)"
                     fillOpacity={0.4}
-                    stroke="var(--color-desktop)"
+                    stroke="var(--color-chart-2)"
                     stackId="a"
                   />
                 </AreaChart>
@@ -310,83 +318,17 @@ export function TransactionTableCellViewer({
               <Separator />
             </>
           )}
-          <form className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="header">Header</Label>
-              <Input id="header" defaultValue={item.header} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="type">Type</Label>
-                <Select defaultValue={item.type}>
-                  <SelectTrigger id="type" className="w-full">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Table of Contents">
-                      Table of Contents
-                    </SelectItem>
-                    <SelectItem value="Executive Summary">
-                      Executive Summary
-                    </SelectItem>
-                    <SelectItem value="Technical Approach">
-                      Technical Approach
-                    </SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Capabilities">Capabilities</SelectItem>
-                    <SelectItem value="Focus Documents">
-                      Focus Documents
-                    </SelectItem>
-                    <SelectItem value="Narrative">Narrative</SelectItem>
-                    <SelectItem value="Cover page">Cover Page</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="status">Status</Label>
-                <Select defaultValue={item.status}>
-                  <SelectTrigger id="status" className="w-full">
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Done">Done</SelectItem>
-                    <SelectItem value="In Process">In Progress</SelectItem>
-                    <SelectItem value="Not Started">Not Started</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="target">Target</Label>
-                <Input id="target" defaultValue={item.target} />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="limit">Limit</Label>
-                <Input id="limit" defaultValue={item.limit} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="reviewer">Reviewer</Label>
-              <Select defaultValue={item.reviewer}>
-                <SelectTrigger id="reviewer" className="w-full">
-                  <SelectValue placeholder="Select a reviewer" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                  <SelectItem value="Jamik Tashpulatov">
-                    Jamik Tashpulatov
-                  </SelectItem>
-                  <SelectItem value="Emily Whalen">Emily Whalen</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </form>
         </div>
         <DrawerFooter>
-          <Button>Submit</Button>
+          <Button
+            onClick={async () => {
+              alert('Will resend transaction webhook request')
+            }}
+          >
+            Resend webhook
+          </Button>
           <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
+            <Button variant="outline">Close</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

@@ -36,7 +36,7 @@ export function NavSecondary({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
-                disabled={item.title !== 'Transactions'}
+                disabled={!['/transactions', '/otc-table'].includes(item.url)}
                 asChild
                 onClick={() => {
                   if (isMobile) {

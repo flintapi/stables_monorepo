@@ -207,6 +207,8 @@ const APIKeyTab: FC = () => {
     })
   }
 
+  console.log(`Active organization`, organization)
+
   const { data: apiKeys } = useQuery(
     getOrganizationApiKeysQueryOptions(organization?.id || ''),
   )

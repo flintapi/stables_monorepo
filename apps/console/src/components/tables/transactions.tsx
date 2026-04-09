@@ -1,4 +1,4 @@
-import { createContext, useMemo, useState } from 'react'
+import { createContext, useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
 import {
   getCoreRowModel,
@@ -29,13 +29,14 @@ import type {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  Table,
+  Table as TableType,
   VisibilityState,
 } from '@tanstack/react-table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import {
   DataTable,
+  DraggableRow,
   DragHandle,
   TransactionTableCellViewer,
 } from '@/components/data-table'
@@ -62,42 +63,59 @@ import {
   OrganizationTransaction,
 } from '@/lib/api-client'
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { flexRender } from '@tanstack/react-table'
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { UniqueIdentifier } from '@dnd-kit/core'
+
 export const TransactionTableContext = createContext<{
-  table: Table<OrganizationTransaction>
+  table: TableType<OrganizationTransaction>
 }>({ table: {} as any })
 
-const columns: Array<ColumnDef<OrganizationTransaction>> = [
+const defaultColumns: Array<ColumnDef<OrganizationTransaction>> = [
   // {
   //   id: 'drag',
   //   header: () => null,
   //   cell: ({ row }) => <DragHandle id={row.original.id} />,
   // },
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+  // {
+  //   id: 'select',
+  //   header: ({ table }) => (
+  //     <div className="flex items-center justify-center">
+  //       <Checkbox
+  //         checked={
+  //           table.getIsAllPageRowsSelected() ||
+  //           (table.getIsSomePageRowsSelected() && 'indeterminate')
+  //         }
+  //         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+  //         aria-label="Select all"
+  //       />
+  //     </div>
+  //   ),
+  //   cell: ({ row }) => (
+  //     <div className="flex items-center justify-center">
+  //       <Checkbox
+  //         checked={row.getIsSelected()}
+  //         onCheckedChange={(value) => row.toggleSelected(!!value)}
+  //         aria-label="Select row"
+  //       />
+  //     </div>
+  //   ),
+  //   enableSorting: false,
+  //   enableHiding: true,
+  // },
   {
     accessorKey: 'reference',
     header: 'Reference',
@@ -167,8 +185,10 @@ const columns: Array<ColumnDef<OrganizationTransaction>> = [
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
           {/*<DropdownMenuItem>Repeat</DropdownMenuItem>*/}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Report</DropdownMenuItem>
+          {/* <DropdownMenuSeparator /> */}
+          <DropdownMenuItem variant="destructive" onClick={() => {
+            window.alert("Report operation is still a work in progress at this time...")
+          }}>Report</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
@@ -180,8 +200,7 @@ export const TransactionsTable: FC = () => {
     getOrganizationTransactionsQueryOptions,
   )
 
-  console.log(activityData, 'Transaction data')
-
+  const [columns] = useState<typeof defaultColumns>(() => [...defaultColumns])
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -201,6 +220,9 @@ export const TransactionsTable: FC = () => {
       columnFilters,
       pagination,
     },
+    onStateChange: (tableState) => {
+      console.log('Table [onChangeState]', tableState)
+    },
     getRowId: (row) => row.id.toString(),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -216,18 +238,65 @@ export const TransactionsTable: FC = () => {
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  useEffect(() => {
+    console.log('monitor pagination state', pagination)
+
+    return () => {
+      console.log('Transaction table unmounted, cleanup...')
+    }
+  }, [pagination])
+
   const contextValue = useMemo(
     () => ({ table, pagination }),
     [table, pagination],
   )
 
+  const dataIds = useMemo<Array<UniqueIdentifier>>(
+    () => activityData.map(({ id }) => id),
+    [activityData],
+  )
+
   return (
-    <TransactionTableContext.Provider value={contextValue}>
-      <DataTable
-        data={activityData}
-        columns={columns}
-        table={contextValue.table}
-      />
+    // <TransactionTableContext.Provider value={contextValue}>
+    <>
+      <Table className="animate-fade-down">
+        <TableHeader className="bg-muted sticky top-0 z-10">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id} colSpan={header.colSpan}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody className="**:data-[slot=table-cell]:first:w-8">
+          {table.getRowModel().rows.length ? (
+            <SortableContext
+              items={dataIds}
+              strategy={verticalListSortingStrategy}
+            >
+              {table.getRowModel().rows.map((row) => (
+                <DraggableRow key={row.id} row={row} />
+              ))}
+            </SortableContext>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
       <div className="flex items-center justify-between px-4 my-4">
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
@@ -286,7 +355,10 @@ export const TransactionsTable: FC = () => {
               variant="outline"
               className="size-8"
               size="icon"
-              onClick={() => table.nextPage()}
+              onClick={() => {
+                table.nextPage()
+                console.log('Current table state', table.getState())
+              }}
               disabled={!table.getCanNextPage()}
             >
               <span className="sr-only">Go to next page</span>
@@ -305,6 +377,7 @@ export const TransactionsTable: FC = () => {
           </div>
         </div>
       </div>
-    </TransactionTableContext.Provider>
+    </>
+    // </TransactionTableContext.Provider>
   )
 }

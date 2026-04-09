@@ -13,7 +13,7 @@ export function SiteHeader({ page }: { page: string }) {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <h1 className="text-base font-medium capitalize">
-          {page ?? 'Documents'}
+          {normalizePageTitle(page) ?? 'Documents'}
         </h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" className="hidden sm:flex">
@@ -23,4 +23,11 @@ export function SiteHeader({ page }: { page: string }) {
       </div>
     </header>
   )
+}
+
+function normalizePageTitle(page: string): string {
+  // TODO: Add more condition to  handle other page title formats
+  return page.toLowerCase() === 'otc-table'
+    ? `${page.split('-')[0].toUpperCase()} ${page.split('-')[1]}`
+    : page
 }

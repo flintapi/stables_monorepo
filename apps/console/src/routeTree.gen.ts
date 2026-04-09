@@ -18,6 +18,7 @@ import { Route as AuthedWalletsRouteImport } from './routes/_authed/wallets'
 import { Route as AuthedTransactionsRouteImport } from './routes/_authed/transactions'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedOverviewRouteImport } from './routes/_authed/overview'
+import { Route as AuthedOtcTableRouteImport } from './routes/_authed/otc-table'
 import { Route as AuthedEventsRouteImport } from './routes/_authed/events'
 import { Route as DemoDemoTanstackQueryRouteImport } from './routes/_demo/demo.tanstack-query'
 import { Route as DemoDemoStoreRouteImport } from './routes/_demo/demo.store'
@@ -69,6 +70,11 @@ const AuthedOverviewRoute = AuthedOverviewRouteImport.update({
   path: '/overview',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedOtcTableRoute = AuthedOtcTableRouteImport.update({
+  id: '/otc-table',
+  path: '/otc-table',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedEventsRoute = AuthedEventsRouteImport.update({
   id: '/events',
   path: '/events',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/events': typeof AuthedEventsRoute
+  '/otc-table': typeof AuthedOtcTableRoute
   '/overview': typeof AuthedOverviewRoute
   '/settings': typeof AuthedSettingsRoute
   '/transactions': typeof AuthedTransactionsRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/events': typeof AuthedEventsRoute
+  '/otc-table': typeof AuthedOtcTableRoute
   '/overview': typeof AuthedOverviewRoute
   '/settings': typeof AuthedSettingsRoute
   '/transactions': typeof AuthedTransactionsRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/_demo': typeof DemoRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authed/events': typeof AuthedEventsRoute
+  '/_authed/otc-table': typeof AuthedOtcTableRoute
   '/_authed/overview': typeof AuthedOverviewRoute
   '/_authed/settings': typeof AuthedSettingsRoute
   '/_authed/transactions': typeof AuthedTransactionsRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/events'
+    | '/otc-table'
     | '/overview'
     | '/settings'
     | '/transactions'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/events'
+    | '/otc-table'
     | '/overview'
     | '/settings'
     | '/transactions'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/_demo'
     | '/auth'
     | '/_authed/events'
+    | '/_authed/otc-table'
     | '/_authed/overview'
     | '/_authed/settings'
     | '/_authed/transactions'
@@ -283,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedOverviewRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/otc-table': {
+      id: '/_authed/otc-table'
+      path: '/otc-table'
+      fullPath: '/otc-table'
+      preLoaderRoute: typeof AuthedOtcTableRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/events': {
       id: '/_authed/events'
       path: '/events'
@@ -337,6 +356,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteRouteChildren {
   AuthedEventsRoute: typeof AuthedEventsRoute
+  AuthedOtcTableRoute: typeof AuthedOtcTableRoute
   AuthedOverviewRoute: typeof AuthedOverviewRoute
   AuthedSettingsRoute: typeof AuthedSettingsRoute
   AuthedTransactionsRoute: typeof AuthedTransactionsRoute
@@ -345,6 +365,7 @@ interface AuthedRouteRouteChildren {
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedEventsRoute: AuthedEventsRoute,
+  AuthedOtcTableRoute: AuthedOtcTableRoute,
   AuthedOverviewRoute: AuthedOverviewRoute,
   AuthedSettingsRoute: AuthedSettingsRoute,
   AuthedTransactionsRoute: AuthedTransactionsRoute,
