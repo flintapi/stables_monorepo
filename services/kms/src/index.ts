@@ -14,7 +14,7 @@ async function main() {
   const BscDestination = `0xCEF2C867afb682e0A325E6C09211Dfee1f65A4b6`;
   const BaseDestination = `0xdc338f02185f09086985aFc26264B3AC47CDb406`; //`0x107a7F8d51F75f48082294E8FacEdcc1C29CCca3`; //`0xC5dDD7A035fC6e664f0E8f18299fB09f8766676e`;
   const BSC_AMOUNT = 1_062_433.96675;
-  const BASE_AMOUNT = 20_000;
+  const BASE_AMOUNT = 140_000;
 
   const BSC_DATA = {
     destination: BscDestination,
@@ -67,5 +67,5 @@ async function main() {
 
 
 // To run
-// main()
-//   .catch(kmsLogger.error)
+main()
+  .catch(kmsLogger.error)
