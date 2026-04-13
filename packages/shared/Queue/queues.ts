@@ -14,7 +14,7 @@ import type {
   WalletSignTransactionJob,
 } from "./queue.types";
 
-export const bullMqBase: QueueOptions = { connection: CacheFacade.redisQueue };
+export const bullMqBase: QueueOptions = { connection: CacheFacade.redisCache };
 
 // NOTE: Make sure the queue name does not have `:` use `-` to avoid redis error
 export enum QueueNames {
