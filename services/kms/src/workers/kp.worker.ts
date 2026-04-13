@@ -88,7 +88,7 @@ const worker = new Worker<
     }
   },
   {
-    connection: CacheFacade.redisWorker,
+    connection: CacheFacade.redisCache,
     concurrency: 2,
     lockDuration: 300_000,
     lockRenewTime: 150_000,
