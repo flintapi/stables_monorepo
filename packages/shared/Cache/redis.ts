@@ -109,7 +109,7 @@ class RedisCache {
         }
         RedisCache.queueInstance = new Redis(RedisCache.redisConnectionUrl, {
           ...redisConfig,
-          maxRetriesPerRequest: 20, // should be set to null for bullmq
+          maxRetriesPerRequest: null, // should be set to null for bullmq
           enableOfflineQueue: false // Don't queue commands when offline
         });
         RedisCache.queueInstance.on('error', (error: Error) => {
