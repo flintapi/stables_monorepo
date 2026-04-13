@@ -46,7 +46,7 @@ export async function createListenerCache() {
           {...config, fromBlock: BigInt(config?.fromBlock), persist: config?.persist === 'true', chainId: Number(config.chainId), rampData: JSON.parse(config?.rampData)} as EventServiceJob & {fromBlock: bigint},
           listenerId
         );
-        console.log("Restored listener id", restoredListenerId);
+        console.log("Restored listener id...", restoredListenerId);
       }
     }
   }
