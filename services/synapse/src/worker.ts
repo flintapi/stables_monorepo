@@ -47,7 +47,7 @@ const worker = new Worker<EventServiceJob, any, "Transfer" | "Approval">(
     }
   },
   {
-    connection: CacheFacade.redisWorker,
+    connection: CacheFacade.redisCache,
     concurrency: 2,
     lockDuration: 120_000,
     maxStalledCount: 2,

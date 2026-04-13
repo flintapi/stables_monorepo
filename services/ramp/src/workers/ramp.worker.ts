@@ -68,7 +68,7 @@ const worker = new Worker<RampServiceJob, any, "off-ramp" | "on-ramp" | "autofun
     }
   },
   {
-    connection: CacheFacade.redisWorker,
+    connection: CacheFacade.redisCache,
     concurrency: 2,
     lockDuration: 120_000,
     maxStalledCount: 2,

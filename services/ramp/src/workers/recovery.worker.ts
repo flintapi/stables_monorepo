@@ -22,7 +22,7 @@ const worker = new Worker<any, any, "retry" | "schedule">(
     }
   },
   {
-    connection: CacheFacade.redisWorker,
+    connection: CacheFacade.redisCache,
     concurrency: 5,
     lockDuration: 120_000,
     maxStalledCount: 2,
