@@ -82,6 +82,7 @@ const events = ensureQueueEventHandlers(name, (events) => {
 });
 
 async function restoreListeners() {
+  eventLogger.info(`⏳ Restoring listeners...`)
   const cache = await createListenerCache()
   await cache.restoreListeners();
 }
