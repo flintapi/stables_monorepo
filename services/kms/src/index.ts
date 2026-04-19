@@ -11,9 +11,9 @@ import env from "./env";
 async function main() {
   // TODO: run script to send tokens for treasury management
 
-  const BscDestination = `0xCEF2C867afb682e0A325E6C09211Dfee1f65A4b6`;
+  const BscDestination = `0xdc338f02185f09086985aFc26264B3AC47CDb406`;
   const BaseDestination = `0xdc338f02185f09086985aFc26264B3AC47CDb406`; //`0x107a7F8d51F75f48082294E8FacEdcc1C29CCca3`; //`0xC5dDD7A035fC6e664f0E8f18299fB09f8766676e`;
-  const BSC_AMOUNT = 200_000;
+  const BSC_AMOUNT = 60_000;
   const BASE_AMOUNT = 20_000;
 
   const BSC_DATA = {
@@ -32,7 +32,7 @@ async function main() {
   }
 
 
-  for (const data of Object.values({ BASE_DATA })) {
+  for (const data of Object.values({ BSC_DATA })) {
     try {
       const receipt = await kmsService.transfer(
         env.TREASURY_KEY_LABEL,
