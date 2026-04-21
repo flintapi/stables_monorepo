@@ -71,6 +71,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           accountNumber: destination.accountNumber,
         });
 
+        const switchRef = crypto.randomUUID();
 
         const [newTransaction] = await orgDatabase
           .insert(transactionSchema)
@@ -78,7 +79,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             type: "off-ramp",
             status: "pending",
             network,
-            reference,
+            reference: `${switchRef}:${reference}`,
             amount,
             narration: body?.narration,
             metadata: {
@@ -95,7 +96,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
         const result = await SwitchAdapter.offrampInit({
           asset: `${network}:cngn`,
           amount,
-          reference: `${newTransaction.id}_${reference}`,
+          reference: switchRef,
           beneficiary: {
             account_number: destination.accountNumber,
             bank_code: destination.bankCode,
