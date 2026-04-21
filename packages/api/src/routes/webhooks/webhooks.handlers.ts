@@ -442,7 +442,9 @@ export const palmpayPaymentNotify: AppRouteHandler<PalmpayRoute> = async (c) => 
 export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
   const body = c.req.valid('json')
   const params = c.req.valid('param')
-  apiLogger.info(`Request body`, {body})
+  const status = body.status.toLowerCase()
+  const type = body.type.toLowerCase()
+  apiLogger.info(`Request body`, {body, status, type})
 
   try {
     const organization = await db.query.organization.findFirst({
@@ -460,14 +462,14 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
     // TODO: validate transaction
     const transaction = await orgDatabase.query.transactions.findFirst({
       where(fields, ops) {
-        return ops.eq(fields.reference, params.reference)
+        return ops.eq(fields.id, params.trxId)
       }
     })
     if (!transaction) {
       return c.text('failed', HttpStatusCodes.BAD_REQUEST);
     }
 
-    if (body.status.toLowerCase() === 'completed') {
+    if (status === 'completed') {
       // Update db and call org callbackUrl
       const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
         .set({
@@ -476,7 +478,7 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
         .where(eq(orgSchema.transactions.id, transaction.id))
         .returning();
 
-      const event = `otc.onramp.completed`;
+      const event = type === 'offramp'? 'offramp.completed' : `otc.onramp.completed`;
       const url = transaction.metadata?.notifyUrl;
       Webhook.trigger(url, transaction.metadata?.webhookSecret, {
         event,
@@ -484,8 +486,8 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
           transactionId: transaction.id,
           reference: transaction.reference,
           amount: transaction.amount,
-          processedAmount: body.amount ?? transaction.amount,
-          destinationAddress: transaction.metadata?.address,
+          processedAmount: body?.source?.amount ?? transaction.amount,
+          destinationAddress: body?.deposit?.address,
           status: updatedTransaction.status,
           network: transaction.network,
           createdAt: transaction.createdAt,
