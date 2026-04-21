@@ -105,7 +105,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           callback_url: `${env.API_URL}/webhooks/switch/${organization.id}/${newTransaction.id}`,
           sender_name: organization.name
         });
-        apiLogger.info("Deposit address created", result);
+        apiLogger.info("Deposit address created", {result, newTransaction});
         const [updatedTransaction] = await orgDatabase
           .update(transactionSchema)
           .set({
