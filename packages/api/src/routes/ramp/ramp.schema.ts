@@ -18,7 +18,7 @@ const offRampSchema = z.object({
     `String cannot contain the character '${excludedChar}'`
   ),
   network: z.enum(["base", "bsc"]),
-  amount: z.number().min(100),
+  amount: z.number().min(1000),
   narration: z.string().optional().describe("Extra narration to add to the payout transaction"),
   notifyUrl: z.url().optional(),
   destination: z.object({
