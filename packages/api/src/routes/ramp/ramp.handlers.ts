@@ -95,7 +95,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
         const result = await SwitchAdapter.offrampInit({
           asset: `${network}:cngn`,
           amount,
-          reference,
+          reference: `${newTransaction.id}_${reference}`,
           beneficiary: {
             account_number: destination.accountNumber,
             bank_code: destination.bankCode,
