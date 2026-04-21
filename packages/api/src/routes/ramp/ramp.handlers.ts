@@ -11,6 +11,7 @@ import {
   BellbankAdapter,
   FiatPaymentContext,
   PaymentProvider,
+  SwitchAdapter
 } from "@flintapi/shared/Adapters";
 import { networkToChainidMap, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import * as HttpStatusCodes from "stoker/http-status-codes";
@@ -24,6 +25,7 @@ import {
   getDefaultVirtualAccountArgs,
 } from "./ramp.utils";
 import { apiLogger } from "@flintapi/shared/Logger";
+import { eq } from "drizzle-orm";
 
 const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -44,25 +46,32 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
         const { amount, reference, network, destination } = body;
 
         const chainId = networkToChainidMap[network];
-        // TODO: Add job to queue
-        const getAddressJob = await kmsQueue.add(
-          "get-address",
-          {
-            chainId,
-            type: "smart",
-            keyLabel: env.TREASURY_KEY_LABEL,
-          },
-          {
-            jobId: `kms-get-address-${chainId}-${c.get("requestId")}`,
-          },
-        );
 
-        // TODO: Get deposit address
-        const result = (await getAddressJob.waitUntilFinished(
-          kmsQueueEvents,
-        )) as { address: Address; index: number };
+        // TODO: Call switch adapter
+        // const getAddressJob = await kmsQueue.add(
+        //   "get-address",
+        //   {
+        //     chainId,
+        //     type: "smart",
+        //     keyLabel: env.TREASURY_KEY_LABEL,
+        //   },
+        //   {
+        //     jobId: `kms-get-address-${chainId}-${c.get("requestId")}`,
+        //   },
+        // );
 
-        apiLogger.info("Deposit address created", result);
+        // // TODO: Get deposit address
+        // const result = (await getAddressJob.waitUntilFinished(
+        //   kmsQueueEvents,
+        // )) as { address: Address; index: number };
+        const paymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
+
+        const accountName = await paymentContext.nameEnquiry({
+          bankCode: destination.bankCode,
+          accountNumber: destination.accountNumber,
+        });
+
+
         const [newTransaction] = await orgDatabase
           .insert(transactionSchema)
           .values({
@@ -76,51 +85,76 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
               isDestinationExternal: true,
               bankCode: destination.bankCode,
               accountNumber: destination.accountNumber,
-              depositAddress: result.address,
-              index: result.index, // update from kms service get-address
+              // depositAddress: result.address,
+              // index: result.index, // update from kms service get-address
               notifyUrl: body?.notifyUrl || webhookUrl,
               webhookSecret,
             } as any,
           })
           .returning();
+        const result = await SwitchAdapter.offrampInit({
+          asset: `${network}:cngn`,
+          amount,
+          reference,
+          beneficiary: {
+            account_number: destination.accountNumber,
+            bank_code: destination.bankCode,
+            holder_type: "INDIVIDUAL",
+            holder_name: accountName
+          },
+          callback_url: `${env.API_URL}/webhooks/switch/${organization.id}/${newTransaction.id}`,
+          sender_name: organization.name
+        });
+        apiLogger.info("Deposit address created", result);
+        const [updatedTransaction] = await orgDatabase
+          .update(transactionSchema)
+          .set({
+            metadata: {
+              ...newTransaction.metadata,
+              depositAddress: result.deposit.address
+            } as any
+          })
+          .where(eq(transactionSchema.id, newTransaction.id))
+          .returning();
 
         // Add job to event queue
-        const tokenAddress = TOKEN_ADDRESSES[chainId].cngn.address as Address;
-        const eventJob = await eventQueue.add(
-          "Transfer",
-          {
-            chainId,
-            eventName: "Transfer",
-            eventArgType: "to",
-            address: result.address,
-            tokenAddress,
-            persist: false,
-            callbackUrl: `${env.API_URL}/webhooks/synapse/offramp`, // callback when event received
-            rampData: {
-              type: "off",
-              organizationId: organization.id,
-              transactionId: newTransaction.id,
-            },
-          },
-          {
-            jobId: `event-Transfer-${chainId}-cngn-${c.get("requestId")}`,
-            attempts: 2,
-          },
-        );
-        const listenerResult = await eventJob.waitUntilFinished(
-          eventQueueEvents,
-        );
-        apiLogger.info(`Listener created...`, listenerResult)
+        // const tokenAddress = TOKEN_ADDRESSES[chainId].cngn.address as Address;
+        // const eventJob = await eventQueue.add(
+        //   "Transfer",
+        //   {
+        //     chainId,
+        //     eventName: "Transfer",
+        //     eventArgType: "to",
+        //     address: result.address,
+        //     tokenAddress,
+        //     persist: false,
+        //     callbackUrl: `${env.API_URL}/webhooks/synapse/offramp`, // callback when event received
+        //     rampData: {
+        //       type: "off",
+        //       organizationId: organization.id,
+        //       transactionId: newTransaction.id,
+        //     },
+        //   },
+        //   {
+        //     jobId: `event-Transfer-${chainId}-cngn-${c.get("requestId")}`,
+        //     attempts: 2,
+        //   },
+        // );
+        // const listenerResult = await eventJob.waitUntilFinished(
+        //   eventQueueEvents,
+        // );
+        // apiLogger.info(`Listener created...`, listenerResult)
 
         return c.json(
           {
             status: "success",
-            message: "Off ramp transaction initiated",
+            message: `Off ramp transaction initiated`,
             data: {
               type: "off-ramp",
               status: "pending",
               transactionId: newTransaction.id,
-              depositAddress: result.address,
+              depositAddress: result.deposit.address,
+              note: result.deposit.note,
             },
           },
           HttpStatusCodes.OK,

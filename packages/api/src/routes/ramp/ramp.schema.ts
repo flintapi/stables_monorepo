@@ -32,6 +32,7 @@ const offRampResponseSchema = z.object({
   status: z.enum(["pending", "completed", "failed"]),
   transactionId: z.string().optional(),
   depositAddress: z.string().min(12).startsWith("0x"),
+  note: z.array(z.string()).optional()
 });
 
 const onRampSchema = z.object({

@@ -214,14 +214,14 @@ export const palmpayPaymentNotify = createRoute({
 
 export const switchNotify = createRoute({
   tags,
-  path: "/webhooks/switch/{organizationId}/{reference}",
+  path: "/webhooks/switch/{organizationId}/{trxId}",
   method: "post",
   hide: true,
   middleware: [],
   request: {
     params: z.object({
       organizationId: z.string(),
-      reference: z.string(),
+      trxId: z.string(),
     }),
     body: jsonContent(
       z.any(),
