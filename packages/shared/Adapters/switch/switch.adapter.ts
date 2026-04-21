@@ -145,7 +145,7 @@ class SwitchAdapter {
         }
       }>('/offramp/initiate', {
         method: "post",
-        body: {
+        body: JSON.stringify({
           amount,
           asset,
           country,
@@ -159,7 +159,7 @@ class SwitchAdapter {
           exact_output: false,
           developer_fee: 0.1,
           static: false,
-        },
+        }),
         headers: {
           "x-service-key": process.env.SWITCH_SERVICE_KEY!,
           "content-type": "application/json"
