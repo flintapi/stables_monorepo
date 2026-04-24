@@ -157,7 +157,7 @@ class SwitchAdapter {
           reference,
           reason,
           exact_output: false,
-          developer_fee: 0.1,
+          developer_fee: DEVELOPER_FEE ?? 0.1,
           static: false,
         }),
         headers: {
