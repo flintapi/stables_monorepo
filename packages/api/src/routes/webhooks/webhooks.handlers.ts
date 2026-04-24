@@ -445,6 +445,7 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
   const status = body.status.toLowerCase()
   const type = body.type.toLowerCase()
   apiLogger.info(`Request body`, {body, status, type})
+  apiLogger.info(`Webhook from switch...`)
 
   try {
     const organization = await db.query.organization.findFirst({
