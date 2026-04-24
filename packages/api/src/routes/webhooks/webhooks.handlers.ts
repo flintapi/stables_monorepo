@@ -487,7 +487,11 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
           reference: transaction.reference,
           amount: transaction.amount,
           processedAmount: body?.source?.amount ?? transaction.amount,
-          destinationAddress: body?.deposit?.address,
+          sourceAmount: body?.source?.amount ?? 0,
+          fee: Number(body?.source?.amount ?? 0) - Number(body?.destination?.amount ?? 0),
+          rate: body?.rate,
+          destinationAmount: body?.destination?.amount,
+          depositAddress: body?.deposit?.address,
           status: updatedTransaction.status,
           network: transaction.network,
           createdAt: transaction.createdAt,
@@ -498,7 +502,7 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
       return c.text('success', HttpStatusCodes.OK)
     }
 
-    return c.text('success', HttpStatusCodes.OK)
+    return c.text('failed', HttpStatusCodes.BAD_REQUEST)
   }
   catch (error: any) {
     apiLogger.error("Failed to process switch callback", error)
