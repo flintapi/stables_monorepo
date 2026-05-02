@@ -13,7 +13,7 @@ async function main() {
 
   const BscDestination = `0xdc338f02185f09086985aFc26264B3AC47CDb406`;
   const BaseDestination = `0xdc338f02185f09086985aFc26264B3AC47CDb406`; //`0x107a7F8d51F75f48082294E8FacEdcc1C29CCca3`; //`0xC5dDD7A035fC6e664f0E8f18299fB09f8766676e`;
-  const BSC_AMOUNT = 60_000;
+  const BSC_AMOUNT = 20_000;
   const BASE_AMOUNT = 20_000;
 
   const BSC_DATA = {
