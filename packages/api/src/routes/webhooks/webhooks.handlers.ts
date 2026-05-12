@@ -556,17 +556,17 @@ export const paycrestNotify: AppRouteHandler<PaycrestRoute> = async (c) => {
 
       const event = `onramp.completed`;
       const url = transaction.metadata?.notifyUrl;
-      Webhook.trigger(url, transaction.metadata?.webhookSecret, {
+      Webhook.trigger(url, transaction.metadata?.webhookSecret ?? '', {
         event,
         data: {
           transactionId: transaction.id,
           reference: transaction.reference,
           amount: transaction.amount,
-          processedAmount: body?.data?.amountPaid ?? 0,
+          processedAmount: body?.data?.amount ?? 0,
           sourceAmount: body?.data?.amount ?? transaction.amount ?? 0,
           fee: body?.data?.senderFee,
           rate: body?.data?.rate,
-          destinationAmount: body?.data?.amountPaid,
+          destinationAmount: body?.data?.amount,
           depositAddress: transaction?.metadata?.address,
           status: updatedTransaction.status,
           network: transaction.network,

@@ -216,6 +216,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           .update(transactionSchema)
           .set({
             metadata: {
+              ...newTransaction.metadata,
               collectionAccountNumber: result?.accountIdentifier,
               collectionBankName: result?.institution,
             } as any
