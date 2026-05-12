@@ -15,7 +15,8 @@ import type {
   CentiivRoute,
   OffRampRoute,
   PalmpayRoute,
-  SwitchRoute
+  SwitchRoute,
+  PaycrestRoute,
 } from "./webhooks.routes";
 import env from "@/env";
 import { clearVirtualAccount, fetchVirtualAccount, sweepFunds } from "../ramp/ramp.utils";
@@ -493,6 +494,80 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
           rate: body?.rate,
           destinationAmount: body?.destination?.amount,
           depositAddress: body?.deposit?.address,
+          status: updatedTransaction.status,
+          network: transaction.network,
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+        }
+      }).then((response) => apiLogger.info(`Webhook triggered: [${event}]`, {url, transaction, response}))
+      .catch((error) => apiLogger.warn(`API Key data not found to trigger webhook!!! SOS`, {error}))
+      return c.text('success', HttpStatusCodes.OK)
+    }
+
+    return c.text('failed', HttpStatusCodes.BAD_REQUEST)
+  }
+  catch (error: any) {
+    apiLogger.error("Failed to process switch callback", error)
+    return c.text('failed',
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
+export const paycrestNotify: AppRouteHandler<PaycrestRoute> = async (c) => {
+  const body = c.req.valid('json')
+  const reference = body?.data.reference as string;
+  const event = body?.event;
+  const [organizationId, transactionId] = reference.split(':');
+  apiLogger.info(`Request body`, {body, reference})
+  apiLogger.info(`Webhook from switch...`)
+
+  try {
+    const organization = await db.query.organization.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.id, organizationId)
+      }
+    })
+
+    if (!organization) {
+      return c.text('failed', HttpStatusCodes.BAD_REQUEST);
+    }
+
+    const metadata = typeof organization.metadata !== 'string' ? organization.metadata : JSON.parse(organization.metadata);
+    const orgDatabase = orgDb({ dbUrl: metadata?.dbUrl! });
+    // TODO: validate transaction
+    const transaction = await orgDatabase.query.transactions.findFirst({
+      where(fields, ops) {
+        return ops.eq(fields.id, transactionId)
+      }
+    })
+    if (!transaction) {
+      return c.text('failed', HttpStatusCodes.BAD_REQUEST);
+    }
+
+    if (event === 'payment_order.settled') {
+      // Update db and call org callbackUrl
+      const [updatedTransaction] = await orgDatabase.update(orgSchema.transactions)
+        .set({
+          status: "completed",
+        })
+        .where(eq(orgSchema.transactions.id, transaction.id))
+        .returning();
+
+      const event = `onramp.completed`;
+      const url = transaction.metadata?.notifyUrl;
+      Webhook.trigger(url, transaction.metadata?.webhookSecret, {
+        event,
+        data: {
+          transactionId: transaction.id,
+          reference: transaction.reference,
+          amount: transaction.amount,
+          processedAmount: body?.data?.amountPaid ?? 0,
+          sourceAmount: body?.data?.amount ?? transaction.amount ?? 0,
+          fee: body?.data?.senderFee,
+          rate: body?.data?.rate,
+          destinationAmount: body?.data?.amountPaid,
+          depositAddress: transaction?.metadata?.address,
           status: updatedTransaction.status,
           network: transaction.network,
           createdAt: transaction.createdAt,

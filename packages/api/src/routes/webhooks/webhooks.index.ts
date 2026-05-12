@@ -9,6 +9,8 @@ const router = createRouter()
   .openapi(routes.centiiv, handlers.centiiv)
   .openapi(routes.offramp, handlers.offramp)
   .openapi(routes.palmpayPaymentNotify, handlers.palmpayPaymentNotify)
-  .openapi(routes.switchNotify, handlers.switchNotify);
+  .openapi(routes.switchNotify, handlers.switchNotify)
+  .openapi(routes.paycrestNotify, handlers.paycrestNotify);
+
 
 export default router;

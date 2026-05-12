@@ -262,9 +262,55 @@ export const switchNotify = createRoute({
   },
 })
 
+export const paycrestNotify = createRoute({
+  tags,
+  path: "/webhooks/paycrest",
+  method: "post",
+  hide: true,
+  middleware: [],
+  request: {
+    body: jsonContent(
+      z.any(),
+      "Notification payload",
+    ),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('success').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Paycrest response"
+    },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('failed').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Paycrest error response"
+    },
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: {
+      content: {
+        'text/plain': {
+          schema: z.string().default('failed').openapi({
+            example: 'success', // Optional: provides an example value for documentation
+          }),
+        },
+      },
+      description: "Internal server error response"
+    }
+  },
+})
 export type BellbankRoute = typeof bellbank;
 export type OnbrailsRoute = typeof onbrails;
 export type CentiivRoute = typeof centiiv;
 export type OffRampRoute = typeof offramp;
 export type PalmpayRoute = typeof palmpayPaymentNotify;
 export type SwitchRoute = typeof switchNotify;
+export type PaycrestRoute = typeof paycrestNotify;
