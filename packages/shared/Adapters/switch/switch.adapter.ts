@@ -1,7 +1,5 @@
 import { BetterFetch, createFetch } from "@better-fetch/fetch"
-import { boolean } from "drizzle-orm/singlestore-core";
 import { apiLogger } from "Logger";
-import { string } from "zod";
 
 type Network = "base" | "bsc";
 type Asset = "cngn";

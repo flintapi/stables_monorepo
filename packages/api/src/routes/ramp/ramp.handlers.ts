@@ -11,7 +11,8 @@ import {
   BellbankAdapter,
   FiatPaymentContext,
   PaymentProvider,
-  SwitchAdapter
+  SwitchAdapter,
+  PaycrestAdapter,
 } from "@flintapi/shared/Adapters";
 import { networkToChainidMap, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import * as HttpStatusCodes from "stoker/http-status-codes";
@@ -31,6 +32,9 @@ const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
 const eventQueue = QueueInstances[QueueNames.EVENT_QUEUE];
 const eventQueueEvents = new QueueEvents(QueueNames.EVENT_QUEUE, bullMqBase);
+
+const PAYCREST_FEE_PERC = 0.2;
+const PAYCREST_FEE_CAP = 1500;
 
 export const ramp: AppRouteHandler<RampRequest> = async (c) => {
   try {
@@ -164,22 +168,16 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
       case "on": {
         const { amount, reference, network, destination } = body;
 
-        const bankAdapter = new OnbrailsAdapter();
+        // const bankAdapter = new OnbrailsAdapter();
 
-        const bankCode = bankAdapter.bankCode;
-        const { accountNumber, accountName, bankName } =
-          await bankAdapter.createVirtualAccount()
-            .catch((error) => {
-              apiLogger.error(`Failed to create virtual account`, {error});
-              throw error;
-            });
+        // const bankCode = bankAdapter.bankCode;
+        // const { accountNumber, accountName, bankName } =
+        //   await bankAdapter.createVirtualAccount()
+        //     .catch((error) => {
+        //       apiLogger.error(`Failed to create virtual account`, {error});
+        //       throw error;
+        //     });
 
-        apiLogger.info("On ramp bank details:", {
-          accountNumber,
-          accountName,
-          bankCode,
-          bankName
-        });
 
         // TODO: Create transaction data
         // TODO: Add to transaction db, with transaction metadata
@@ -194,20 +192,41 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
             metadata: {
               isDestinationExternal: true,
               address: destination.address,
-              collectionBankCode: bankCode,
-              collectionAccountNumber: accountNumber,
-              collectionBankName: bankName ?? "Bellbank MFB",
+              collectionBankCode: PaycrestAdapter.bankCode,
               notifyUrl: body?.notifyUrl || webhookUrl,
               webhookSecret,
             },
           })
           .returning();
 
-        // Cache virtual account to be recoverable from a deposit webhook
-        await cacheVirtualAccount(accountNumber, {
-          organizationId: organization.id,
-          transactionId: newTransaction.id,
+        const fee = amount * (PAYCREST_FEE_PERC / 100);
+        const transactionAmount = fee < PAYCREST_FEE_CAP ? (amount - fee) : amount - PAYCREST_FEE_CAP;
+        const result = await PaycrestAdapter.onRampInit({
+          amount: transactionAmount.toString(),
+          reference: `${organization.id}:${newTransaction.id}`,
+          network: network === "base" ? network : `bnb-smart-chain`,
+          address: destination.address as `0x${string}`,
+        })
+
+        apiLogger.info("On ramp bank details:", {
+          result
         });
+
+        await orgDatabase
+          .update(transactionSchema)
+          .set({
+            metadata: {
+              collectionAccountNumber: result?.accountIdentifier,
+              collectionBankName: result?.institution,
+            } as any
+          })
+          .where(eq(transactionSchema.id, newTransaction.id))
+
+        // Cache virtual account to be recoverable from a deposit webhook
+        // await cacheVirtualAccount(accountNumber, {
+        //   organizationId: organization.id,
+        //   transactionId: newTransaction.id,
+        // });
 
         return c.json(
           {
@@ -218,10 +237,10 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
               status: "pending",
               transactionId: newTransaction.id,
               depositAccount: {
-                accountNumber,
-                accountName,
-                bankCode,
-                bankName,
+                accountNumber: result?.accountIdentifier,
+                accountName: result?.accountName,
+                bankCode: PaycrestAdapter.bankCode,
+                bankName: result?.institution,
               },
             },
           },
