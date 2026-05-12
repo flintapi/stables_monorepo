@@ -563,7 +563,7 @@ export const paycrestNotify: AppRouteHandler<PaycrestRoute> = async (c) => {
           reference: transaction.reference,
           amount: transaction.amount,
           processedAmount: body?.data?.amount ?? 0,
-          sourceAmount: body?.data?.amount ?? transaction.amount ?? 0,
+          sourceAmount: transaction.amount ?? 0,
           fee: body?.data?.senderFee,
           rate: body?.data?.rate,
           destinationAmount: body?.data?.amount,
