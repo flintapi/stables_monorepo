@@ -203,7 +203,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
         const transactionAmount = fee < PAYCREST_FEE_CAP ? (amount - fee) : amount - PAYCREST_FEE_CAP;
         const result = await PaycrestAdapter.onRampInit({
           amount: transactionAmount.toString(),
-          reference: `${organization.id}:${newTransaction.id}`,
+          reference: `${organization.id}-${newTransaction.id}`,
           network: network === "base" ? network : `bnb-smart-chain`,
           address: destination.address as `0x${string}`,
         })

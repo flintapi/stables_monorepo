@@ -518,7 +518,7 @@ export const paycrestNotify: AppRouteHandler<PaycrestRoute> = async (c) => {
   const body = c.req.valid('json')
   const reference = body?.data.reference as string;
   const event = body?.event;
-  const [organizationId, transactionId] = reference.split(':');
+  const [organizationId, transactionId] = reference.split('-');
   apiLogger.info(`Request body`, {body, reference})
   apiLogger.info(`Webhook from switch...`)
 

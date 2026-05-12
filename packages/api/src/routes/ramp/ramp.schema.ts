@@ -42,7 +42,7 @@ const onRampSchema = z.object({
     `String cannot contain the character '${excludedChar}'`
   ),
   network: z.enum(["base", "bsc"]),
-  amount: z.number().min(100),
+  amount: z.number().min(1000),
   notifyUrl: z.url().optional(),
   destination: z.object({
     address: z.string().min(12).startsWith("0x"),

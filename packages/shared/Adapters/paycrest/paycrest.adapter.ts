@@ -81,6 +81,7 @@ class PaycrestAdapter {
       apiLogger.error(`[Paycrest]: Failed to initiate order`, {
         error
       });
+      throw error;
     }
 
     return onRampOrderResponse?.data.providerAccount;
