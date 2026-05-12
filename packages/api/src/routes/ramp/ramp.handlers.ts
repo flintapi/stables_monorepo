@@ -237,6 +237,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
               type: "on",
               status: "pending",
               transactionId: newTransaction.id,
+              amountToTransfer: result.amountToTransfer,
               depositAccount: {
                 accountNumber: result?.accountIdentifier,
                 accountName: result?.accountName,
