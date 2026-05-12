@@ -88,7 +88,10 @@ const EnvSchema = z
     // Switch
     SWITCH_URL: z.string(),
     SWITCH_API_KEY: z.string(),
-    SWITCH_SERVICE_KEY: z.string()
+    SWITCH_SERVICE_KEY: z.string(),
+
+    // Paycrest
+    PAYCREST_API_KEY: z.string()
   })
   .superRefine((input, ctx) => {
     if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
