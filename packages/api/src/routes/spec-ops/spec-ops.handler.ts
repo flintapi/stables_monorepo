@@ -1,6 +1,6 @@
 import crypto from "node:crypto"
 import type {AppRouteHandler} from "@/lib/types"
-import type {CreateAutofundRoute, ExecuteTrade, GetTradeQuote} from "./spec-ops.routes"
+import type {CreateAutofundRoute, ExecuteOnrampTrade, GetOnrampQuote, ExecuteOfframpTrade, GetOfframpQuote} from "./spec-ops.routes"
 import * as HttpStatusCodes from "stoker/http-status-codes"
 import { OrgMetadata, orgSchema } from "@flintapi/shared/Utils"
 import { OnbrailsAdapter } from "@flintapi/shared/Adapters"
@@ -62,7 +62,7 @@ export const createAutofunder: AppRouteHandler<CreateAutofundRoute> = async (c) 
 }
 
 const INTERNAL_DEV_FEE = 0.2;
-export const getTradeQuote: AppRouteHandler<GetTradeQuote> = async (c) => {
+export const getOnrampQuote: AppRouteHandler<GetOnrampQuote> = async (c) => {
   try {
     const body = c.req.valid('json')
     const { data: quoteResponse, error } = await betterFetch<{
@@ -99,21 +99,21 @@ export const getTradeQuote: AppRouteHandler<GetTradeQuote> = async (c) => {
       body: JSON.stringify({
         amount: body.amount,
         country: "NG",
-        asset: "base:usdc",
+        asset: `${body.network}:${body.asset}`,
         currency: body.currency ?? "NGN",
         channel: "BANK",
-        exact_output: false,
+        exact_output: true,
         developer_fee: INTERNAL_DEV_FEE + (body?.feePercent ?? 0)
       })
     })
 
     if(error) {
-      apiLogger.error(`Failed to get trade quote`, {error, requedId: c.get('requestId')})
+      apiLogger.error(`[ONRAMP]: Failed to get trade quote`, {error, requedId: c.get('requestId')})
       return c.json({
-        message: `Failed to get trade quote`,
+        message: error?.message || `Failed to get trade quote`,
         status: "failed",
         data: null,
-      }, HttpStatusCodes.INTERNAL_SERVER_ERROR)
+      }, HttpStatusCodes.BAD_REQUEST)
     }
 
     return c.json({
@@ -137,7 +137,82 @@ export const getTradeQuote: AppRouteHandler<GetTradeQuote> = async (c) => {
   }
 }
 
-export const executeTrade: AppRouteHandler<ExecuteTrade> = async (c) => {
+export const getOfframpQuote: AppRouteHandler<GetOfframpQuote> = async (c) => {
+  try {
+    const body = c.req.valid('json')
+    const { data: quoteResponse, error } = await betterFetch<{
+      success: true,
+      message: "Quote fetched successfully",
+      timestamp: string,
+      data: {
+        rate: number,
+        expiry: string,
+        settlement: string,
+        channel: string,
+        fee: {
+          total: number,
+          platform: number,
+          developer: number,
+          currency: string
+        },
+        fee_inclusive: boolean,
+        source: {
+          amount: number,
+          currency: string
+        },
+        destination: {
+          amount: number,
+          currency: string
+        }
+      }
+    }, Error | unknown>(`${env.SWITCH_URL}/offramp/quote`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-service-key": `${env.SWITCH_API_KEY}`
+      },
+      body: JSON.stringify({
+        amount: body.amount,
+        country: "NG",
+        asset: `${body.network}:${body.asset}`,
+        currency: body.currency ?? "NGN",
+        channel: "BANK",
+        exact_output: true,
+        developer_fee: INTERNAL_DEV_FEE + (body?.feePercent ?? 0)
+      })
+    })
+
+    if(error) {
+      apiLogger.error(`[OFFRAMP]: Failed to get trade quote`, {error, requedId: c.get('requestId')})
+      return c.json({
+        message: error?.message || `Failed to get trade quote`,
+        status: "failed",
+        data: null,
+      }, HttpStatusCodes.BAD_REQUEST)
+    }
+
+    return c.json({
+      message: "Quote fetched successfully",
+      status: "success",
+      data: {
+        rate: quoteResponse.data.rate,
+        expiry: quoteResponse.data.expiry,
+        source: quoteResponse.data.source,
+        destination: quoteResponse.data.destination
+      },
+    })
+  }
+  catch(error: any) {
+    apiLogger.error(`Failed to create auto fund account`, {error, requedId: c.get('requestId')})
+    return c.json({
+      message: `Failed to create auto fund account`,
+      status: "failed",
+      data: null,
+    }, HttpStatusCodes.INTERNAL_SERVER_ERROR)
+  }
+}
+
+export const executeOnrampTrade: AppRouteHandler<ExecuteOnrampTrade> = async (c) => {
   try {
     const body = c.req.valid('json')
     interface NewType {
@@ -210,10 +285,10 @@ export const executeTrade: AppRouteHandler<ExecuteTrade> = async (c) => {
     if(error) {
       apiLogger.error(`Failed to execute trade`, {error, requedId: c.get('requestId')})
       return c.json({
-        message: `Failed to execute trade`,
+        message: error?.message || `Failed to execute trade`,
         status: "failed",
         data: null,
-      }, HttpStatusCodes.INTERNAL_SERVER_ERROR)
+      }, HttpStatusCodes.BAD_REQUEST)
     }
 
     // Update DB
@@ -233,6 +308,123 @@ export const executeTrade: AppRouteHandler<ExecuteTrade> = async (c) => {
           collectionAccountNumber: executeResponse.data.deposit.account_number,
           collectionBankName: executeResponse.data.deposit.bank_name,
           notifyUrl: body.notifyUrl,
+          webhookSecret,
+        },
+      })
+      .returning();
+
+    return c.json({
+      message: "Quote fetched successfully",
+      status: "success",
+      data: {deposit: executeResponse.data.deposit},
+    })
+  }
+  catch(error: any) {
+    apiLogger.error(`Failed to execute trade`, {error, requedId: c.get('requestId')})
+    return c.json({
+      message: `Failed to execute trade`,
+      status: "failed",
+      data: null,
+    }, HttpStatusCodes.INTERNAL_SERVER_ERROR)
+  }
+}
+
+export const executeOfframpTrade: AppRouteHandler<ExecuteOfframpTrade> = async (c) => {
+  try {
+    const body = c.req.valid('json')
+    interface NewType {
+      success: boolean
+      message: string
+      timestamp: string
+      data: {
+        status: string
+        type: string
+        reference: string
+        rate: number
+        fee: {
+          total: number
+          platform: number
+          developer: number
+          currency: string
+        }
+        source: {
+          amount: number
+          currency: string
+        }
+        destination: {
+          amount: number
+          currency: string
+        }
+        deposit: {
+          amount: number;
+          address: string;
+          assset: string;
+          note: string[]
+        }
+      }
+    }
+
+    // TODO: Store transaction in DB
+    const organization = c.get('organization')
+    const webhookSecret = c.get('webhookSecret')
+    // const orgDatabase = c.get('orgDatabase')
+    const metadata: OrgMetadata = typeof organization.metadata !== 'string'? organization.metadata : JSON.parse(organization.metadata)
+    const orgDatabase = orgDb({
+      dbUrl: metadata?.dbUrl
+    });
+
+    const { data: executeResponse, error } = await betterFetch<NewType, Error | unknown>(`${env.SWITCH_URL}/offramp/initiate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-service-key": `${env.SWITCH_API_KEY}`
+      },
+      body: JSON.stringify({
+        amount: body.amount,
+        country: "NG",
+        currency: "NGN",
+        asset: `${body.network}:${body.asset}`,
+        beneficiary: {
+          holder_type: "INDIVIDUAL",
+          holder_name: "Julie Dane",
+          account_number: body.destination.accountNumber,
+          bank_code: body.destination.bankCode,
+        },
+        exact_output: true,
+        callback_url: `${env.API_GATEWAY_URL}/webhooks/switch/${organization.id}/${body.reference}`,
+        reference: body.reference,
+        channel: "BANK",
+        reason: "REMITTANCES",
+        developer_fee: INTERNAL_DEV_FEE + (body?.feePercent ?? 0)
+      })
+    })
+
+    if(error) {
+      apiLogger.error(`Failed to execute trade`, {error, requedId: c.get('requestId')})
+      return c.json({
+        message: error?.message || `Failed to execute trade`,
+        status: "failed",
+        data: null,
+      }, HttpStatusCodes.BAD_REQUEST)
+    }
+
+    // Update DB
+    await orgDatabase
+      .insert(orgSchema.transactions)
+      .values({
+        type: "off-ramp",
+        status: "pending",
+        network: body.network,
+        reference: body.reference,
+        amount: body.amount,
+        metadata: {
+          isDestinationExternal: true,
+          asset: body.asset,
+          bankCode: body.destination.bankCode,
+          accountNumber: body.destination.accountNumber,
+          // depositAddress: result.address,
+          // index: result.index, // update from kms service get-address
+          notifyUrl: body?.notifyUrl,
           webhookSecret,
         },
       })
