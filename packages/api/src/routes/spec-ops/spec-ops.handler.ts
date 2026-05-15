@@ -3,7 +3,7 @@ import type {AppRouteHandler} from "@/lib/types"
 import type {CreateAutofundRoute, ExecuteOnrampTrade, GetOnrampQuote, ExecuteOfframpTrade, GetOfframpQuote} from "./spec-ops.routes"
 import * as HttpStatusCodes from "stoker/http-status-codes"
 import { OrgMetadata, orgSchema } from "@flintapi/shared/Utils"
-import { OnbrailsAdapter } from "@flintapi/shared/Adapters"
+import { FiatPaymentContext, OnbrailsAdapter, PaymentProvider } from "@flintapi/shared/Adapters"
 import { cacheVirtualAccount } from "../ramp/ramp.utils"
 import { apiLogger } from "@flintapi/shared/Logger"
 import { Address } from "viem"
@@ -373,6 +373,13 @@ export const executeOfframpTrade: AppRouteHandler<ExecuteOfframpTrade> = async (
       dbUrl: metadata?.dbUrl
     });
 
+    const paymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
+
+    const accountName = await paymentContext.nameEnquiry({
+      bankCode: body.destination.bankCode,
+      accountNumber: body.destination.accountNumber,
+    });
+
     const { data: executeResponse, error } = await betterFetch<NewType, Error | unknown>(`${env.SWITCH_URL}/offramp/initiate`, {
       method: "POST",
       headers: {
@@ -386,7 +393,7 @@ export const executeOfframpTrade: AppRouteHandler<ExecuteOfframpTrade> = async (
         asset: `${body.network}:${body.asset}`,
         beneficiary: {
           holder_type: "INDIVIDUAL",
-          holder_name: "Julie Dane",
+          holder_name: accountName || "Julie Dane",
           account_number: body.destination.accountNumber,
           bank_code: body.destination.bankCode,
         },
