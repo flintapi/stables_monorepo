@@ -57,7 +57,7 @@ const getAutofundDetails = createRoute({
   },
 })
 
-export const getTradeQuote = createRoute({
+export const getOnrampQuote = createRoute({
   hide: false,
   tags,
   path: "/spec-ops/otc/onramp/quote",
@@ -72,7 +72,7 @@ export const getTradeQuote = createRoute({
         amount: z.number().min(0),
         currency: z.string().default('NGN'),
         network: z.enum(['base', 'bsc']),
-        asset: z.enum(['usdc']),
+        asset: z.enum(['usdc', 'usdt']),
         feePercent: z.number().optional(),
       }),
       "Payload to get quote for assets listed"
@@ -83,6 +83,7 @@ export const getTradeQuote = createRoute({
       otcResponseSchema(z.any()),
       "Response for successful quote request"
     ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(otcResponseSchema(z.any()), "Bad request response"),
     [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
       otcResponseSchema(z.any()),
       "Response for internal errors"
@@ -90,7 +91,42 @@ export const getTradeQuote = createRoute({
   },
 })
 
-export const executeTrade = createRoute({
+export const getOfframpQuote = createRoute({
+  hide: false,
+  tags,
+  path: "/spec-ops/otc/offramp/quote",
+  method: "post",
+  middleware: [
+    lockPayoutRequest(),
+    validateRequest(),
+  ],
+  request: {
+    body: jsonContent(
+      z.object({
+        amount: z.number().min(0),
+        currency: z.string().default('NGN'),
+        network: z.enum(['base', 'bsc']),
+        asset: z.enum(['usdc', 'usdt']),
+        feePercent: z.number().optional(),
+      }),
+      "Payload to get quote for assets listed"
+    )
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      otcResponseSchema(z.any()),
+      "Response for successful quote request"
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(otcResponseSchema(z.any()), "Bad request response"),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      otcResponseSchema(z.any()),
+      "Response for internal errors"
+    )
+  },
+})
+
+
+export const executeOnrampTrade = createRoute({
   hide: false,
   tags,
   path: "/spec-ops/otc/onramp/execute",
@@ -105,7 +141,7 @@ export const executeTrade = createRoute({
         amount: z.number(),
         feePercent: z.number(),
         network: z.enum(['base', 'bsc']),
-        asset: z.enum(['usdc']),
+        asset: z.enum(['usdc', 'usdt']),
         reference: z.uuid(),
         notifyUrl: z.url(),
         destination: z.object({
@@ -120,6 +156,7 @@ export const executeTrade = createRoute({
       otcResponseSchema(z.any()),
       "Response for successful trade execution"
     ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(otcResponseSchema(z.any()), "Bad request response"),
     [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
       otcResponseSchema(z.any()),
       "Response for internal errors"
@@ -128,8 +165,49 @@ export const executeTrade = createRoute({
 })
 
 
+export const executeOfframpTrade = createRoute({
+  hide: false,
+  tags,
+  path: "/spec-ops/otc/offramp/execute",
+  method: "post",
+  middleware: [
+    lockPayoutRequest(),
+    validateRequest(),
+  ],
+  request: {
+    body: jsonContent(
+      z.object({
+        amount: z.number(),
+        feePercent: z.number(),
+        network: z.enum(['base', 'bsc']),
+        asset: z.enum(['usdc', 'usdt']),
+        reference: z.uuid(),
+        notifyUrl: z.url(),
+        destination: z.object({
+          accountNumber: z.string().max(11),
+          bankCode: z.string(),
+        })
+      }),
+      "Payload to execute trade"
+    )
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      otcResponseSchema(z.any()),
+      "Response for successful trade execution"
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(otcResponseSchema(z.any()), "Bad request response"),
+    [HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+      otcResponseSchema(z.any()),
+      "Response for internal errors"
+    )
+  },
+})
+
 
 export type CreateAutofundRoute = typeof createAutofund;
 export type GetAutofundDetailsRoute = typeof getAutofundDetails;
-export type GetTradeQuote = typeof getTradeQuote;
-export type ExecuteTrade = typeof executeTrade;
+export type GetOnrampQuote = typeof getOnrampQuote;
+export type GetOfframpQuote = typeof getOfframpQuote;
+export type ExecuteOnrampTrade = typeof executeOnrampTrade;
+export type ExecuteOfframpTrade = typeof executeOfframpTrade;
