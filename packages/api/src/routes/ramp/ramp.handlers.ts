@@ -268,7 +268,10 @@ export const banks: AppRouteHandler<BankListRequest> = async (c) => {
       {
         status: "success" as ResponseStatus,
         message: "Bank list",
-        data: banks || [
+        data: banks.map((bank) => ({
+          bankCode: bank['nipBankCode'] || bank.code,
+          ...bank,
+        })) || [
           {
             institutionName: "BellBank",
             institutionCode: "123456",
