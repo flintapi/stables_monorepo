@@ -17,21 +17,21 @@ import {
 import { networkToChainidMap, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 import env from "@/env";
-import { QueueInstances, QueueNames, bullMqBase } from "@flintapi/shared/Queue";
+// import { QueueInstances, QueueNames, bullMqBase } from "@flintapi/shared/Queue";
 import { ResponseStatus } from "@/lib/types";
 import { QueueEvents } from "bullmq";
 import { Address } from "viem";
-import {
-  cacheVirtualAccount,
-  getDefaultVirtualAccountArgs,
-} from "./ramp.utils";
+// import {
+//   cacheVirtualAccount,
+//   getDefaultVirtualAccountArgs,
+// } from "./ramp.utils";
 import { apiLogger } from "@flintapi/shared/Logger";
 import { eq } from "drizzle-orm";
 
-const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
-const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
-const eventQueue = QueueInstances[QueueNames.EVENT_QUEUE];
-const eventQueueEvents = new QueueEvents(QueueNames.EVENT_QUEUE, bullMqBase);
+// const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
+// const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
+// const eventQueue = QueueInstances[QueueNames.EVENT_QUEUE];
+// const eventQueueEvents = new QueueEvents(QueueNames.EVENT_QUEUE, bullMqBase);
 
 const PAYCREST_FEE_PERC = 0.2;
 const PAYCREST_FEE_CAP = 1500;
