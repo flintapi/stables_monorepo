@@ -3,7 +3,7 @@ import type {AppRouteHandler} from "@/lib/types"
 import type {CreateAutofundRoute, ExecuteOnrampTrade, GetOnrampQuote, ExecuteOfframpTrade, GetOfframpQuote} from "./spec-ops.routes"
 import * as HttpStatusCodes from "stoker/http-status-codes"
 import { OrgMetadata, orgSchema } from "@flintapi/shared/Utils"
-import { FiatPaymentContext, OnbrailsAdapter, PaymentProvider } from "@flintapi/shared/Adapters"
+import { FiatPaymentContext, OnbrailsAdapter } from "@flintapi/shared/Adapters"
 import { cacheVirtualAccount } from "../ramp/ramp.utils"
 import { apiLogger } from "@flintapi/shared/Logger"
 import { Address } from "viem"
@@ -373,9 +373,9 @@ export const executeOfframpTrade: AppRouteHandler<ExecuteOfframpTrade> = async (
       dbUrl: metadata?.dbUrl
     });
 
-    const paymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
+    // const paymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
 
-    const accountName = await paymentContext.nameEnquiry({
+    const {accountName} = await new OnbrailsAdapter().nameEnquiry({
       bankCode: body.destination.bankCode,
       accountNumber: body.destination.accountNumber,
     });
