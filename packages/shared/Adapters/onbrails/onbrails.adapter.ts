@@ -85,6 +85,7 @@ class OnbrailsAdapter {
       data: Array<{
         id: number;
         code: string;
+        nipBankCode: string;
         name: string;
         currency: string;
       }>;
