@@ -19,7 +19,9 @@ class OnbrailsAdapter {
   private fetch: BetterFetch;
   private ENDPOINT_CONFIGS = {
     collection: '/wallets/collections/initialize',
-    virtualAC: '/api/v1/virtual-accounts'
+    virtualAC: '/api/v1/virtual-accounts',
+    listBanks: `/api/v1/beneficiaries/banklist/NG/NGN`,
+    nameInquiry: `/api/v1/beneficiaries/lookup`
   }
 
   constructor() {
@@ -74,6 +76,59 @@ class OnbrailsAdapter {
     }
 
     return virtualAccountData.data;
+  }
+
+  async listBanks() {
+    const { data: bankList, error: bankListError } = await this.fetch<{
+      status: boolean;
+      message: string;
+      data: Array<{
+        id: number;
+        code: string;
+        name: string;
+        currency: string;
+      }>;
+    }>(`${this.ENDPOINT_CONFIGS.listBanks}`, {
+      headers: {
+        'authorization': `Bearer ${process.env.ONBRAILS_API_KEY}`
+      },
+    });
+
+    if(bankListError) {
+      console.log('Failed to fetch bank list', {bankListError})
+      throw bankListError.message
+    }
+
+    return bankList.data
+  }
+
+  async nameEnquiry({ accountNumber, bankCode }: { accountNumber: string; bankCode: string; }) {
+    const { data: nameInquiry, error} = await this.fetch<{
+      status: boolean;
+      message: string;
+      data: {
+        accountName: string;
+        country: string;
+        accountNumber: string;
+        code: string;
+      }
+    }>(this.ENDPOINT_CONFIGS.nameInquiry, {
+      headers: {
+        'authorization': `Bearer ${process.env.ONBRAILS_API_KEY}`
+      },
+      body: {
+        country: 'NG',
+        accountNumber,
+        bankCode
+      }
+    })
+
+    if (error) {
+      console.log('Failed to fetch name inquiry', {error})
+      throw error.message
+    }
+
+    return nameInquiry.data
   }
 }
 

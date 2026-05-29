@@ -8,9 +8,6 @@ import type {
 import { transaction as transactionSchema } from "./ramp.schema";
 import {
   OnbrailsAdapter,
-  BellbankAdapter,
-  FiatPaymentContext,
-  PaymentProvider,
   SwitchAdapter,
   PaycrestAdapter,
 } from "@flintapi/shared/Adapters";
@@ -19,8 +16,8 @@ import * as HttpStatusCodes from "stoker/http-status-codes";
 import env from "@/env";
 // import { QueueInstances, QueueNames, bullMqBase } from "@flintapi/shared/Queue";
 import { ResponseStatus } from "@/lib/types";
-import { QueueEvents } from "bullmq";
-import { Address } from "viem";
+// import { QueueEvents } from "bullmq";
+// import { Address } from "viem";
 // import {
 //   cacheVirtualAccount,
 //   getDefaultVirtualAccountArgs,
@@ -68,9 +65,9 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
         // const result = (await getAddressJob.waitUntilFinished(
         //   kmsQueueEvents,
         // )) as { address: Address; index: number };
-        const paymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
+        // const paymentContext = new FiatPaymentContext(PaymentProvider.PALMPAY);
 
-        const accountName = await paymentContext.nameEnquiry({
+        const {accountName} = await new OnbrailsAdapter().nameEnquiry({
           bankCode: destination.bankCode,
           accountNumber: destination.accountNumber,
         });
@@ -264,11 +261,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
 
 export const banks: AppRouteHandler<BankListRequest> = async (c) => {
   try {
-    const provider = PaymentProvider.PALMPAY;
 
-    const paymentContext = new FiatPaymentContext(provider);
-
-    const banks = await paymentContext.listBanks();
+    const banks = await new OnbrailsAdapter().listBanks();
 
     return c.json(
       {
@@ -299,11 +293,8 @@ export const banks: AppRouteHandler<BankListRequest> = async (c) => {
 export const nameQuery: AppRouteHandler<NameQueryRequest> = async (c) => {
   try {
     const query = c.req.valid("query")
-    const provider = PaymentProvider.PALMPAY;
 
-    const paymentContext = new FiatPaymentContext(provider);
-
-    const accountName = await paymentContext.nameEnquiry({
+    const {accountName} = await new OnbrailsAdapter().nameEnquiry({
       bankCode: query.bankCode,
       accountNumber: query.accountNumber,
     });
