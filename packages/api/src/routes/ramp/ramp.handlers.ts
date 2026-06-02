@@ -9,7 +9,8 @@ import { transaction as transactionSchema } from "./ramp.schema";
 import {
   OnbrailsAdapter,
   SwitchAdapter,
-  PaycrestAdapter,
+    PaycrestAdapter,
+    PalmpayAdapter,
 } from "@flintapi/shared/Adapters";
 import { networkToChainidMap, TOKEN_ADDRESSES } from "@flintapi/shared/Utils";
 import * as HttpStatusCodes from "stoker/http-status-codes";
@@ -390,3 +391,10 @@ export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
     );
   }
 };
+
+
+async function main() {
+  apiLogger.info(`Balance info`, await new PalmpayAdapter().getBalance())
+}
+
+main().catch(apiLogger.error)

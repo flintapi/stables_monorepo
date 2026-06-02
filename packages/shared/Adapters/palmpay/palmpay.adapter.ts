@@ -216,6 +216,44 @@ export default class {
     return transactionResponse.data
   }
 
+  
+  async getBalance() {
+    const body = {
+      ...this.getDefaultBody(),
+      merchantId: process.env.PALMPAY_MERCHANT_ID
+    }
+
+    const privateKeyPEM = `-----BEGIN PRIVATE KEY-----\n${process.env.PALMPAY_MERCHANT_SK}\n-----END PRIVATE KEY-----`
+
+    const signature = generateSignature(body, privateKeyPEM)
+    console.log("PALMPAY SIGNATURE", signature)
+
+    const { data: transactionResponse, error } = await this.fetch<{
+      respCode: string;
+      respMsg: string;
+      data: any
+    }>('/merchant/manage/account/queryBalance', {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Signature": signature,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "CountryCode": "NG",
+        "Authorization": `Bearer ${process.env.PALMPAY_APP_ID}`,
+      }
+    });
+
+    if(error || !transactionResponse.data) {
+      console.log("Error fetching transaction details:", error, transactionResponse)
+      throw new Error("Failed to fetch balance")
+    }
+
+    console.log("Balance details", transactionResponse)
+
+    return transactionResponse.data
+  }
+
   private getDefaultBody() {
     return {
       requestTime: Date.now(),
