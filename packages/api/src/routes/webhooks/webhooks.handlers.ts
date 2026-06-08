@@ -456,6 +456,7 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
     })
 
     if (!organization) {
+      apiLogger.error(`Organization not found`, {organization, params})
       return c.text('failed', HttpStatusCodes.BAD_REQUEST);
     }
 
@@ -468,6 +469,7 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
       }
     })
     if (!transaction) {
+      apiLogger.error(`Transaction not found`, {transaction, params})
       return c.text('failed', HttpStatusCodes.BAD_REQUEST);
     }
 
@@ -504,7 +506,7 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
       return c.text('success', HttpStatusCodes.OK)
     }
 
-    return c.text('failed', HttpStatusCodes.BAD_REQUEST)
+    return c.text('Un-used message', HttpStatusCodes.OK)
   }
   catch (error: any) {
     apiLogger.error("Failed to process switch callback", error)
