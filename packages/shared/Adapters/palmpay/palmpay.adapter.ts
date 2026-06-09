@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import crypto from "crypto";
 import { generateSignature, sortParams } from "./palmpay.utils";
 import { TransferRequest } from "Adapters/fiat.payment.strategy";
+import { apiLogger } from "Logger";
 
 export interface PalmpayTransferRequest extends TransferRequest {
   organizationId: string;
@@ -75,6 +76,7 @@ export default class {
 
     if(error || !transferResponse.data) {
       console.log("Error making transfer:", error, transferResponse);
+      apiLogger.error(`Failed to make transfer`, {error, transferResponse})
       throw new Error("Failed to make transfer");
     }
 
@@ -216,7 +218,7 @@ export default class {
     return transactionResponse.data
   }
 
-  
+
   async getBalance() {
     const body = {
       ...this.getDefaultBody(),
