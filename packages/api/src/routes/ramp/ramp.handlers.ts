@@ -398,9 +398,9 @@ async function main() {
   apiLogger.info(`Transfer request`, await new PalmpayAdapter().transfer({
     orderId: crypto.randomUUID(),
     notifyUrl: `https://webhook.site/2a26c89f-648c-44f7-a914-deab78bb3c65`,
-    payeeBankAccNo: `6028180945`,
+    payeeBankAccNo: `6021680428`,
     payeeBankCode: '090286',
-    amount: 45135,
+    amount: 35000,
     remark: 'Payout suppliment'
   }))
 }
