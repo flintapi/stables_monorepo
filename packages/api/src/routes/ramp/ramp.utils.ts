@@ -170,3 +170,9 @@ export async function sweepFunds(keyLabel: string, params: ISweepFundsProps) {
 
   return result;
 }
+
+
+export function round(n: number, decimals: number) {
+  // @ts-ignore
+  return Number(Math.round(n + 'e' + decimals) + 'e-' + decimals);
+}
