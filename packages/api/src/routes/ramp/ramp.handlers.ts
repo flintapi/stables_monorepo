@@ -25,7 +25,7 @@ import { ResponseStatus } from "@/lib/types";
 // } from "./ramp.utils";
 import { apiLogger } from "@flintapi/shared/Logger";
 import { eq } from "drizzle-orm";
-import { getProviderAmount, round } from "./ramp.utils";
+import { getProviderAmount } from "./ramp.utils";
 
 // const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 // const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
