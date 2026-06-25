@@ -55,6 +55,7 @@ class PaycrestAdapter {
       },
       body: JSON.stringify({
         amount,
+        senderFeePercent: "0.2",
         amountIn: "fiat",
         reference,
         source: {
