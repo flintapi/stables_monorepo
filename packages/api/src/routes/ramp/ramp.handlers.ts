@@ -25,7 +25,7 @@ import { ResponseStatus } from "@/lib/types";
 // } from "./ramp.utils";
 import { apiLogger } from "@flintapi/shared/Logger";
 import { eq } from "drizzle-orm";
-import { round } from "./ramp.utils";
+import { getProviderAmount, round } from "./ramp.utils";
 
 // const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 // const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -33,7 +33,6 @@ import { round } from "./ramp.utils";
 // const eventQueueEvents = new QueueEvents(QueueNames.EVENT_QUEUE, bullMqBase);
 
 const PAYCREST_FEE_PERC = 0.2;
-const PAYCREST_FEE_CAP = 1500;
 
 export const ramp: AppRouteHandler<RampRequest> = async (c) => {
   try {
@@ -198,11 +197,10 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           })
           .returning();
 
-        const fee = round(amount * (PAYCREST_FEE_PERC / 100), 2);
-        const transactionAmount = fee < PAYCREST_FEE_CAP ? round(amount - fee, 2) : round(amount - PAYCREST_FEE_CAP, 2);
-        apiLogger.info(`Fee, amount calculations`, {fee, transactionAmount})
+        const providerAmount = getProviderAmount(amount, PAYCREST_FEE_PERC);
+        apiLogger.info(`Fee, amount calculations`, {providerAmount})
         const result = await PaycrestAdapter.onRampInit({
-          amount: transactionAmount.toString(),
+          amount: providerAmount.toString(),
           reference: `${organization.id}-${newTransaction.id}`,
           network: network === "base" ? network : `bnb-smart-chain`,
           address: destination.address as `0x${string}`,
