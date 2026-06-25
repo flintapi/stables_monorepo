@@ -25,6 +25,7 @@ import { ResponseStatus } from "@/lib/types";
 // } from "./ramp.utils";
 import { apiLogger } from "@flintapi/shared/Logger";
 import { eq } from "drizzle-orm";
+import { round } from "./ramp.utils";
 
 // const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 // const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -197,10 +198,11 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           })
           .returning();
 
-        const fee = amount * (PAYCREST_FEE_PERC / 100);
-        const _transactionAmount = fee < PAYCREST_FEE_CAP ? (amount - fee) : amount - PAYCREST_FEE_CAP;
+        const fee = round(amount * (PAYCREST_FEE_PERC / 100), 2);
+        const transactionAmount = fee < PAYCREST_FEE_CAP ? round(amount - fee, 2) : round(amount - PAYCREST_FEE_CAP, 2);
+        apiLogger.info(`Fee, amount calculations`, {fee, transactionAmount})
         const result = await PaycrestAdapter.onRampInit({
-          amount: amount.toString(),
+          amount: transactionAmount.toString(),
           reference: `${organization.id}-${newTransaction.id}`,
           network: network === "base" ? network : `bnb-smart-chain`,
           address: destination.address as `0x${string}`,
@@ -393,16 +395,16 @@ export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
 };
 
 
-async function main() {
-  apiLogger.info(`Balance info`, await new PalmpayAdapter().getBalance())
-  apiLogger.info(`Transfer request`, await new PalmpayAdapter().transfer({
-    orderId: crypto.randomUUID(),
-    notifyUrl: `https://webhook.site/2a26c89f-648c-44f7-a914-deab78bb3c65`,
-    payeeBankAccNo: `6021680428`,
-    payeeBankCode: '090286',
-    amount: 35000,
-    remark: 'Payout suppliment'
-  }))
-}
+// async function main() {
+//   apiLogger.info(`Balance info`, await new PalmpayAdapter().getBalance())
+//   apiLogger.info(`Transfer request`, await new PalmpayAdapter().transfer({
+//     orderId: crypto.randomUUID(),
+//     notifyUrl: `https://webhook.site/2a26c89f-648c-44f7-a914-deab78bb3c65`,
+//     payeeBankAccNo: `6021680428`,
+//     payeeBankCode: '090286',
+//     amount: 35000,
+//     remark: 'Payout suppliment'
+//   }))
+// }
 
-main().catch(apiLogger.error)
+// main().catch(apiLogger.error)
