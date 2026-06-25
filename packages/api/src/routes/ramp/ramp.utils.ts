@@ -176,3 +176,12 @@ export function round(n: number, decimals: number) {
   // @ts-ignore
   return Number(Math.round(n + 'e' + decimals) + 'e-' + decimals);
 }
+
+export function getProviderAmount(orderAmount: number, feePercent: number): number {
+const PAYCREST_FEE_CAP = 1500;
+  const rate = feePercent / 100;
+  if ((orderAmount * rate) < PAYCREST_FEE_CAP) {
+    return Math.round((orderAmount / (1 + rate)) * 100) / 100;
+  }
+  return orderAmount - PAYCREST_FEE_CAP
+}
