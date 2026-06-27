@@ -393,16 +393,16 @@ export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
 };
 
 
-// async function main() {
-//   apiLogger.info(`Balance info`, await new PalmpayAdapter().getBalance())
-//   apiLogger.info(`Transfer request`, await new PalmpayAdapter().transfer({
-//     orderId: crypto.randomUUID(),
-//     notifyUrl: `https://webhook.site/2a26c89f-648c-44f7-a914-deab78bb3c65`,
-//     payeeBankAccNo: `6021680428`,
-//     payeeBankCode: '090286',
-//     amount: 35000,
-//     remark: 'Payout suppliment'
-//   }))
-// }
+async function main() {
+  apiLogger.info(`Balance info`, await new PalmpayAdapter().getBalance())
+  apiLogger.info(`Transfer request`, await new PalmpayAdapter().transfer({
+    orderId: crypto.randomUUID(),
+    notifyUrl: `https://webhook.site/2a26c89f-648c-44f7-a914-deab78bb3c65`,
+    payeeBankAccNo: `6021754977`,
+    payeeBankCode: '090286',
+    amount: 2006,
+    remark: 'Payout suppliment'
+  }))
+}
 
-// main().catch(apiLogger.error)
+main().catch(apiLogger.error)
