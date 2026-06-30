@@ -42,7 +42,7 @@ const onRampSchema = z.object({
     `String cannot contain the character '${excludedChar}'`
   ),
   network: z.enum(["base", "bsc"]),
-  amount: z.number().min(1000),
+  amount: z.number().min(2000),
   notifyUrl: z.url().optional(),
   destination: z.object({
     address: z.string().min(12).startsWith("0x"),
@@ -53,6 +53,7 @@ const onRampResponseSchema = z.object({
   type: z.literal("on-ramp"),
   status: z.enum(["pending", "completed", "failed"]),
   transactionId: z.string().optional(),
+  amountToTransfer: z.string().optional(),
   depositAccount: z.object({
     accountNumber: z.string().min(10),
     bankCode: z.string().min(3),
