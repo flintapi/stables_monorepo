@@ -465,7 +465,7 @@ export const switchNotify: AppRouteHandler<SwitchRoute> = async (c) => {
     // TODO: validate transaction
     const transaction = await orgDatabase.query.transactions.findFirst({
       where(fields, ops) {
-        return ops.eq(fields.id, params.trxId)
+        return ops.or(ops.eq(fields.id, params.trxId), ops.eq(fields.reference, params.trxId))
       }
     })
     if (!transaction) {
