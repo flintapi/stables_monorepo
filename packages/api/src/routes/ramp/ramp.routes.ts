@@ -137,7 +137,42 @@ export const nameQuery = createRoute({
   }
 })
 
+export const getRate = createRoute({
+	tags,
+	path: "/ramp/rate",
+	method: "post",
+	middleware: [validateRequest()],
+	description: "Query asset rate",
+	request: {
+		body: jsonContentRequired(
+			z.object({
+				type: z.enum(["on", "off"]),
+				amount: z.number(),
+				network: z.enum(["base", "bsc"]),
+			}),
+			"Rate schema"
+		)
+	},
+	responses: {
+		[HttpStatusCodes.OK]: jsonContent(
+			createRampResponseSchema(z.object({
+				rate: z.number(),
+				destinationAmount: z.number(),
+				amountToTransfer: z.number(),
+				type: z.enum(["on", "off"]),
+				network: z.enum(["base", "bsc"]),
+			})),
+			"Rate details"
+		),
+		[HttpStatusCodes.INTERNAL_SERVER_ERROR]: jsonContent(
+			createRampResponseSchema("Internal server error"),
+			"Internal server error"
+		)
+	}
+})
+
 export type RampRequest = typeof ramp;
 export type BankListRequest = typeof banks;
 export type TransactionRequest = typeof transaction;
 export type NameQueryRequest = typeof nameQuery;
+export type GetRateRequest = typeof getRate;

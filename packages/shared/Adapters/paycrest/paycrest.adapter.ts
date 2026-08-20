@@ -20,7 +20,42 @@ class PaycrestAdapter {
     if (!this.instance)
       this.instance = new PaycrestAdapter()
     return this.instance;
-  }
+	}
+
+	async buyRate(network: string, from: "CNGN", amount: number, to: "NGN") {
+		const { data: buyRate, error } = await this.fetch<{
+			status: string;
+			message: string;
+			data: {
+				sell?: any | undefined;
+				buy?: {
+					rate: string;
+					providerIds: Array<string>;
+					orderType: string;
+					refundTimeoutMinutes: number
+				};
+			}
+		}>(`/rates/${network}/${from}/${amount}/${to}`, {
+			method: "get",
+			headers: {
+				"Api-Key": process.env.PAYCREST_API_KEY!,
+				"content-type": "application/json"
+			}
+		});
+
+		if (error) {
+      apiLogger.error(`[Paycrest]: Failed to get order rate`, {
+        error
+      });
+      throw error;
+		}
+
+		if (!buyRate.data.buy || typeof buyRate.data.buy === "undefined") {
+			throw new Error('Amount too large to process at this time, try again later')
+		}
+
+		return buyRate.data.buy
+	}
 
   async onRampInit({
     address,
@@ -37,7 +72,11 @@ class PaycrestAdapter {
       status: string;
       message: string;
       data: {
-        [x: string]: any;
+				[x: string]: any;
+				rate: string;
+				senderFee: string;
+				amount: string;
+				status: string;
         providerAccount: {
           institution: string,
           accountIdentifier: string,
@@ -84,7 +123,7 @@ class PaycrestAdapter {
       throw error;
     }
 
-    return onRampOrderResponse?.data.providerAccount;
+    return onRampOrderResponse?.data;
   }
 }
 

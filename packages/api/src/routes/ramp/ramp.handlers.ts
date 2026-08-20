@@ -4,6 +4,7 @@ import type {
   BankListRequest,
   TransactionRequest,
   NameQueryRequest,
+	GetRateRequest,
 } from "./ramp.routes";
 import { transaction as transactionSchema } from "./ramp.schema";
 import {
@@ -26,6 +27,7 @@ import { ResponseStatus } from "@/lib/types";
 import { apiLogger } from "@flintapi/shared/Logger";
 import { eq } from "drizzle-orm";
 import { getProviderAmount } from "./ramp.utils";
+import { HttpRequestError } from "viem";
 
 // const kmsQueue = QueueInstances[QueueNames.WALLET_QUEUE];
 // const kmsQueueEvents = new QueueEvents(QueueNames.WALLET_QUEUE, bullMqBase);
@@ -198,7 +200,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           .returning();
 
         const providerAmount = getProviderAmount(amount, PAYCREST_FEE_PERC);
-        apiLogger.info(`Fee, amount calculations`, {providerAmount})
+        // const {rate} = await PaycrestAdapter.buyRate(network === "base" ? network : `bnb-smart-chain`, "CNGN", providerAmount, "NGN")
+        apiLogger.info(`Fee, amount calculations`, {providerAmount, actualAmount: amount})
         const result = await PaycrestAdapter.onRampInit({
           amount: providerAmount.toString(),
           reference: `${organization.id}-${newTransaction.id}`,
@@ -215,8 +218,8 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
           .set({
             metadata: {
               ...newTransaction.metadata,
-              collectionAccountNumber: result?.accountIdentifier,
-              collectionBankName: result?.institution,
+              collectionAccountNumber: result?.providerAccount.accountIdentifier,
+              collectionBankName: result?.providerAccount.institution,
             } as any
           })
           .where(eq(transactionSchema.id, newTransaction.id))
@@ -235,12 +238,13 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
               type: "on",
               status: "pending",
               transactionId: newTransaction.id,
-              amountToTransfer: result.amountToTransfer,
+							amountToTransfer: result.providerAccount.amountToTransfer,
+              expectedAmount: result.amount,
               depositAccount: {
-                accountNumber: result?.accountIdentifier,
-                accountName: result?.accountName,
+                accountNumber: result.providerAccount.accountIdentifier,
+                accountName: result.providerAccount.accountName,
                 bankCode: PaycrestAdapter.bankCode,
-                bankName: result?.institution,
+                bankName: result.providerAccount.institution,
               },
             },
           },
@@ -393,6 +397,69 @@ export const transaction: AppRouteHandler<TransactionRequest> = async (c) => {
 };
 
 
+export const getRate: AppRouteHandler<GetRateRequest> = async (c) => {
+	try {
+		const body = c.req.valid("json")
+
+		switch (body.type) {
+			case "on": {
+				const rateResult = await PaycrestAdapter.buyRate(body.network === "base" ? body.network : `bnb-smart-chain`, "CNGN", body.amount, "NGN")
+				const providerAmount = getProviderAmount(body.amount, PAYCREST_FEE_PERC);
+				const tokenAmount = (providerAmount/Number(rateResult.rate))
+				const response = {
+					fee: (body.amount-tokenAmount),
+					destinationAmount: tokenAmount,
+					amountToTransfer: body.amount,
+					type: body.type,
+					network: body.network,
+				}
+				return c.json({
+					status: "success",
+					message: "On-Ramp Quote",
+					data: response
+				}, HttpStatusCodes.OK)
+			}
+			case "off": {
+				const quote = await SwitchAdapter.offrampQuote(`${body.network}:cngn`, "BANK", body.amount)
+				const response = {
+					fee: (body.amount-quote.destination.amount),
+					destinationAmount: quote.destination.amount,
+					amountToTransfer: body.amount,
+					type: body.type,
+					network: body.network,
+				}
+
+				return c.json({
+					status: "success",
+					message: "On-Ramp Quote",
+					data: response
+				}, HttpStatusCodes.OK)
+			}
+			default: {
+				return c.json(
+		      {
+		        status: "failed" as ResponseStatus,
+		        message: "Failed to get rate: value of type field is invalid, acceptable - (on|off)",
+		        data: null,
+		      },
+		      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+				);
+			}
+		}
+
+	}
+	catch (error: any) {
+    // Log error
+    return c.json(
+      {
+        status: "failed" as ResponseStatus,
+        message: "Failed to get rate",
+        data: null,
+      },
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+		);
+	}
+}
 // async function main() {
 //   apiLogger.info(`Balance info`, await new PalmpayAdapter().getBalance())
 //   apiLogger.info(`Transfer request`, await new PalmpayAdapter().transfer({
