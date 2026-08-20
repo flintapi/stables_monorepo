@@ -54,9 +54,10 @@ class SwitchAdapter {
         amount,
         asset,
         country,
-        channel,
+				channel,
+				currency: "NGN",
         "exact_output": false,
-        "developer_fee": 0.1
+        "developer_fee": DEVELOPER_FEE ?? 0.1
       },
       headers: {
         "x-service-key": process.env.SWITCH_SERVICE_KEY!,
