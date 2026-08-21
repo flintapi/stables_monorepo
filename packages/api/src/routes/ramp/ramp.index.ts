@@ -3,6 +3,7 @@ import * as routes from "./ramp.routes"
 import * as handlers from "./ramp.handlers"
 
 
+// Should compile and reqork new handlers
 const router = createRouter()
   .openapi(routes.ramp, handlers.ramp)
   .openapi(routes.banks, handlers.banks)

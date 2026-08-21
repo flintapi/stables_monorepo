@@ -210,7 +210,7 @@ export const ramp: AppRouteHandler<RampRequest> = async (c) => {
         })
 
         apiLogger.info("On ramp bank details:", {
-          result
+          ...result
         });
 
         await orgDatabase
