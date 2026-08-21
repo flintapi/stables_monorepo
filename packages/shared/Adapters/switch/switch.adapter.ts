@@ -50,7 +50,7 @@ class SwitchAdapter {
       }
     }>('/offramp/quote', {
       method: "post",
-      body: {
+      body: JSON.stringify({
         amount,
         asset,
         country,
@@ -58,7 +58,7 @@ class SwitchAdapter {
 				currency: "NGN",
         "exact_output": false,
         "developer_fee": DEVELOPER_FEE ?? 0.1
-      },
+      }),
       headers: {
         "x-service-key": process.env.SWITCH_SERVICE_KEY!,
         "content-type": "application/json"
