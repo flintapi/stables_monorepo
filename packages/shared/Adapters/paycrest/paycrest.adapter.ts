@@ -100,9 +100,9 @@ class PaycrestAdapter {
           type: "fiat",
           currency: "NGN",
           refundAccount: {
-            institution: "GTBINGLA",
-            accountIdentifier: "0427930420",
-            accountName: "Miracle Friday"
+            institution: "GLOUNGLA",
+            accountIdentifier: "9613003571",
+            accountName: "BRAILS-FLINTAPI LIMITED"
           }
         },
         destination: {
